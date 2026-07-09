@@ -32,13 +32,10 @@ yarn-error.log
 # Miscellaneous
 /.angular/cache
 .sass-cache/
-/connect.lock
 /coverage
-/libpeerconnection.log
-testem.log
 /typings
-__screenshots__/
 
 # System files
 .DS_Store
 Thumbs.db
+desktop.ini
