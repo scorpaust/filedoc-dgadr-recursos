@@ -29,18 +29,14 @@
     <button
       type="button"
       class="fdr-app-header__theme-toggle"
-      [attr.aria-label]="themeToggleLabel()"
+      aria-label="{{ themeToggleLabel() }}"
       (click)="themeService.toggle()"
     >
       <fdr-icon [name]="themeService.theme() === 'dark' ? 'sun' : 'moon'" />
     </button>
 
-    <div class="fdr-app-header__user">
-      <span class="fdr-app-header__avatar" aria-hidden="true">{{ initials() }}</span>
-      <div class="fdr-app-header__user-info">
-        <span class="fdr-app-header__user-name">{{ currentUser.name }}</span>
-        <fdr-pill [label]="currentUser.career" tone="info" />
-      </div>
-    </div>
+    @if (authService.currentUser(); as user) {
+      <fdr-user-menu [user]="user" />
+    }
   </div>
 </header>

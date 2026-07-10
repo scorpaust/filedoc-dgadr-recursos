@@ -1,0 +1,71 @@
+// Estilos partilhados de campos de formulário — reutilizados pelos ecrãs de autenticação
+// (login, alteração de palavra-passe) e por outros formulários futuros da aplicação.
+
+@use 'mixins' as *;
+
+.fdr-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-1);
+
+  &__label {
+    font-size: var(--fdr-text-sm);
+    font-weight: var(--fdr-font-weight-medium);
+    color: var(--fdr-text-primary);
+  }
+
+  &__input {
+    height: 2.75rem;
+    padding: 0 var(--fdr-space-4);
+    border-radius: var(--fdr-radius-md);
+    border: 1px solid var(--fdr-border-strong);
+    background: var(--fdr-bg-surface-raised);
+    color: var(--fdr-text-primary);
+    font-size: var(--fdr-text-base);
+    width: 100%;
+
+    &::placeholder {
+      color: var(--fdr-text-muted);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &[aria-invalid='true'] {
+      border-color: var(--fdr-tone-danger-border);
+    }
+  }
+
+  &__input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .fdr-field__input {
+      padding-right: var(--fdr-space-8);
+    }
+  }
+
+  &__toggle-visibility {
+    position: absolute;
+    right: var(--fdr-space-2);
+    display: inline-flex;
+    padding: var(--fdr-space-2);
+    border: none;
+    border-radius: var(--fdr-radius-sm);
+    background: transparent;
+    color: var(--fdr-text-secondary);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fdr-bg-hover);
+    }
+  }
+
+  &__error {
+    margin: 0;
+    color: var(--fdr-tone-danger-text);
+    font-size: var(--fdr-text-sm);
+  }
+}

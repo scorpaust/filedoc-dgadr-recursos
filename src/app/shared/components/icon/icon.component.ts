@@ -24,7 +24,11 @@ export type IconName =
   | 'plus'
   | 'arrow-left'
   | 'ban'
-  | 'info';
+  | 'info'
+  | 'eye'
+  | 'eye-off'
+  | 'log-out'
+  | 'key';
 
 export type IconSize = 'sm' | 'md' | 'lg';
 
@@ -143,6 +147,28 @@ const SIZE_PX: Record<IconSize, number> = { sm: 16, md: 20, lg: 24 };
           <circle cx="12" cy="12" r="9" />
           <path d="M12 8h.01" />
           <path d="M11 12h1v5h1" />
+        }
+        @case ('eye') {
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+          <circle cx="12" cy="12" r="3" />
+        }
+        @case ('eye-off') {
+          <path
+            d="M9.5 5.1A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.1 4.1M6.4 6.4C3.9 8.2 2 12 2 12s3.5 7 10 7a10.6 10.6 0 0 0 3.6-.6"
+          />
+          <path d="M9.5 9.9a3 3 0 0 0 4.2 4.2" />
+          <path d="M3 3l18 18" />
+        }
+        @case ('log-out') {
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="M16 17l5-5-5-5" />
+          <path d="M21 12H9" />
+        }
+        @case ('key') {
+          <circle cx="7" cy="15" r="4" />
+          <path d="M9.5 12.5L20 2" />
+          <path d="M17 5l3 3" />
+          <path d="M14 8l2 2" />
         }
       }
     </svg>

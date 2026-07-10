@@ -104,36 +104,6 @@
     }
   }
 
-  &__user {
-    display: flex;
-    align-items: center;
-    gap: var(--fdr-space-2);
-  }
-
-  &__avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--fdr-radius-full);
-    background: var(--fdr-accent-primary);
-    color: var(--fdr-accent-primary-text);
-    font-size: var(--fdr-text-sm);
-    font-weight: var(--fdr-font-weight-semibold);
-  }
-
-  &__user-info {
-    display: flex;
-    flex-direction: column;
-    gap: var(--fdr-space-1);
-  }
-
-  &__user-name {
-    font-size: var(--fdr-text-sm);
-    font-weight: var(--fdr-font-weight-medium);
-  }
-
   @media (max-width: 1023px) {
     &__menu-toggle {
       display: inline-flex;
@@ -142,10 +112,6 @@
 
   @media (max-width: 767px) {
     &__search {
-      display: none;
-    }
-
-    &__user-info {
       display: none;
     }
   }

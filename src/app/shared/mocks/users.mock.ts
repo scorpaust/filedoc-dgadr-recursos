@@ -38,6 +38,13 @@ export const users: readonly AppUser[] = [
     status: 'inactive',
     lastAccess: '2026-05-14',
   },
+  {
+    id: 'user-5',
+    name: 'Ana Ferreira',
+    email: 'ana.ferreira@dgadr.gov.pt',
+    career: 'Diretora de Serviços',
+    role: 'ADMIN',
+    status: 'active',
+    lastAccess: '2026-07-09',
+  },
 ];
-
-export const currentUser: AppUser = users[0];

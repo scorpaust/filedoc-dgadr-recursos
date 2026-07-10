@@ -1,8 +1,8 @@
 # Funcionalidade Atual
 
-Fase 1 (UI) — Design System & Casca da Aplicação
+Fase 2 (UI) — Ecrãs de Autenticação
 
-<!-- Ver especificação completa em context/features/fase-1-ui-design-system.md -->
+<!-- Ver especificação completa em context/features/fase-2-ui-autenticacao.md -->
 
 ## Estado
 
@@ -14,7 +14,7 @@ Concluída
 
 <!-- Objetivos e requisitos -->
 
-Ver `context/features/fase-1-ui-design-system.md`.
+Ver `context/features/fase-2-ui-autenticacao.md`.
 
 ## Notas
 
@@ -39,3 +39,21 @@ Ver `context/features/fase-1-ui-design-system.md`.
   - validação manual no browser (Playwright, ferramenta temporária não guardada no projeto): as 10 rotas renderizam sem erros de consola; alternância de tema funciona e persiste após recarregar; navegação em gaveta funcional a 375 px sem scroll horizontal.
   - Nota: validação manual não cobriu explicitamente todas as larguras da checklist (320/768/1024 px) nem uma passagem completa de navegação só por teclado no browser — os componentes usam elementos nativos (`button`/`a`) e os comportamentos de teclado (Escape, setas, foco contido/devolvido) estão cobertos por testes unitários, mas falta confirmação visual manual dessas larguras e desse fluxo antes de considerar a fase concluída.
   - Ainda por fazer antes de marcar como concluída: validação manual das larguras/teclado em falta, autorização do utilizador para commit.
+- Início da Fase 2 (UI) — Ecrãs de Autenticação, na branch `feature/fase-2-ui-autenticacao`
+- Implementação completa da Fase 2 (UI):
+  - `AuthService` simulado (`core/auth`), com Signals (`currentUser`, `currentRole`, `isAuthenticated`), `login`/`logout`/`changePassword` com atraso simulado e mensagem de erro sempre genérica; `mock-credentials.ts` com credenciais de demonstração para os 4 utilizadores mock ativos;
+  - adicionado um 5.º utilizador mock (`ADMIN`, Ana Ferreira) a `shared/mocks/users.mock.ts`, cobrindo as 4 funções da aplicação; removido o `currentUser` estático (substituído pelo `AuthService`);
+  - `authGuard` e `roleGuard` (`core/auth`), funcionais e testados, incluindo os caminhos negativos (sem sessão → `/login`; função não permitida → `/acesso-negado`);
+  - reestruturação do roteamento (`app.routes.ts`): `/login` pública e fora da casca; `AppShellComponent` movido para uma rota-pai `''` protegida por `authGuard`, com as restantes rotas da Fase 1 como filhas; `roleGuard` aplicado a `/suporte/gestao` (`SUPPORT_AGENT`/`ADMIN`), `/conteudos` (`CONTENT_EDITOR`/`ADMIN`) e `/administracao` (`ADMIN`); nova rota autenticada `/definicoes/palavra-passe`; `App` (raiz) passou a expor apenas `<router-outlet />`;
+  - ecrã de login (`features/auth/login-page`) com Reactive Forms tipado, validação de e-mail/palavra-passe, alternar visibilidade da palavra-passe, erro genérico de credenciais inválidas, foco automático no campo de e-mail, e ferramenta de desenvolvimento (claramente identificada) para iniciar sessão rapidamente com um utilizador mock por função;
+  - ecrã de alteração de palavra-passe (`features/auth/change-password-page`), rota autenticada, com validação de campos obrigatórios e confirmação igual à nova palavra-passe, sucesso via `ToastService` e erro genérico simulado;
+  - `UserMenuComponent` (`core/layout/user-menu`, padrão CDK Overlay igual ao `DropdownFilterComponent`) com as opções "Alterar palavra-passe" e "Terminar sessão"; `AppHeaderComponent` ligado ao `AuthService` em vez de dados estáticos;
+  - novos ícones `eye`/`eye-off`/`log-out`/`key` no `IconComponent`; estilos de campo de formulário partilhados em `src/styles/_forms.scss`, reutilizados pelos dois ecrãs;
+  - validação automática: `lint`, `typecheck`, `test` (99/99 testes) e `build` (produção) todos a passar sem erros; `format:check` sem problemas nos ficheiros desta fase (o aviso pré-existente em ~105 ficheiros não tocados por esta fase replica-se também numa checkout limpa de `main`, por diferença de fim de linha `core.autocrlf` neste ambiente Windows — não é uma regressão introduzida aqui);
+  - validação manual no browser (Playwright, ferramenta temporária não guardada no projeto): acesso não autenticado a `/inicio` redireciona para `/login`; ecrã de login sem cabeçalho/navegação; credenciais inválidas mostram erro genérico; ferramenta de simulação de função autentica e redireciona para `/inicio`; utilizador `EMPLOYEE` bloqueado em `/administracao` e redirecionado para `/acesso-negado`; alteração de palavra-passe valida a confirmação e mostra sucesso; terminar sessão redireciona para `/login` com foco devolvido ao campo de e-mail; zero erros de consola; inspeção visual em modo claro, escuro e a 375 px sem problemas aparentes;
+  - decisões tomadas: ferramenta de simulação de função colocada no rodapé do ecrã de login (opção sugerida na especificação); alteração de palavra-passe implementada como página dedicada (`/definicoes/palavra-passe`), não como diálogo, por consistência com os restantes formulários da aplicação.
+  - correções de acessibilidade encontradas e resolvidas a pedido do utilizador (via Microsoft Edge Tools/webhint e verificação manual), com confirmação por axe-core real e não apenas pela build: `[attr.aria-label]="expr()"` reescrito como `aria-label="{{ expr() }}"` em vários componentes (o linter estático do editor não avalia bindings Angular, embora o runtime já estivesse correto); contraste insuficiente (3.12:1) do avatar do `UserMenuComponent` corrigido para `--fdr-accent-primary-hover` (~4.86:1); aviso "axe/list" em `AppNavComponent` investigado e confirmado como falso positivo do linter estático (não entende `@for`) — mantido `@for`, sem alteração de código, por exigência de `.claude/CLAUDE.md`;
+  - validação manual completa a pedido do utilizador, antes do commit: larguras 320/375/768/1024/1440 px em `/login`, `/inicio`, `/recursos`, `/dicas-faq`, `/suporte` (incl. gaveta móvel aberta), `/definicoes/palavra-passe` e `/acesso-negado` — sem scroll horizontal nem erros de consola; passagem completa de navegação só por teclado (login incl. alternância de palavra-passe e submissão com Enter, cabeçalho, gaveta de navegação móvel, menu do utilizador, alteração de palavra-passe, logout);
+  - esta validação encontrou e corrigiu 3 bugs reais não cobertos pelos testes unitários: (1) `UserMenuComponent` — o chevron do gatilho ficava sempre visível e causava overflow horizontal a 320 px; escondido também abaixo de 768 px, junto com o nome/cargo; (2) `AppShellComponent` (gaveta de navegação móvel, herdada da Fase 1) — os links da gaveta fechada continuavam focáveis fora do ecrã (só havia `transform`, sem `visibility: hidden`), e não existia atalho de Escape para fechar a gaveta nem devolução de foco ao botão que a abriu; ambos corrigidos; (3) `UserMenuComponent` — o painel do menu não tinha `cdkTrapFocus` nem foco automático no primeiro item, pelo que o Tab saltava da barra lateral em vez de percorrer as opções do menu; corrigido com `cdkTrapFocus`/`cdkTrapFocusAutoCapture` e foco devolvido ao gatilho ao fechar;
+  - `lint`, `typecheck`, `test` (99/99) e `build` revalidados após todas as correções, todos a passar sem erros.
+  - Commit ainda por autorizar.
