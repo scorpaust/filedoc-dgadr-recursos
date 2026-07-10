@@ -26,14 +26,14 @@ Esta dispersão traz consequências diretas para os trabalhadores da DGADR:
 
 ## 🧑‍💼 Utilizadores
 
-| Persona                    | Necessidades                                                        |
-| --------------------------- | -------------------------------------------------------------------- |
-| Trabalhador da DGADR        | Encontrar rapidamente vídeos, guias, dicas e respostas               |
-| Novo utilizador do Filedoc  | Aprender os fluxos básicos através de conteúdos de iniciação         |
-| Utilizador experiente       | Consultar procedimentos específicos e conteúdos avançados            |
-| Editor de conteúdos         | Criar, atualizar, publicar e arquivar recursos formativos            |
-| Agente de suporte           | Receber, responder, classificar e acompanhar pedidos                 |
-| Administrador               | Gerir utilizadores, funções, taxonomias, configurações e auditoria   |
+| Persona                    | Necessidades                                                       |
+| -------------------------- | ------------------------------------------------------------------ |
+| Trabalhador da DGADR       | Encontrar rapidamente vídeos, guias, dicas e respostas             |
+| Novo utilizador do Filedoc | Aprender os fluxos básicos através de conteúdos de iniciação       |
+| Utilizador experiente      | Consultar procedimentos específicos e conteúdos avançados          |
+| Editor de conteúdos        | Criar, atualizar, publicar e arquivar recursos formativos          |
+| Agente de suporte          | Receber, responder, classificar e acompanhar pedidos               |
+| Administrador              | Gerir utilizadores, funções, taxonomias, configurações e auditoria |
 
 **Funções aplicacionais:**
 
@@ -249,28 +249,28 @@ Responsável pelo registo de operações administrativas e ações sensíveis.
 
 ## 🧱 Stack tecnológica
 
-| Categoria                   | Tecnologia                                                        |
-| ---------------------------- | -------------------------------------------------------------------- |
-| Frontend                     | Angular                                                               |
-| Linguagem                    | TypeScript em modo estrito                                           |
-| Estilos                      | SCSS                                                                  |
-| Componentes                  | Angular standalone components                                        |
-| Formulários                  | Angular Reactive Forms                                                |
-| Estado local                 | Angular Signals                                                       |
-| Navegação                    | Angular Router                                                        |
-| UI acessível                 | Angular Material e Angular CDK, quando justificado                   |
-| Backend                      | NestJS                                                                |
-| API                          | REST com OpenAPI/Swagger                                             |
-| ORM                          | Prisma                                                                |
-| Base de dados                | PostgreSQL                                                            |
-| Armazenamento de ficheiros   | MinIO em desenvolvimento e serviço compatível com S3 em produção     |
-| Autenticação                 | Sessões seguras com cookies `HttpOnly`                                |
-| Testes frontend              | Testes unitários Angular                                              |
-| Testes backend               | Jest ou ferramenta integrada no NestJS                                |
-| Testes E2E                   | Playwright                                                             |
-| Infraestrutura local         | Docker e Docker Compose                                               |
-| CI/CD                        | GitHub Actions ou pipeline equivalente                                |
-| Observabilidade              | Logs estruturados e health checks                                     |
+| Categoria                  | Tecnologia                                                       |
+| -------------------------- | ---------------------------------------------------------------- |
+| Frontend                   | Angular                                                          |
+| Linguagem                  | TypeScript em modo estrito                                       |
+| Estilos                    | SCSS                                                             |
+| Componentes                | Angular standalone components                                    |
+| Formulários                | Angular Reactive Forms                                           |
+| Estado local               | Angular Signals                                                  |
+| Navegação                  | Angular Router                                                   |
+| UI acessível               | Angular Material e Angular CDK, quando justificado               |
+| Backend                    | NestJS                                                           |
+| API                        | REST com OpenAPI/Swagger                                         |
+| ORM                        | Prisma                                                           |
+| Base de dados              | PostgreSQL                                                       |
+| Armazenamento de ficheiros | MinIO em desenvolvimento e serviço compatível com S3 em produção |
+| Autenticação               | Sessões seguras com cookies `HttpOnly`                           |
+| Testes frontend            | Testes unitários Angular                                         |
+| Testes backend             | Jest ou ferramenta integrada no NestJS                           |
+| Testes E2E                 | Playwright                                                       |
+| Infraestrutura local       | Docker e Docker Compose                                          |
+| CI/CD                      | GitHub Actions ou pipeline equivalente                           |
+| Observabilidade            | Logs estruturados e health checks                                |
 
 **Nota sobre a escolha do PostgreSQL:** trata-se de dados fortemente relacionais — recursos, utilizadores, tickets, taxonomias e auditoria — em que a integridade referencial e o suporte a transações são fundamentais. O PostgreSQL, associado ao Prisma, oferece uma combinação sólida e madura para estes requisitos.
 
@@ -280,14 +280,14 @@ Responsável pelo registo de operações administrativas e ações sensíveis.
 
 > Não aplicável. O portal é um serviço interno da DGADR e deve estar disponível sem custos para todos os trabalhadores autorizados.
 
-| Elemento                  | Decisão         |
-| --------------------------- | ------------------ |
-| Pagamentos                  | Não existem         |
-| Subscrições                 | Não existem         |
-| Planos comerciais           | Não existem         |
-| Limites por utilizador      | Não aplicáveis      |
-| Faturação                   | Não aplicável       |
-| Integrações de pagamento    | Não permitidas      |
+| Elemento                 | Decisão        |
+| ------------------------ | -------------- |
+| Pagamentos               | Não existem    |
+| Subscrições              | Não existem    |
+| Planos comerciais        | Não existem    |
+| Limites por utilizador   | Não aplicáveis |
+| Faturação                | Não aplicável  |
+| Integrações de pagamento | Não permitidas |
 
 ---
 
@@ -332,6 +332,10 @@ Não é permitido: distorcer os logótipos; recolorir as marcas; inventar cores 
 Conformidade com WCAG 2.2 AA, incluindo: navegação por teclado; foco visível; contraste adequado; labels associados; erros associados aos campos correspondentes; diálogos acessíveis; estados não dependentes apenas da cor; suporte para redução de movimento; conteúdo em português de Portugal; compatibilidade com leitores de ecrã.
 
 ---
+
+### Screenshots
+
+Tem como referência visual os screenshots disponíveis em @context/screenshots. Não tem de ser exato. Usa apenas como referência visual.
 
 ## 🔌 Arquitetura da aplicação
 
