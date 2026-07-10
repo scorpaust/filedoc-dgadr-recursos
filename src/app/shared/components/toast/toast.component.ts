@@ -19,7 +19,7 @@ import { ToastService } from './toast.service';
           <button
             type="button"
             class="fdr-toast__close"
-            [attr.aria-label]="'Fechar notificação: ' + toast.message"
+            aria-label="{{ 'Fechar notificação: ' + toast.message }}"
             (click)="toastService.dismiss(toast.id)"
           >
             <fdr-icon name="close" size="sm" />

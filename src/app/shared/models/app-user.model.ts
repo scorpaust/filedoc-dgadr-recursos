@@ -10,3 +10,10 @@ export interface AppUser {
   readonly status: UserStatus;
   readonly lastAccess: string;
 }
+
+export const USER_ROLE_LABELS: Record<UserRole, string> = {
+  EMPLOYEE: 'Trabalhador',
+  CONTENT_EDITOR: 'Editor de conteúdos',
+  SUPPORT_AGENT: 'Agente de suporte',
+  ADMIN: 'Administrador',
+};

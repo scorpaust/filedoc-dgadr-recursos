@@ -1,0 +1,86 @@
+.fdr-user-menu {
+  display: inline-block;
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--fdr-space-2);
+    padding: var(--fdr-space-1);
+    border: none;
+    border-radius: var(--fdr-radius-md);
+    background: transparent;
+    color: var(--fdr-text-primary);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fdr-bg-hover);
+    }
+  }
+
+  &__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--fdr-radius-full);
+    // Fundo mais escuro que --fdr-accent-primary: o texto branco sobre --fdr-accent-primary
+    // fica abaixo do contraste WCAG AA (3.12:1); esta combinação atinge ~4.86:1.
+    background: var(--fdr-accent-primary-hover);
+    color: var(--fdr-accent-primary-text);
+    font-size: var(--fdr-text-sm);
+    font-weight: var(--fdr-font-weight-semibold);
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--fdr-space-1);
+  }
+
+  &__name {
+    font-size: var(--fdr-text-sm);
+    font-weight: var(--fdr-font-weight-medium);
+  }
+
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-1);
+    min-width: 12rem;
+    margin-top: var(--fdr-space-2);
+    padding: var(--fdr-space-2);
+    border-radius: var(--fdr-radius-md);
+    border: 1px solid var(--fdr-border);
+    background: var(--fdr-bg-surface-raised);
+    box-shadow: var(--fdr-shadow-lg);
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: var(--fdr-space-2);
+    padding: var(--fdr-space-2) var(--fdr-space-3);
+    border: none;
+    border-radius: var(--fdr-radius-sm);
+    background: transparent;
+    color: var(--fdr-text-primary);
+    font-size: var(--fdr-text-sm);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fdr-bg-hover);
+    }
+  }
+
+  @media (max-width: 767px) {
+    &__info,
+    &__chevron {
+      display: none;
+    }
+  }
+}

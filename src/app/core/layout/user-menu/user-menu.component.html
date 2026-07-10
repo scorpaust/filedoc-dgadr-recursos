@@ -1,0 +1,54 @@
+<div class="fdr-user-menu">
+  <button
+    #origin="cdkOverlayOrigin"
+    #triggerButton
+    cdkOverlayOrigin
+    type="button"
+    class="fdr-user-menu__trigger"
+    aria-haspopup="menu"
+    aria-label="{{ 'Menu do utilizador: ' + user().name }}"
+    [attr.aria-expanded]="isOpen()"
+    (click)="toggle()"
+    (keydown.escape)="close()"
+  >
+    <span class="fdr-user-menu__avatar" aria-hidden="true">{{ initials() }}</span>
+    <span class="fdr-user-menu__info">
+      <span class="fdr-user-menu__name">{{ user().name }}</span>
+      <fdr-pill [label]="user().career" tone="info" />
+    </span>
+    <fdr-icon class="fdr-user-menu__chevron" name="chevron-down" size="sm" />
+  </button>
+
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="origin"
+    [cdkConnectedOverlayOpen]="isOpen()"
+    [cdkConnectedOverlayHasBackdrop]="true"
+    cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+    (backdropClick)="close()"
+    (detach)="close()"
+  >
+    <div
+      class="fdr-user-menu__panel"
+      role="menu"
+      tabindex="-1"
+      cdkTrapFocus
+      cdkTrapFocusAutoCapture
+      (keydown.escape)="close()"
+    >
+      <a
+        class="fdr-user-menu__item"
+        role="menuitem"
+        routerLink="/definicoes/palavra-passe"
+        (click)="close()"
+      >
+        <fdr-icon name="key" size="sm" />
+        Alterar palavra-passe
+      </a>
+      <button type="button" class="fdr-user-menu__item" role="menuitem" (click)="logout()">
+        <fdr-icon name="log-out" size="sm" />
+        Terminar sessão
+      </button>
+    </div>
+  </ng-template>
+</div>

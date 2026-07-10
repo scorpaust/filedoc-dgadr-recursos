@@ -1,0 +1,84 @@
+<div class="fdr-login-page">
+  <div class="fdr-login-page__card">
+    <div class="fdr-login-page__brand">
+      <span class="fdr-login-page__logo-badge">DGADR</span>
+      <span class="fdr-login-page__logo-wordmark">filedoc</span>
+    </div>
+
+    <h1 class="fdr-login-page__title">Iniciar sessão</h1>
+    <p class="fdr-login-page__subtitle">
+      Aceda ao portal de recursos formativos do Filedoc para consultar vídeos, guias e obter
+      suporte.
+    </p>
+
+    @if (errorMessage(); as message) {
+      <p class="fdr-login-page__error" role="alert">{{ message }}</p>
+    }
+
+    <form class="fdr-login-page__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="login-email">E-mail</label>
+        <input
+          #emailInput
+          id="login-email"
+          type="email"
+          class="fdr-field__input"
+          formControlName="email"
+          autocomplete="username"
+          [attr.aria-invalid]="isEmailInvalid()"
+          [attr.aria-describedby]="isEmailInvalid() ? 'login-email-error' : null"
+        />
+        @if (isEmailInvalid()) {
+          <p class="fdr-field__error" id="login-email-error">{{ emailErrorMessage() }}</p>
+        }
+      </div>
+
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="login-password">Palavra-passe</label>
+        <div class="fdr-field__input-group">
+          <input
+            id="login-password"
+            [type]="showPassword() ? 'text' : 'password'"
+            class="fdr-field__input"
+            formControlName="password"
+            autocomplete="current-password"
+            [attr.aria-invalid]="isPasswordInvalid()"
+            [attr.aria-describedby]="isPasswordInvalid() ? 'login-password-error' : null"
+          />
+          <button
+            type="button"
+            class="fdr-field__toggle-visibility"
+            aria-label="{{ showPassword() ? 'Ocultar palavra-passe' : 'Mostrar palavra-passe' }}"
+            (click)="togglePasswordVisibility()"
+          >
+            <fdr-icon [name]="showPassword() ? 'eye-off' : 'eye'" size="sm" />
+          </button>
+        </div>
+        @if (isPasswordInvalid()) {
+          <p class="fdr-field__error" id="login-password-error">A palavra-passe é obrigatória.</p>
+        }
+      </div>
+
+      <fdr-button type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'A entrar...' : 'Iniciar sessão' }}
+      </fdr-button>
+    </form>
+
+    <div class="fdr-login-page__dev-tool">
+      <p class="fdr-login-page__dev-tool-label">
+        Ferramenta de desenvolvimento — iniciar sessão como
+      </p>
+      <div class="fdr-login-page__dev-tool-options">
+        @for (option of devRoleOptions; track option.user.id) {
+          <button
+            type="button"
+            class="fdr-login-page__dev-tool-option"
+            (click)="useDevRole(option)"
+          >
+            {{ option.roleLabel }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,9 +1,9 @@
+import { RouterOutlet } from '@angular/router';
 import { Component } from '@angular/core';
-import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 
 @Component({
   selector: 'fdr-root',
-  imports: [AppShellComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

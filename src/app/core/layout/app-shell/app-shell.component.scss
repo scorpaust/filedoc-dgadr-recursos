@@ -44,8 +44,14 @@
     width: 16rem;
     max-width: 80vw;
     transform: translateX(-100%);
+    // `visibility: hidden` (não apenas o transform) impede que os links do menu fechado
+    // continuem focáveis por teclado fora do ecrã; a transição adia a ocultação até ao
+    // fim da animação de saída, para o deslizamento continuar visível.
+    visibility: hidden;
     box-shadow: var(--fdr-shadow-lg);
-    transition: transform var(--fdr-duration-base) var(--fdr-easing);
+    transition:
+      transform var(--fdr-duration-base) var(--fdr-easing),
+      visibility 0s linear var(--fdr-duration-base);
 
     @include reduced-motion {
       transition: none;
@@ -53,6 +59,10 @@
 
     &--open {
       transform: translateX(0);
+      visibility: visible;
+      transition:
+        transform var(--fdr-duration-base) var(--fdr-easing),
+        visibility 0s linear 0s;
     }
   }
 

@@ -2,6 +2,9 @@
   @for (group of navGroups; track group.heading) {
     <div class="fdr-app-nav__group">
       <p class="fdr-app-nav__heading">{{ group.heading }}</p>
+      <!-- O `@for` é lido como texto solto por linters estáticos (ex.: webhint/axe do
+           Microsoft Edge Tools, que não interpreta control flow do Angular); confirmado
+           via axe-core em runtime que o <ul> só contém <li>. -->
       <ul class="fdr-app-nav__list">
         @for (item of group.items; track item.route) {
           <li>

@@ -14,9 +14,11 @@
 
   <aside
     class="fdr-app-shell__nav"
+    tabindex="-1"
     [class.fdr-app-shell__nav--open]="navDrawerService.isOpen()"
     [cdkTrapFocus]="navDrawerService.isOpen()"
     [cdkTrapFocusAutoCapture]="navDrawerService.isOpen()"
+    (keydown.escape)="closeDrawerOnEscape()"
   >
     <fdr-app-nav />
   </aside>
