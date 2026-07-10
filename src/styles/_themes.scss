@@ -1,0 +1,124 @@
+// Tokens semânticos por tema — mapeiam as escalas primitivas de `_tokens.scss` para
+// papéis funcionais (fundo, texto, contornos, tons de estado). Os componentes devem usar
+// exclusivamente estes tokens semânticos, nunca as variáveis primitivas diretamente.
+// O tema escuro é a referência visual principal (ver `context/screenshots/`); o tema
+// claro segue a mesma linguagem com contraste WCAG AA garantido em ambos.
+
+:root,
+[data-theme='dark'] {
+  --fdr-bg-app: var(--fdr-petroleo-900);
+  --fdr-bg-surface: var(--fdr-petroleo-800);
+  --fdr-bg-surface-raised: var(--fdr-petroleo-700);
+  --fdr-bg-sidebar: var(--fdr-petroleo-900);
+  --fdr-bg-hover: var(--fdr-petroleo-600);
+
+  --fdr-border: var(--fdr-petroleo-500);
+  --fdr-border-strong: var(--fdr-cinza-500);
+
+  --fdr-text-primary: var(--fdr-cinza-50);
+  --fdr-text-secondary: var(--fdr-cinza-200);
+  --fdr-text-muted: var(--fdr-cinza-300);
+  --fdr-text-inverse: var(--fdr-cinza-950);
+
+  --fdr-accent-primary: var(--fdr-laranja-500);
+  --fdr-accent-primary-hover: var(--fdr-laranja-700);
+  --fdr-accent-primary-text: var(--fdr-branco);
+
+  --fdr-link: var(--fdr-azul-300);
+  --fdr-focus-ring: var(--fdr-azul-300);
+
+  --fdr-tone-success-bg: rgb(47 165 121 / 16%);
+  --fdr-tone-success-text: var(--fdr-verde-300);
+  --fdr-tone-success-border: var(--fdr-verde-700);
+
+  --fdr-tone-info-bg: rgb(58 134 200 / 16%);
+  --fdr-tone-info-text: var(--fdr-azul-300);
+  --fdr-tone-info-border: var(--fdr-azul-700);
+
+  --fdr-tone-warning-bg: rgb(217 155 43 / 16%);
+  --fdr-tone-warning-text: var(--fdr-ambar-300);
+  --fdr-tone-warning-border: var(--fdr-ambar-700);
+
+  --fdr-tone-danger-bg: rgb(209 84 79 / 16%);
+  --fdr-tone-danger-text: var(--fdr-coral-300);
+  --fdr-tone-danger-border: var(--fdr-coral-700);
+
+  --fdr-tone-plum-bg: rgb(147 84 156 / 18%);
+  --fdr-tone-plum-text: var(--fdr-ameixa-300);
+  --fdr-tone-plum-border: var(--fdr-ameixa-700);
+
+  --fdr-tone-neutral-bg: rgb(166 176 180 / 14%);
+  --fdr-tone-neutral-text: var(--fdr-cinza-200);
+  --fdr-tone-neutral-border: var(--fdr-cinza-500);
+
+  --fdr-shadow-elevation: none;
+  --fdr-scrim: rgb(6 23 22 / 64%);
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --fdr-bg-app: var(--fdr-cinza-50);
+  --fdr-bg-surface: var(--fdr-branco);
+  --fdr-bg-surface-raised: var(--fdr-branco);
+  --fdr-bg-sidebar: var(--fdr-branco);
+  --fdr-bg-hover: var(--fdr-cinza-100);
+
+  --fdr-border: var(--fdr-cinza-200);
+  --fdr-border-strong: var(--fdr-cinza-500);
+
+  --fdr-text-primary: var(--fdr-cinza-950);
+  --fdr-text-secondary: var(--fdr-cinza-700);
+  --fdr-text-muted: var(--fdr-cinza-500);
+  --fdr-text-inverse: var(--fdr-cinza-50);
+
+  --fdr-accent-primary: var(--fdr-laranja-500);
+  --fdr-accent-primary-hover: var(--fdr-laranja-700);
+  --fdr-accent-primary-text: var(--fdr-branco);
+
+  --fdr-link: var(--fdr-azul-700);
+  --fdr-focus-ring: var(--fdr-azul-700);
+
+  --fdr-tone-success-bg: var(--fdr-verde-100);
+  --fdr-tone-success-text: var(--fdr-verde-700);
+  --fdr-tone-success-border: var(--fdr-verde-300);
+
+  --fdr-tone-info-bg: var(--fdr-azul-100);
+  --fdr-tone-info-text: var(--fdr-azul-700);
+  --fdr-tone-info-border: var(--fdr-azul-300);
+
+  --fdr-tone-warning-bg: var(--fdr-ambar-100);
+  --fdr-tone-warning-text: var(--fdr-ambar-700);
+  --fdr-tone-warning-border: var(--fdr-ambar-300);
+
+  --fdr-tone-danger-bg: var(--fdr-coral-100);
+  --fdr-tone-danger-text: var(--fdr-coral-700);
+  --fdr-tone-danger-border: var(--fdr-coral-300);
+
+  --fdr-tone-plum-bg: var(--fdr-ameixa-100);
+  --fdr-tone-plum-text: var(--fdr-ameixa-700);
+  --fdr-tone-plum-border: var(--fdr-ameixa-300);
+
+  --fdr-tone-neutral-bg: var(--fdr-cinza-100);
+  --fdr-tone-neutral-text: var(--fdr-cinza-700);
+  --fdr-tone-neutral-border: var(--fdr-cinza-200);
+
+  --fdr-shadow-elevation: var(--fdr-shadow-md);
+  --fdr-scrim: rgb(11 14 14 / 40%);
+  color-scheme: light;
+}
+
+// Tons de dificuldade — reutilizam os tons semânticos acima, mapeados por nível.
+:root,
+[data-theme='dark'] {
+  --fdr-difficulty-iniciacao-bg: var(--fdr-tone-success-bg);
+  --fdr-difficulty-iniciacao-text: var(--fdr-tone-success-text);
+  --fdr-difficulty-iniciacao-border: var(--fdr-tone-success-border);
+
+  --fdr-difficulty-intermedia-bg: var(--fdr-tone-warning-bg);
+  --fdr-difficulty-intermedia-text: var(--fdr-tone-warning-text);
+  --fdr-difficulty-intermedia-border: var(--fdr-tone-warning-border);
+
+  --fdr-difficulty-avancada-bg: var(--fdr-tone-danger-bg);
+  --fdr-difficulty-avancada-text: var(--fdr-tone-danger-text);
+  --fdr-difficulty-avancada-border: var(--fdr-tone-danger-border);
+}

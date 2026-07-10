@@ -1,0 +1,22 @@
+<nav class="fdr-app-nav" aria-label="Navegação principal">
+  @for (group of navGroups; track group.heading) {
+    <div class="fdr-app-nav__group">
+      <p class="fdr-app-nav__heading">{{ group.heading }}</p>
+      <ul class="fdr-app-nav__list">
+        @for (item of group.items; track item.route) {
+          <li>
+            <a
+              class="fdr-app-nav__link"
+              [routerLink]="item.route"
+              routerLinkActive="fdr-app-nav__link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              <fdr-icon [name]="item.icon" />
+              <span>{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</nav>

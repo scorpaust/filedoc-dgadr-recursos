@@ -1,0 +1,46 @@
+<header class="fdr-app-header">
+  <div class="fdr-app-header__brand">
+    <button
+      type="button"
+      class="fdr-app-header__menu-toggle"
+      aria-label="Abrir navegação"
+      [attr.aria-expanded]="navDrawerService.isOpen()"
+      (click)="navDrawerService.toggle()"
+    >
+      <fdr-icon name="menu" />
+    </button>
+    <a routerLink="/inicio" class="fdr-app-header__logo">
+      <span class="fdr-app-header__logo-badge">DGADR</span>
+      <span class="fdr-app-header__logo-wordmark">filedoc</span>
+    </a>
+  </div>
+
+  <div class="fdr-app-header__search">
+    <fdr-icon name="search" />
+    <input
+      type="search"
+      class="fdr-app-header__search-input"
+      placeholder="Pesquisar vídeos, guias, dicas..."
+      aria-label="Pesquisar vídeos, guias, dicas"
+    />
+  </div>
+
+  <div class="fdr-app-header__actions">
+    <button
+      type="button"
+      class="fdr-app-header__theme-toggle"
+      [attr.aria-label]="themeToggleLabel()"
+      (click)="themeService.toggle()"
+    >
+      <fdr-icon [name]="themeService.theme() === 'dark' ? 'sun' : 'moon'" />
+    </button>
+
+    <div class="fdr-app-header__user">
+      <span class="fdr-app-header__avatar" aria-hidden="true">{{ initials() }}</span>
+      <div class="fdr-app-header__user-info">
+        <span class="fdr-app-header__user-name">{{ currentUser.name }}</span>
+        <fdr-pill [label]="currentUser.career" tone="info" />
+      </div>
+    </div>
+  </div>
+</header>

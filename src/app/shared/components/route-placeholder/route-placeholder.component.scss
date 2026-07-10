@@ -1,0 +1,28 @@
+.fdr-route-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-3);
+  padding: var(--fdr-space-6) var(--fdr-space-5);
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-2xl);
+  }
+
+  &__description {
+    margin: 0;
+    max-width: 40rem;
+    color: var(--fdr-text-secondary);
+  }
+
+  &__phase {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: var(--fdr-space-2) var(--fdr-space-3);
+    border-radius: var(--fdr-radius-sm);
+    border: 1px dashed var(--fdr-border-strong);
+    color: var(--fdr-text-muted);
+    font-family: var(--fdr-font-mono);
+    font-size: var(--fdr-text-sm);
+  }
+}

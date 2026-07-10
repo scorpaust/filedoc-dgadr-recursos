@@ -1,0 +1,94 @@
+// Tokens de design de base — espaçamento, raios, sombras, tipografia e escalas de cor
+// primitivas. As cores primitivas não são utilizadas diretamente nos componentes;
+// servem apenas de fonte para os tokens semânticos definidos em `_themes.scss`.
+// Paleta de referência: `context/project-overview.md` (azul-petróleo, verde, azul-claro,
+// amarelo, laranja, coral, ameixa, cinzentos escuros). Cores não institucionais oficiais.
+
+:root {
+  // Petróleo (fundo institucional escuro)
+  --fdr-petroleo-900: #061716;
+  --fdr-petroleo-800: #0a201f;
+  --fdr-petroleo-700: #0f2b29;
+  --fdr-petroleo-600: #163a37;
+  --fdr-petroleo-500: #1f4d49;
+
+  // Verde
+  --fdr-verde-700: #1f7a5c;
+  --fdr-verde-500: #2fa579;
+  --fdr-verde-300: #7fd4b0;
+  --fdr-verde-100: #e0f5ec;
+
+  // Azul-claro
+  --fdr-azul-700: #1f5f8f;
+  --fdr-azul-500: #3a86c8;
+  --fdr-azul-300: #8ec2ec;
+  --fdr-azul-100: #e4f1fb;
+
+  // Âmbar / amarelo
+  --fdr-ambar-700: #a06a12;
+  --fdr-ambar-500: #d99b2b;
+  --fdr-ambar-300: #f0c977;
+  --fdr-ambar-100: #fbf0da;
+
+  // Laranja / terracota (cor de destaque principal, ações primárias)
+  --fdr-laranja-700: #b8532f;
+  --fdr-laranja-500: #d97757;
+  --fdr-laranja-300: #f0a688;
+  --fdr-laranja-100: #fce8e0;
+
+  // Coral (estados críticos)
+  --fdr-coral-700: #a83b3b;
+  --fdr-coral-500: #d1544f;
+  --fdr-coral-300: #eda19d;
+  --fdr-coral-100: #fbe4e2;
+
+  // Ameixa
+  --fdr-ameixa-700: #6b3a72;
+  --fdr-ameixa-500: #93549c;
+  --fdr-ameixa-300: #c79dcd;
+  --fdr-ameixa-100: #f1e4f3;
+
+  // Cinzentos neutros
+  --fdr-cinza-950: #0b0e0e;
+  --fdr-cinza-900: #14181a;
+  --fdr-cinza-700: #333c3f;
+  --fdr-cinza-500: #66727a;
+  --fdr-cinza-300: #a6b0b4;
+  --fdr-cinza-200: #ccd3d5;
+  --fdr-cinza-100: #e6eaeb;
+  --fdr-cinza-50: #f6f8f8;
+  --fdr-branco: #ffffff;
+
+  // Espaçamento
+  --fdr-space-1: 0.25rem;
+  --fdr-space-2: 0.5rem;
+  --fdr-space-3: 0.75rem;
+  --fdr-space-4: 1rem;
+  --fdr-space-5: 1.5rem;
+  --fdr-space-6: 2rem;
+  --fdr-space-7: 3rem;
+  --fdr-space-8: 4rem;
+
+  // Raios
+  --fdr-radius-sm: 0.25rem;
+  --fdr-radius-md: 0.5rem;
+  --fdr-radius-lg: 0.75rem;
+  --fdr-radius-full: 999px;
+
+  // Sombras (usadas apenas no tema claro; o tema escuro recorre a contornos)
+  --fdr-shadow-sm: 0 1px 2px rgb(0 0 0 / 8%);
+  --fdr-shadow-md: 0 4px 12px rgb(0 0 0 / 12%);
+  --fdr-shadow-lg: 0 12px 32px rgb(0 0 0 / 16%);
+
+  // Duração de transição — desativada globalmente quando `prefers-reduced-motion` o exigir
+  --fdr-duration-fast: 120ms;
+  --fdr-duration-base: 200ms;
+  --fdr-easing: ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --fdr-duration-fast: 0ms;
+    --fdr-duration-base: 0ms;
+  }
+}

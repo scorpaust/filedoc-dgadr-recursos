@@ -1,0 +1,30 @@
+.fdr-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 1.75rem;
+  padding: 0 var(--fdr-space-3);
+  border-radius: var(--fdr-radius-sm);
+  border: 1px solid var(--fdr-border);
+  background: var(--fdr-bg-surface-raised);
+  color: var(--fdr-text-secondary);
+  font-size: var(--fdr-text-sm);
+  font-weight: var(--fdr-font-weight-medium);
+
+  &--iniciacao {
+    color: var(--fdr-difficulty-iniciacao-text);
+    border-color: var(--fdr-difficulty-iniciacao-border);
+    background: var(--fdr-difficulty-iniciacao-bg);
+  }
+
+  &--intermedia {
+    color: var(--fdr-difficulty-intermedia-text);
+    border-color: var(--fdr-difficulty-intermedia-border);
+    background: var(--fdr-difficulty-intermedia-bg);
+  }
+
+  &--avancada {
+    color: var(--fdr-difficulty-avancada-text);
+    border-color: var(--fdr-difficulty-avancada-border);
+    background: var(--fdr-difficulty-avancada-bg);
+  }
+}

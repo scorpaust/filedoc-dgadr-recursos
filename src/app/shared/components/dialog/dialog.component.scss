@@ -1,0 +1,60 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fdr-dialog-scrim {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: var(--fdr-scrim);
+}
+
+.fdr-dialog {
+  position: relative;
+  width: min(32rem, calc(100vw - var(--fdr-space-5) * 2));
+  max-height: calc(100vh - var(--fdr-space-6) * 2);
+  overflow-y: auto;
+  border-radius: var(--fdr-radius-lg);
+  border: 1px solid var(--fdr-border);
+  background: var(--fdr-bg-surface-raised);
+  box-shadow: var(--fdr-shadow-lg);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--fdr-space-5);
+    border-bottom: 1px solid var(--fdr-border);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-lg);
+  }
+
+  &__close {
+    display: inline-flex;
+    padding: var(--fdr-space-2);
+    border: none;
+    border-radius: var(--fdr-radius-sm);
+    background: transparent;
+    color: var(--fdr-text-secondary);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fdr-bg-hover);
+    }
+  }
+
+  &__content {
+    padding: var(--fdr-space-5);
+    color: var(--fdr-text-secondary);
+  }
+}

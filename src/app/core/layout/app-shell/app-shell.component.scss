@@ -1,0 +1,66 @@
+@use '../../../../styles/mixins' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.fdr-app-shell__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.fdr-app-shell__nav {
+  flex-shrink: 0;
+  width: 16rem;
+  overflow-y: auto;
+  border-right: 1px solid var(--fdr-border);
+  background: var(--fdr-bg-sidebar);
+}
+
+.fdr-app-shell__content {
+  flex: 1;
+  min-width: 0;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.fdr-app-shell__scrim {
+  display: none;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 1023px) {
+  .fdr-app-shell__nav {
+    position: fixed;
+    inset: 4rem 0 0 0;
+    z-index: 1100;
+    width: 16rem;
+    max-width: 80vw;
+    transform: translateX(-100%);
+    box-shadow: var(--fdr-shadow-lg);
+    transition: transform var(--fdr-duration-base) var(--fdr-easing);
+
+    @include reduced-motion {
+      transition: none;
+    }
+
+    &--open {
+      transform: translateX(0);
+    }
+  }
+
+  .fdr-app-shell__scrim {
+    display: block;
+    position: fixed;
+    inset: 4rem 0 0 0;
+    z-index: 1099;
+    background: var(--fdr-scrim);
+  }
+}

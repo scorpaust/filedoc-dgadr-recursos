@@ -1,0 +1,24 @@
+.fdr-segmented {
+  display: inline-flex;
+  gap: var(--fdr-space-1);
+  padding: var(--fdr-space-1);
+  border-radius: var(--fdr-radius-md);
+  background: var(--fdr-bg-surface-raised);
+  border: 1px solid var(--fdr-border);
+
+  &__option {
+    padding: var(--fdr-space-2) var(--fdr-space-4);
+    border: none;
+    border-radius: var(--fdr-radius-sm);
+    background: transparent;
+    color: var(--fdr-text-secondary);
+    font-size: var(--fdr-text-sm);
+    font-weight: var(--fdr-font-weight-medium);
+    cursor: pointer;
+
+    &--selected {
+      background: var(--fdr-accent-primary);
+      color: var(--fdr-accent-primary-text);
+    }
+  }
+}

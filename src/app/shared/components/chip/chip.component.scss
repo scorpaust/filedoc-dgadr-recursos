@@ -1,0 +1,26 @@
+.fdr-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 var(--fdr-space-4);
+  border-radius: var(--fdr-radius-full);
+  border: 1px solid var(--fdr-border-strong);
+  background: transparent;
+  color: var(--fdr-text-secondary);
+  font-size: var(--fdr-text-sm);
+  font-weight: var(--fdr-font-weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--fdr-duration-fast) var(--fdr-easing),
+    color var(--fdr-duration-fast) var(--fdr-easing);
+
+  &:hover {
+    background: var(--fdr-bg-hover);
+  }
+
+  &--selected {
+    background: var(--fdr-accent-primary);
+    border-color: var(--fdr-accent-primary);
+    color: var(--fdr-accent-primary-text);
+  }
+}

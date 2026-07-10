@@ -1,0 +1,24 @@
+.fdr-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fdr-space-3);
+  padding: var(--fdr-space-7) var(--fdr-space-5);
+  text-align: center;
+  color: var(--fdr-text-secondary);
+
+  &__icon {
+    color: var(--fdr-text-muted);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-xl);
+    color: var(--fdr-text-primary);
+  }
+
+  &__description {
+    max-width: 32rem;
+    margin: 0;
+  }
+}

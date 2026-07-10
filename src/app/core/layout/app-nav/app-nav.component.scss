@@ -1,0 +1,48 @@
+.fdr-app-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-5);
+  padding: var(--fdr-space-4) var(--fdr-space-3);
+
+  &__heading {
+    margin: 0 0 var(--fdr-space-2) var(--fdr-space-3);
+    color: var(--fdr-text-muted);
+    font-size: var(--fdr-text-xs);
+    font-weight: var(--fdr-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: var(--fdr-space-3);
+    padding: var(--fdr-space-2) var(--fdr-space-3);
+    border-radius: var(--fdr-radius-sm);
+    border-left: 3px solid transparent;
+    color: var(--fdr-text-secondary);
+    text-decoration: none;
+    font-size: var(--fdr-text-sm);
+    font-weight: var(--fdr-font-weight-medium);
+
+    &:hover {
+      background: var(--fdr-bg-hover);
+      color: var(--fdr-text-primary);
+    }
+
+    &--active {
+      border-left-color: var(--fdr-accent-primary);
+      background: var(--fdr-bg-hover);
+      color: var(--fdr-text-primary);
+    }
+  }
+}

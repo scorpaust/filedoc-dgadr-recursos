@@ -1,0 +1,48 @@
+@use '../../../../../styles/mixins' as *;
+
+.fdr-accordion-item {
+  border: 1px solid var(--fdr-border);
+  border-radius: var(--fdr-radius-md);
+  overflow: hidden;
+
+  & + & {
+    margin-top: var(--fdr-space-3);
+  }
+
+  &__heading {
+    margin: 0;
+  }
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--fdr-space-4) var(--fdr-space-5);
+    border: none;
+    background: var(--fdr-bg-surface);
+    color: var(--fdr-text-primary);
+    font-size: var(--fdr-text-base);
+    font-weight: var(--fdr-font-weight-semibold);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    transition: transform var(--fdr-duration-base) var(--fdr-easing);
+
+    &--open {
+      transform: rotate(180deg);
+    }
+
+    @include reduced-motion {
+      transition: none;
+    }
+  }
+
+  &__content {
+    padding: 0 var(--fdr-space-5) var(--fdr-space-4);
+    color: var(--fdr-text-secondary);
+  }
+}

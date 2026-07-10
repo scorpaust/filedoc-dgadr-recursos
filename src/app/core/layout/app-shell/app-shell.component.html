@@ -1,0 +1,30 @@
+<a class="fdr-skip-link" href="#fdr-main-content">Saltar para o conteúdo</a>
+
+<fdr-app-header />
+
+<div class="fdr-app-shell__body">
+  @if (navDrawerService.isOpen()) {
+    <button
+      type="button"
+      class="fdr-app-shell__scrim"
+      aria-label="Fechar navegação"
+      (click)="navDrawerService.close()"
+    ></button>
+  }
+
+  <aside
+    class="fdr-app-shell__nav"
+    [class.fdr-app-shell__nav--open]="navDrawerService.isOpen()"
+    [cdkTrapFocus]="navDrawerService.isOpen()"
+    [cdkTrapFocusAutoCapture]="navDrawerService.isOpen()"
+  >
+    <fdr-app-nav />
+  </aside>
+
+  <main id="fdr-main-content" class="fdr-app-shell__content" tabindex="-1">
+    <router-outlet />
+  </main>
+</div>
+
+<fdr-app-footer />
+<fdr-toast />

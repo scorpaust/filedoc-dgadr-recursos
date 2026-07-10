@@ -1,1 +1,31 @@
-/* You can add global styles to this file, and also import other style files */
+@use 'styles/tokens';
+@use 'styles/themes';
+@use 'styles/typography';
+@use 'styles/utilities';
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--fdr-bg-app);
+  color: var(--fdr-text-primary);
+  transition:
+    background-color var(--fdr-duration-base) var(--fdr-easing),
+    color var(--fdr-duration-base) var(--fdr-easing);
+}
+
+a {
+  color: var(--fdr-link);
+}
+
+:focus-visible {
+  outline: 2px solid var(--fdr-focus-ring);
+  outline-offset: 2px;
+}

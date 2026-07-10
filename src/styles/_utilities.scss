@@ -1,0 +1,24 @@
+// Utilitários globais mínimos — link "saltar para o conteúdo" e classe visualmente
+// oculta usada pelos componentes partilhados para texto apenas para leitores de ecrã.
+
+@use 'mixins' as *;
+
+.fdr-visually-hidden {
+  @include visually-hidden;
+}
+
+.fdr-skip-link {
+  position: absolute;
+  top: -3rem;
+  left: var(--fdr-space-3);
+  z-index: 1000;
+  padding: var(--fdr-space-2) var(--fdr-space-4);
+  background: var(--fdr-accent-primary);
+  color: var(--fdr-accent-primary-text);
+  border-radius: var(--fdr-radius-sm);
+  transition: top var(--fdr-duration-base) var(--fdr-easing);
+
+  &:focus {
+    top: var(--fdr-space-3);
+  }
+}

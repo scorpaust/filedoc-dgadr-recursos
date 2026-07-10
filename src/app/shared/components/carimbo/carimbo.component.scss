@@ -1,0 +1,15 @@
+.fdr-carimbo {
+  display: inline-flex;
+  align-items: center;
+  height: 1.75rem;
+  padding: 0 var(--fdr-space-3);
+  border-radius: var(--fdr-radius-sm);
+  border: 1px dashed var(--fdr-border-strong);
+  color: var(--fdr-text-secondary);
+  font-family: var(--fdr-font-mono);
+  font-size: var(--fdr-text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}

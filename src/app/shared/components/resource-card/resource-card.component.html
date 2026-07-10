@@ -1,0 +1,27 @@
+<a class="fdr-resource-card" [routerLink]="['/recursos', resource().id]">
+  <div
+    class="fdr-resource-card__media"
+    [class.fdr-resource-card__media--video]="isVideo()"
+    [class.fdr-resource-card__media--guide]="!isVideo()"
+  >
+    <span class="fdr-resource-card__type-badge">{{ isVideo() ? 'VÍDEO' : 'GUIA' }}</span>
+    <fdr-icon [name]="isVideo() ? 'play' : 'file'" size="lg" />
+  </div>
+
+  <div class="fdr-resource-card__body">
+    <div class="fdr-resource-card__tags">
+      <fdr-tag [label]="resource().workflow" />
+      <fdr-tag [label]="difficultyLabel()" [difficulty]="resource().difficulty" />
+    </div>
+
+    <h3 class="fdr-resource-card__title">{{ resource().title }}</h3>
+    <p class="fdr-resource-card__description">{{ resource().description }}</p>
+
+    <div class="fdr-resource-card__footer">
+      <span>{{ metaLabel() }}</span>
+      <span>Atualizado {{ resource().updatedAt }}</span>
+    </div>
+
+    <span class="fdr-resource-card__action">{{ actionLabel() }}</span>
+  </div>
+</a>
