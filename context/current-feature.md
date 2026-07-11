@@ -8,7 +8,7 @@ Fase 3 (UI) — Catálogo de Recursos
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Concluída
+Completa
 
 ## Objetivos
 
@@ -71,4 +71,5 @@ Ver `context/features/fase-3-ui-catalogo.md`.
   - validação manual no browser (Playwright, ferramenta temporária não guardada no projeto, script descartável fora do repositório): 29 de 30 verificações automatizadas passaram — pesquisa por texto, filtros de tipo/fluxo isolados, "limpar filtros" (barra de ferramentas e estado vazio), paginação (páginas com conteúdo distinto, URL atualizada), sincronização de filtros/pesquisa/página com a URL, teclado (setas no controlo segmentado, Escape a fechar o dropdown), zero erros de consola, e a regra de visibilidade confirmada com os 3 utilizadores mock relevantes (`EMPLOYEE`: 16 recursos, sem rascunhos nem arquivados; `CONTENT_EDITOR` e `ADMIN`: 21 recursos, incluindo rascunhos, nunca arquivados); sem scroll horizontal a 320/375/1024/1440 px;
   - encontrado (não corrigido, fora do âmbito desta fase): overflow horizontal de 2 px a 768 px, reproduzido também em `/inicio` e causado pela gaveta de navegação móvel da `AppShellComponent` (herdada da Fase 1) após múltiplos ciclos de login/logout — elemento com `visibility: hidden`, sem impacto visual percetível, mas a corrigir numa fase futura que toque o `AppShellComponent`;
   - encontrado (não corrigido, fora do âmbito desta fase): devido à sessão simulada da Fase 2 não ter persistência (só em memória), recarregar o browser numa página com filtros na URL perde a sessão e redireciona para `/login` sem preservar o URL de destino (sem `returnUrl`); o comportamento de "restaurar filtros a partir do URL" em si está validado ao nível do componente (testes unitários com `ActivatedRoute` simulada), mas o fluxo completo "recarregar a página autenticada" só poderá ser validado em browser depois de uma fase que adicione persistência de sessão;
-  - Commit ainda por autorizar.
+  - commit efetuado em `feature/fase-3-ui-catalogo` (`Fase 3 (UI) — Catálogo de Recursos`), seguido de um commit à parte para uma correção de configuração não relacionada (`fix: definir rootDir explícito em tsconfig.app.json`, aplicada automaticamente pelo editor);
+  - branch `feature/fase-3-ui-catalogo` integrada em `main` por pedido do utilizador, e apagada de seguida.
