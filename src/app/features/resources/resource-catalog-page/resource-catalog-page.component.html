@@ -1,0 +1,87 @@
+<section class="fdr-catalog">
+  <h1 class="fdr-catalog__title">Catálogo de recursos</h1>
+
+  <div class="fdr-catalog__toolbar">
+    <div class="fdr-field fdr-catalog__search">
+      <label class="fdr-visually-hidden" for="catalog-search">Pesquisar recursos</label>
+      <input
+        id="catalog-search"
+        type="search"
+        class="fdr-field__input"
+        placeholder="Pesquisar por título, resumo ou etiqueta"
+        [formControl]="searchControl"
+      />
+    </div>
+
+    <fdr-segmented-control
+      [options]="typeOptions"
+      [selected]="filters().type"
+      (selectedChange)="onTypeChange($event)"
+    />
+
+    <fdr-dropdown-filter
+      label="Fluxo"
+      [options]="workflowOptions"
+      [selectedValues]="filters().workflows"
+      (selectedValuesChange)="onWorkflowsChange($event)"
+    />
+
+    <fdr-dropdown-filter
+      label="Dificuldade"
+      [options]="difficultyOptions"
+      [selectedValues]="filters().difficulties"
+      (selectedValuesChange)="onDifficultiesChange($event)"
+    />
+
+    <fdr-button variant="ghost" [disabled]="!hasActiveFilters()" (clicked)="onClearFilters()">
+      Limpar filtros
+    </fdr-button>
+  </div>
+
+  <div class="fdr-catalog__results-bar">
+    <p class="fdr-catalog__count">{{ resultsLabel() }}</p>
+
+    <div class="fdr-field fdr-catalog__sort">
+      <label class="fdr-visually-hidden" for="catalog-sort">Ordenar por</label>
+      <select
+        id="catalog-sort"
+        class="fdr-field__input"
+        [value]="filters().sort"
+        (change)="onSortChange($event)"
+      >
+        <option value="recent">Mais recentes</option>
+        <option value="alphabetical">Alfabética</option>
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="fdr-catalog__grid" aria-hidden="true" aria-live="off">
+      @for (placeholder of skeletonPlaceholders; track placeholder) {
+        <fdr-skeleton variant="card" height="20rem" />
+      }
+    </div>
+  } @else if (items().length > 0) {
+    <div class="fdr-catalog__grid" aria-live="polite">
+      @for (resource of items(); track resource.id) {
+        <fdr-resource-card [resource]="resource" />
+      }
+    </div>
+  } @else {
+    <fdr-empty-state
+      icon="search"
+      title="Nenhum recurso encontrado"
+      description="Tente ajustar a pesquisa ou os filtros selecionados."
+      actionLabel="Limpar filtros"
+      (actionClicked)="onClearFilters()"
+    />
+  }
+
+  @if (!loading() && totalPages() > 1) {
+    <fdr-pagination
+      [currentPage]="filters().page"
+      [totalPages]="totalPages()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+</section>

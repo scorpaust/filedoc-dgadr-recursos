@@ -1,20 +1,20 @@
 # Funcionalidade Atual
 
-Fase 2 (UI) — Ecrãs de Autenticação
+Fase 3 (UI) — Catálogo de Recursos
 
-<!-- Ver especificação completa em context/features/fase-2-ui-autenticacao.md -->
+<!-- Ver especificação completa em context/features/fase-3-ui-catalogo.md -->
 
 ## Estado
 
-<!-- Não iniciada|Em curso|Concluída -->
+<!-- Não iniciada|Em progresso|Concluída -->
 
-Concluída
+Completa
 
 ## Objetivos
 
 <!-- Objetivos e requisitos -->
 
-Ver `context/features/fase-2-ui-autenticacao.md`.
+Ver `context/features/fase-3-ui-catalogo.md`.
 
 ## Notas
 
@@ -57,3 +57,19 @@ Ver `context/features/fase-2-ui-autenticacao.md`.
   - esta validação encontrou e corrigiu 3 bugs reais não cobertos pelos testes unitários: (1) `UserMenuComponent` — o chevron do gatilho ficava sempre visível e causava overflow horizontal a 320 px; escondido também abaixo de 768 px, junto com o nome/cargo; (2) `AppShellComponent` (gaveta de navegação móvel, herdada da Fase 1) — os links da gaveta fechada continuavam focáveis fora do ecrã (só havia `transform`, sem `visibility: hidden`), e não existia atalho de Escape para fechar a gaveta nem devolução de foco ao botão que a abriu; ambos corrigidos; (3) `UserMenuComponent` — o painel do menu não tinha `cdkTrapFocus` nem foco automático no primeiro item, pelo que o Tab saltava da barra lateral em vez de percorrer as opções do menu; corrigido com `cdkTrapFocus`/`cdkTrapFocusAutoCapture` e foco devolvido ao gatilho ao fechar;
   - `lint`, `typecheck`, `test` (99/99) e `build` revalidados após todas as correções, todos a passar sem erros.
   - Commit ainda por autorizar.
+- Início da Fase 3 (UI) — Catálogo de Recursos, na branch `feature/fase-3-ui-catalogo`
+- Implementação completa da Fase 3 (UI):
+  - `Resource` (`shared/models/resource.model.ts`) estendido com `slug`, `summary` (resumo, usado no cartão), `tags`, `publishedAt`, e `workflow`/`documentType` passaram a uniões literais tipadas (`Workflow`/`DocumentType`, com as listas `WORKFLOWS`/`DOCUMENT_TYPES` da secção B do `project-spec.md`); `description` mantido para a Fase 4 (detalhe);
+  - `shared/mocks/resources.mock.ts` expandido de 6 para 24 recursos, cobrindo os 3 estados editoriais (16 publicados, 5 rascunho, 3 arquivados), os 2 tipos, as 3 dificuldades, os 8 fluxos e os 7 tipos de documento;
+  - `ResourceCardComponent` (Fase 1) atualizado para navegar por `resource().slug` (em vez de `id`) e mostrar `resource().summary`; testes ajustados;
+  - `PaginationComponent` novo (`shared/components/pagination`), acessível (`nav[aria-label]`, `aria-current="page"`, reticências para muitas páginas), com testes;
+  - `ResourceMockService` novo (`features/resources/data`), com `search(params): Observable<{ items; total }>` e `getBySlug(slug)`, atraso simulado de 300 ms (`delay`), pesquisa por título/resumo/etiquetas (sem distinção de maiúsculas/acentos), filtros por tipo/fluxo/dificuldade, ordenação "mais recentes"/alfabética, paginação, e visibilidade por estado editorial e função (`CONTENT_EDITOR`/`ADMIN` veem rascunhos; arquivados nunca aparecem); testado exaustivamente;
+  - `ResourceCatalogPageComponent` (`features/resources/resource-catalog-page`) reescrito por completo: barra de pesquisa com debounce de 250 ms (Reactive Forms), `SegmentedControlComponent` (tipo), dois `DropdownFilterComponent` (fluxo/dificuldade), `select` nativo de ordenação, grelha responsiva (`auto-fill`), skeletons durante o carregamento, `EmptyStateComponent` com ação de limpar filtros, `PaginationComponent`, e sincronização de todos os parâmetros com a URL (`q`, `tipo`, `fluxo`, `dificuldade`, `ordenar`, `pagina`) através de `Router.navigate(..., { replaceUrl: true })`; usa `switchMap` (via `toObservable`/`toSignal`) para cancelar pesquisas em curso;
+  - decisão registada (risco em aberto do `fase-3-ui-catalogo.md`): "mais recentes" ordena por `publishedAt` (data de publicação), não por `updatedAt`; documentado em comentário no `ResourceMockService`;
+  - decisão: o filtro por tipo de documento previsto no `project-spec.md` (secção C) não foi incluído nesta fase — o `fase-3-ui-catalogo.md` (tarefa D) restringe explicitamente os filtros a pesquisa/tipo/fluxo/dificuldade;
+  - validação automática: `lint`, `typecheck`, `test` (126/126 testes) e `build` (produção) todos a passar sem erros; `format:check` sem regressões (o aviso pré-existente por fim de linha `core.autocrlf` replica-se numa checkout limpa de `main`, tal como documentado na Fase 2);
+  - validação manual no browser (Playwright, ferramenta temporária não guardada no projeto, script descartável fora do repositório): 29 de 30 verificações automatizadas passaram — pesquisa por texto, filtros de tipo/fluxo isolados, "limpar filtros" (barra de ferramentas e estado vazio), paginação (páginas com conteúdo distinto, URL atualizada), sincronização de filtros/pesquisa/página com a URL, teclado (setas no controlo segmentado, Escape a fechar o dropdown), zero erros de consola, e a regra de visibilidade confirmada com os 3 utilizadores mock relevantes (`EMPLOYEE`: 16 recursos, sem rascunhos nem arquivados; `CONTENT_EDITOR` e `ADMIN`: 21 recursos, incluindo rascunhos, nunca arquivados); sem scroll horizontal a 320/375/1024/1440 px;
+  - encontrado (não corrigido, fora do âmbito desta fase): overflow horizontal de 2 px a 768 px, reproduzido também em `/inicio` e causado pela gaveta de navegação móvel da `AppShellComponent` (herdada da Fase 1) após múltiplos ciclos de login/logout — elemento com `visibility: hidden`, sem impacto visual percetível, mas a corrigir numa fase futura que toque o `AppShellComponent`;
+  - encontrado (não corrigido, fora do âmbito desta fase): devido à sessão simulada da Fase 2 não ter persistência (só em memória), recarregar o browser numa página com filtros na URL perde a sessão e redireciona para `/login` sem preservar o URL de destino (sem `returnUrl`); o comportamento de "restaurar filtros a partir do URL" em si está validado ao nível do componente (testes unitários com `ActivatedRoute` simulada), mas o fluxo completo "recarregar a página autenticada" só poderá ser validado em browser depois de uma fase que adicione persistência de sessão;
+  - commit efetuado em `feature/fase-3-ui-catalogo` (`Fase 3 (UI) — Catálogo de Recursos`), seguido de um commit à parte para uma correção de configuração não relacionada (`fix: definir rootDir explícito em tsconfig.app.json`, aplicada automaticamente pelo editor);
+  - branch `feature/fase-3-ui-catalogo` integrada em `main` por pedido do utilizador, e apagada de seguida.

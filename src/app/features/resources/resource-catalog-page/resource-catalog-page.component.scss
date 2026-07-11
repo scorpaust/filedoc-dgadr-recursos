@@ -1,0 +1,53 @@
+.fdr-catalog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-5);
+  padding: var(--fdr-space-6) var(--fdr-space-5);
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-2xl);
+  }
+
+  &__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--fdr-space-3);
+  }
+
+  &__search {
+    flex: 1 1 16rem;
+    min-width: 12rem;
+  }
+
+  &__results-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fdr-space-3);
+  }
+
+  &__count {
+    margin: 0;
+    color: var(--fdr-text-secondary);
+    font-size: var(--fdr-text-sm);
+  }
+
+  &__sort {
+    min-width: 10rem;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--fdr-space-5);
+  }
+}
+
+@media (max-width: 480px) {
+  .fdr-catalog {
+    padding: var(--fdr-space-5) var(--fdr-space-4);
+  }
+}

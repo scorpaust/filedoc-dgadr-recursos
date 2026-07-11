@@ -1,4 +1,4 @@
-<a class="fdr-resource-card" [routerLink]="['/recursos', resource().id]">
+<a class="fdr-resource-card" [routerLink]="['/recursos', resource().slug]">
   <div
     class="fdr-resource-card__media"
     [class.fdr-resource-card__media--video]="isVideo()"
@@ -15,7 +15,7 @@
     </div>
 
     <h3 class="fdr-resource-card__title">{{ resource().title }}</h3>
-    <p class="fdr-resource-card__description">{{ resource().description }}</p>
+    <p class="fdr-resource-card__description">{{ resource().summary }}</p>
 
     <div class="fdr-resource-card__footer">
       <span>{{ metaLabel() }}</span>
