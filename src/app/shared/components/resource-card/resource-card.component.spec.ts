@@ -5,13 +5,17 @@ import { ResourceCardComponent } from './resource-card.component';
 
 const videoResource: Resource = {
   id: 'res-1',
+  slug: 'criar-um-novo-processo-de-correspondencia',
   title: 'Criar um novo processo de correspondência',
-  description: 'Como registar corretamente um processo desde o primeiro passo.',
+  summary: 'Como registar corretamente um processo desde o primeiro passo.',
+  description: 'Como registar corretamente um processo desde o primeiro passo, com exemplos.',
   type: 'video',
   workflow: 'Criação e registo',
   documentType: 'Correspondência',
   difficulty: 'iniciacao',
+  tags: ['registo', 'correspondência'],
   duration: '6 min',
+  publishedAt: '2026-06-30',
   updatedAt: '2026-07-02',
   status: 'published',
   author: 'Marta Silva',
@@ -21,6 +25,7 @@ const videoResource: Resource = {
 const guideResource: Resource = {
   ...videoResource,
   id: 'res-2',
+  slug: 'assinar-um-despacho-digitalmente',
   type: 'guide',
   pages: 8,
   duration: undefined,
@@ -44,7 +49,7 @@ describe('ResourceCardComponent', () => {
     expect(el.querySelector('.fdr-resource-card__footer')?.textContent).toContain('6 min');
     expect(el.querySelector('.fdr-resource-card__action')?.textContent).toContain('Ver vídeo');
     expect((el.querySelector('a') as HTMLAnchorElement).getAttribute('href')).toBe(
-      '/recursos/res-1',
+      '/recursos/criar-um-novo-processo-de-correspondencia',
     );
   });
 
