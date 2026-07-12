@@ -1,5 +1,5 @@
 <nav class="fdr-app-nav" aria-label="Navegação principal">
-  @for (group of navGroups; track group.heading) {
+  @for (group of navGroups(); track group.heading) {
     <div class="fdr-app-nav__group">
       <p class="fdr-app-nav__heading">{{ group.heading }}</p>
       <!-- O `@for` é lido como texto solto por linters estáticos (ex.: webhint/axe do

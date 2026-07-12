@@ -12,12 +12,10 @@ import {
 
 const SIMULATED_DELAY_MS = 300;
 const EDITOR_ROLES: readonly UserRole[] = ['CONTENT_EDITOR', 'ADMIN'];
+const MAX_RELATED = 4;
 
 function normalize(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
+  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
 // Serviço de dados simulado (Fase 3 — UI). Assinatura pensada para ser substituída,
@@ -45,6 +43,18 @@ export class ResourceMockService {
       (candidate) => candidate.slug === slug && this.isVisible(candidate, role),
     );
     return of(resource).pipe(delay(SIMULATED_DELAY_MS));
+  }
+
+  getRelated(ids: readonly string[]): Observable<readonly Resource[]> {
+    const role = this.authService.currentRole();
+    const related = ids
+      .map((id) => resources.find((candidate) => candidate.id === id))
+      .filter(
+        (candidate): candidate is Resource =>
+          candidate !== undefined && this.isVisible(candidate, role),
+      )
+      .slice(0, MAX_RELATED);
+    return of(related).pipe(delay(SIMULATED_DELAY_MS));
   }
 
   private isVisible(resource: Resource, role: UserRole | null): boolean {

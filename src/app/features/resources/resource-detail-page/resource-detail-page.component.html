@@ -1,0 +1,62 @@
+@if (loading()) {
+  <div class="fdr-detail" aria-hidden="true">
+    <fdr-skeleton variant="text" width="10rem" height="1.25rem" />
+    <fdr-skeleton variant="text" width="60%" height="2rem" />
+    <fdr-skeleton variant="card" height="20rem" />
+    <fdr-skeleton variant="text" height="4rem" />
+  </div>
+} @else if (notFound()) {
+  <fdr-empty-state
+    icon="search"
+    title="Recurso não encontrado"
+    description="O recurso que procura não existe ou não está disponível."
+    actionLabel="Voltar ao catálogo"
+    (actionClicked)="goToCatalog()"
+  />
+} @else if (resource(); as resource) {
+  <article class="fdr-detail">
+    <a class="fdr-detail__back" routerLink="/recursos">
+      <fdr-icon name="arrow-left" size="sm" />
+      Voltar ao catálogo
+    </a>
+
+    <div class="fdr-detail__layout">
+      <div class="fdr-detail__main">
+        <h1 class="fdr-detail__title">{{ resource.title }}</h1>
+        <p class="fdr-detail__summary">{{ resource.summary }}</p>
+
+        @if (resource.type === 'video') {
+          <fdr-video-player
+            [src]="resource.videoUrl ?? ''"
+            [captionsUrl]="resource.captionsUrl"
+            [title]="resource.title"
+            (durationChange)="onVideoDurationChange($event)"
+          />
+        } @else {
+          <fdr-pdf-viewer [src]="resource.pdfUrl ?? ''" [title]="resource.title" />
+        }
+
+        <p class="fdr-detail__description">{{ resource.description }}</p>
+
+        <fdr-button variant="outline" (clicked)="requestSupport(resource)">
+          Pedir suporte sobre este tema
+        </fdr-button>
+      </div>
+
+      <aside class="fdr-detail__sidebar">
+        <fdr-resource-meta [resource]="resource" [liveDurationSeconds]="videoDuration()" />
+      </aside>
+    </div>
+
+    @if (related().length > 0) {
+      <section class="fdr-detail__related">
+        <h2 class="fdr-detail__related-title">Recursos relacionados</h2>
+        <div class="fdr-detail__related-grid">
+          @for (item of related(); track item.id) {
+            <fdr-resource-card [resource]="item" />
+          }
+        </div>
+      </section>
+    }
+  </article>
+}

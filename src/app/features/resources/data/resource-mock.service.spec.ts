@@ -33,7 +33,9 @@ describe('ResourceMockService', () => {
   });
 
   function loginAs(role: UserRole): void {
-    const user = users.find((candidate) => candidate.role === role && candidate.status === 'active');
+    const user = users.find(
+      (candidate) => candidate.role === role && candidate.status === 'active',
+    );
     if (!user) {
       throw new Error(`No active mock user for role ${role}`);
     }
@@ -48,6 +50,12 @@ describe('ResourceMockService', () => {
 
   async function getBySlug(slug: string) {
     const promise = firstValueFrom(service.getBySlug(slug));
+    await vi.advanceTimersByTimeAsync(300);
+    return promise;
+  }
+
+  async function getRelated(ids: readonly string[]) {
+    const promise = firstValueFrom(service.getRelated(ids));
     await vi.advanceTimersByTimeAsync(300);
     return promise;
   }
@@ -132,7 +140,9 @@ describe('ResourceMockService', () => {
       pageSize: resources.length,
     });
     expect(
-      result.items.every((resource) => resource.type === 'guide' && resource.difficulty === 'avancada'),
+      result.items.every(
+        (resource) => resource.type === 'guide' && resource.difficulty === 'avancada',
+      ),
     ).toBe(true);
   });
 
@@ -199,5 +209,27 @@ describe('ResourceMockService', () => {
     }
     loginAs('ADMIN');
     expect(await getBySlug(archived.slug)).toBeUndefined();
+  });
+
+  it('resolves related resources by id, preserving order, up to a maximum of 4', async () => {
+    loginAs('ADMIN');
+    const visible = resources.filter((resource) => resource.status !== 'archived').slice(0, 6);
+    const ids = visible.map((resource) => resource.id);
+    const related = await getRelated(ids);
+    expect(related.length).toBe(4);
+    expect(related.map((resource) => resource.id)).toEqual(ids.slice(0, 4));
+  });
+
+  it('excludes related ids that do not exist, or that are not visible to the current role', async () => {
+    const draft = resources.find((resource) => resource.status === 'draft');
+    const archived = resources.find((resource) => resource.status === 'archived');
+    const published = resources.find((resource) => resource.status === 'published');
+    if (!draft || !archived || !published) {
+      throw new Error('Expected draft, archived and published mock resources');
+    }
+
+    loginAs('EMPLOYEE');
+    const related = await getRelated([draft.id, archived.id, 'unknown-id', published.id]);
+    expect(related.map((resource) => resource.id)).toEqual([published.id]);
   });
 });

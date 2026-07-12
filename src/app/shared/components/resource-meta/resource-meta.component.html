@@ -1,0 +1,40 @@
+<div class="fdr-resource-meta">
+  <h2 class="fdr-resource-meta__title">Detalhes</h2>
+
+  <dl class="fdr-resource-meta__list">
+    <div class="fdr-resource-meta__row">
+      <dt>Fluxo</dt>
+      <dd><fdr-tag [label]="resource().workflow" /></dd>
+    </div>
+
+    <div class="fdr-resource-meta__row">
+      <dt>Tipo de documento</dt>
+      <dd><fdr-tag [label]="resource().documentType" /></dd>
+    </div>
+
+    <div class="fdr-resource-meta__row">
+      <dt>Dificuldade</dt>
+      <dd><fdr-tag [label]="difficultyLabel()" [difficulty]="resource().difficulty" /></dd>
+    </div>
+
+    @if (extentValue()) {
+      <div class="fdr-resource-meta__row">
+        <dt>{{ extentLabel() }}</dt>
+        <dd>{{ extentValue() }}</dd>
+      </div>
+    }
+
+    <div class="fdr-resource-meta__row">
+      <dt>Atualizado em</dt>
+      <dd><fdr-carimbo [label]="resource().updatedAt" /></dd>
+    </div>
+  </dl>
+
+  @if (resource().tags.length > 0) {
+    <div class="fdr-resource-meta__tags">
+      @for (tag of resource().tags; track tag) {
+        <fdr-tag [label]="tag" />
+      }
+    </div>
+  }
+</div>
