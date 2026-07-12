@@ -20,7 +20,6 @@ export const navGroups: readonly NavGroup[] = [
     items: [
       { label: 'Início', route: '/inicio', icon: 'home' },
       { label: 'Catálogo', route: '/recursos', icon: 'grid' },
-      { label: 'Recurso', route: '/recursos/res-1', icon: 'file' },
       { label: 'Dicas & FAQ', route: '/dicas-faq', icon: 'lightbulb' },
     ],
   },

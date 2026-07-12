@@ -45,4 +45,10 @@ export interface Resource {
   readonly status: EditorialStatus;
   readonly author: string;
   readonly relatedResourceIds: readonly string[];
+  /** Só definido para `type: 'video'`. */
+  readonly videoUrl?: string;
+  /** Legendas (WebVTT), só quando disponíveis para o recurso. */
+  readonly captionsUrl?: string;
+  /** Só definido para `type: 'guide'`. */
+  readonly pdfUrl?: string;
 }

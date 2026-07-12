@@ -1,0 +1,15 @@
+<div class="fdr-video-player">
+  <video
+    class="fdr-video-player__video"
+    controls
+    preload="metadata"
+    [attr.aria-label]="title()"
+    (loadedmetadata)="onLoadedMetadata($event)"
+  >
+    <source [src]="src()" type="video/mp4" />
+    @if (captionsUrl()) {
+      <track kind="captions" [src]="captionsUrl()" srclang="pt" label="Português" default />
+    }
+    O seu navegador não suporta a reprodução deste vídeo.
+  </video>
+</div>

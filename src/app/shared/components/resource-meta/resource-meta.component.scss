@@ -1,0 +1,44 @@
+.fdr-resource-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-4);
+  padding: var(--fdr-space-4);
+  border: 1px solid var(--fdr-border);
+  border-radius: var(--fdr-radius-lg);
+  background: var(--fdr-bg-surface);
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-lg);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-3);
+    margin: 0;
+  }
+
+  &__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-1);
+
+    dt {
+      color: var(--fdr-text-muted);
+      font-size: var(--fdr-text-xs);
+    }
+
+    dd {
+      margin: 0;
+      color: var(--fdr-text-primary);
+      font-size: var(--fdr-text-sm);
+    }
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fdr-space-2);
+  }
+}

@@ -1,0 +1,8 @@
+<div class="fdr-pdf-viewer">
+  <iframe class="fdr-pdf-viewer__frame" [src]="safeSrc()" [attr.title]="title()"></iframe>
+
+  <a class="fdr-pdf-viewer__download" [href]="src()" download>
+    <fdr-icon name="download" size="sm" />
+    Descarregar PDF
+  </a>
+</div>
