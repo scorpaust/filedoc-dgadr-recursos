@@ -8,7 +8,7 @@ Fase 5 (UI) — Dicas & Perguntas Frequentes
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso
+Concluída
 
 ## Objetivos
 
@@ -105,7 +105,7 @@ Ver `context/features/fase-5-ui-dicas-faq.md`.
   - branch `feature/fase-4-ui-detalhe-recurso` integrada em `main` por pedido do utilizador (merge de integração, sem squash); `lint`, `typecheck`, `test` (161/161) e `build` revalidados em `main` após o merge, todos a passar; branch não apagada (ao contrário da Fase 3, não foi pedida a remoção).
 - Criação da especificação da Fase 5 (UI) — Dicas & Perguntas Frequentes (`context/features/fase-5-ui-dicas-faq.md`), independente da Fase 4 e podendo ser desenvolvida em paralelo; implementação ainda não iniciada.
 - Início da Fase 5 (UI) — Dicas & Perguntas Frequentes, na branch `feature/fase-5-ui-dicas-faq`.
-- Implementação completa da Fase 5 (UI), validada manualmente no browser; commit por autorizar:
+- Implementação completa da Fase 5 (UI), validada manualmente no browser:
   - `Tip` (`shared/models/tip.model.ts`) e `Faq` (`shared/models/faq.model.ts`) estendidos com `sortOrder`; `Faq` também com `category?: string` (opcional, conforme `project-spec.md`, secção G); `shared/mocks/tips.mock.ts` e `shared/mocks/faqs.mock.ts` expandidos com `sortOrder` em todos os itens, uma dica e uma pergunta em rascunho, e duas categorias de perguntas (mais um grupo sem categoria), para validar visibilidade e agrupamento;
   - `TipsFaqMockService` novo (`features/tips-faq/data`), único serviço a servir dicas e perguntas frequentes (`getTips()`/`getFaqs()`), com a mesma regra de visibilidade por estado editorial/função já usada nas Fases 3 e 4, e ordenação por `sortOrder`; testado exaustivamente;
   - `TipCardComponent` novo (`shared/components/tip-card`): marcador circular decorativo (`aria-hidden`) mais texto, conforme protótipo;
@@ -116,4 +116,5 @@ Ver `context/features/fase-5-ui-dicas-faq.md`.
   - validação automática: `lint`, `typecheck`, `format:check` e `test` (176/176 testes, incluindo os novos `TipsFaqMockService`, `TipCardComponent`, a extensão do `AccordionItemComponent` e a reescrita de `TipsFaqPageComponent`) e `build` (produção) todos a passar sem erros; confirmado por segunda execução que a falha intermitente por timeout no teste pré-existente `AppShellComponent` (já documentada desde a Fase 4) não é uma regressão desta fase; `format:check` corrigiu formatação real (não apenas fim de linha `core.autocrlf`) em 7 ficheiros desta fase antes de confirmar — `npx prettier --write` aplicado a todos os ficheiros criados/alterados;
   - ferramenta de validação manual desta fase: sem Playwright disponível nesta sessão (ao contrário das fases anteriores), foi montada uma alternativa ad-hoc com `puppeteer-core` (instalado apenas na pasta de scratchpad, fora do projeto, nunca adicionado a `package.json`) a controlar o Microsoft Edge local, para poder autenticar com a ferramenta de simulação de função (sessão só em memória, como já documentado desde a Fase 3) e navegar dentro da SPA (via clique em links, não `page.goto` direto, para não perder a sessão);
   - validação manual completa: login como `EMPLOYEE` não mostra a dica nem a pergunta em rascunho; login como `CONTENT_EDITOR` mostra ambas; navegação só por teclado (Tab até ao primeiro item do acordeão, `Enter` e `Espaço` alternam `aria-expanded` corretamente); sem overflow horizontal a 320/375/768/1024/1440 px (incl. gaveta de navegação móvel a 375 px); inspeção visual em modo claro e escuro sem problemas aparentes; confirmado por `getComputedStyle` que `--fdr-duration-base` é `0ms` sob `prefers-reduced-motion: reduce`;
-  - commit por autorizar.
+  - commit efetuado em `feature/fase-5-ui-dicas-faq` ("Fase 5 (UI) — Dicas & Perguntas Frequentes"), a pedido do utilizador;
+  - branch `feature/fase-5-ui-dicas-faq` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida; `lint`, `typecheck`, `test` (176/176) e `build` revalidados em `main` após o merge, todos a passar.
