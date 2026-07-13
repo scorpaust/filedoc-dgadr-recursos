@@ -28,7 +28,9 @@ export type IconName =
   | 'eye'
   | 'eye-off'
   | 'log-out'
-  | 'key';
+  | 'key'
+  | 'paperclip'
+  | 'send';
 
 export type IconSize = 'sm' | 'md' | 'lg';
 
@@ -169,6 +171,15 @@ const SIZE_PX: Record<IconSize, number> = { sm: 16, md: 20, lg: 24 };
           <path d="M9.5 12.5L20 2" />
           <path d="M17 5l3 3" />
           <path d="M14 8l2 2" />
+        }
+        @case ('paperclip') {
+          <path
+            d="M21 12.5L12.5 21a4 4 0 0 1-5.7-5.7l8.5-8.5a2.7 2.7 0 0 1 3.8 3.8l-8.1 8.1a1.3 1.3 0 0 1-1.9-1.9l7.4-7.4"
+          />
+        }
+        @case ('send') {
+          <path d="M22 2L11 13" />
+          <path d="M22 2l-7 20-4-9-9-4z" />
         }
       }
     </svg>

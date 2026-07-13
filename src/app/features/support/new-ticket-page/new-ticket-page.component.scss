@@ -1,0 +1,63 @@
+.fdr-new-ticket-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-5);
+  max-width: 40rem;
+  padding: var(--fdr-space-6) var(--fdr-space-5);
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-2xl);
+  }
+
+  &__related-resource {
+    display: flex;
+    align-items: center;
+    gap: var(--fdr-space-2);
+    padding: var(--fdr-space-3) var(--fdr-space-4);
+    border: 1px solid var(--fdr-tone-info-border);
+    border-radius: var(--fdr-radius-md);
+    background: var(--fdr-tone-info-bg);
+    color: var(--fdr-tone-info-text);
+  }
+
+  &__related-resource-label {
+    flex: 1;
+  }
+
+  &__remove-related {
+    display: inline-flex;
+    padding: var(--fdr-space-1);
+    border: none;
+    border-radius: var(--fdr-radius-sm);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+      background: rgb(0 0 0 / 8%);
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-4);
+  }
+
+  &__textarea {
+    height: auto;
+    padding: var(--fdr-space-3) var(--fdr-space-4);
+    resize: vertical;
+  }
+
+  &__blocking-warning {
+    margin: var(--fdr-space-2) 0 0;
+    padding: var(--fdr-space-3) var(--fdr-space-4);
+    border: 1px solid var(--fdr-tone-danger-border);
+    border-radius: var(--fdr-radius-md);
+    background: var(--fdr-tone-danger-bg);
+    color: var(--fdr-tone-danger-text);
+    font-size: var(--fdr-text-sm);
+  }
+}

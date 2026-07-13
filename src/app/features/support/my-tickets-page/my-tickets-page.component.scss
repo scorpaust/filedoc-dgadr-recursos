@@ -1,0 +1,99 @@
+@use '../../../../styles/mixins' as *;
+
+.fdr-my-tickets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-5);
+  padding: var(--fdr-space-6) var(--fdr-space-5);
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fdr-space-3);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-2xl);
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-3);
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: var(--fdr-space-3) var(--fdr-space-4);
+      text-align: left;
+      border-bottom: 1px solid var(--fdr-border);
+    }
+
+    th {
+      font-size: var(--fdr-text-sm);
+      color: var(--fdr-text-secondary);
+    }
+  }
+
+  &__subject-link {
+    color: var(--fdr-text-primary);
+    font-weight: var(--fdr-font-weight-medium);
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+// "Os meus pedidos" em cartões, tal como previsto no project-spec.md, em ecrãs estreitos.
+@media (max-width: 767px) {
+  .fdr-my-tickets__table {
+    display: block;
+
+    thead {
+      @include visually-hidden;
+    }
+
+    tbody,
+    tr {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      margin-bottom: var(--fdr-space-4);
+      padding: var(--fdr-space-3) var(--fdr-space-4);
+      border: 1px solid var(--fdr-border);
+      border-radius: var(--fdr-radius-md);
+    }
+
+    td {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--fdr-space-3);
+      padding: var(--fdr-space-2) 0;
+      border-bottom: none;
+
+      &::before {
+        content: attr(data-label);
+        font-size: var(--fdr-text-sm);
+        font-weight: var(--fdr-font-weight-medium);
+        color: var(--fdr-text-secondary);
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .fdr-my-tickets {
+    padding: var(--fdr-space-5) var(--fdr-space-4);
+  }
+}

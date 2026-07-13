@@ -21,4 +21,14 @@ describe('TagComponent', () => {
     const span = fixture.nativeElement.querySelector('span') as HTMLSpanElement;
     expect(span.classList.contains('fdr-tag--avancada')).toBe(true);
   });
+
+  it('applies the tone modifier class', async () => {
+    const fixture = TestBed.createComponent(TagComponent);
+    fixture.componentRef.setInput('label', 'Bloqueante');
+    fixture.componentRef.setInput('tone', 'danger');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const span = fixture.nativeElement.querySelector('span') as HTMLSpanElement;
+    expect(span.classList.contains('fdr-tag--tone-danger')).toBe(true);
+  });
 });

@@ -134,7 +134,7 @@ describe('ResourceDetailPageComponent', () => {
     supportButton.click();
 
     const resource = resources.find((candidate) => candidate.slug === GUIDE_SLUG)!;
-    expect(navigateSpy).toHaveBeenCalledWith(['/suporte'], {
+    expect(navigateSpy).toHaveBeenCalledWith(['/suporte/novo'], {
       queryParams: { recurso: resource.slug, assunto: resource.title },
     });
   });

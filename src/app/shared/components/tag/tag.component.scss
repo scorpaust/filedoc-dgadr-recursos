@@ -1,8 +1,9 @@
 .fdr-tag {
   display: inline-flex;
-  align-items: center;
-  height: 1.75rem;
-  padding: 0 var(--fdr-space-3);
+  align-items: flex-start;
+  min-height: 1.75rem;
+  padding: var(--fdr-space-1) var(--fdr-space-3);
+  text-align: left;
   border-radius: var(--fdr-radius-sm);
   border: 1px solid var(--fdr-border);
   background: var(--fdr-bg-surface-raised);
@@ -26,5 +27,41 @@
     color: var(--fdr-difficulty-avancada-text);
     border-color: var(--fdr-difficulty-avancada-border);
     background: var(--fdr-difficulty-avancada-bg);
+  }
+
+  &--tone-neutral {
+    color: var(--fdr-tone-neutral-text);
+    border-color: var(--fdr-tone-neutral-border);
+    background: var(--fdr-tone-neutral-bg);
+  }
+
+  &--tone-info {
+    color: var(--fdr-tone-info-text);
+    border-color: var(--fdr-tone-info-border);
+    background: var(--fdr-tone-info-bg);
+  }
+
+  &--tone-warning {
+    color: var(--fdr-tone-warning-text);
+    border-color: var(--fdr-tone-warning-border);
+    background: var(--fdr-tone-warning-bg);
+  }
+
+  &--tone-danger {
+    color: var(--fdr-tone-danger-text);
+    border-color: var(--fdr-tone-danger-border);
+    background: var(--fdr-tone-danger-bg);
+  }
+
+  &--tone-success {
+    color: var(--fdr-tone-success-text);
+    border-color: var(--fdr-tone-success-border);
+    background: var(--fdr-tone-success-bg);
+  }
+
+  &--tone-plum {
+    color: var(--fdr-tone-plum-text);
+    border-color: var(--fdr-tone-plum-border);
+    background: var(--fdr-tone-plum-bg);
   }
 }

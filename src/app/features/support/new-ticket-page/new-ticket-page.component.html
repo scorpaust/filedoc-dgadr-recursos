@@ -1,0 +1,99 @@
+<div class="fdr-new-ticket-page">
+  <h1 class="fdr-new-ticket-page__title">Novo pedido de suporte</h1>
+
+  @if (relatedResource(); as resource) {
+    <div class="fdr-new-ticket-page__related-resource">
+      <fdr-icon name="file" size="sm" />
+      <span class="fdr-new-ticket-page__related-resource-label">
+        Recurso associado: <strong>{{ resource.title }}</strong>
+      </span>
+      <button
+        type="button"
+        class="fdr-new-ticket-page__remove-related"
+        aria-label="Remover associação com o recurso {{ resource.title }}"
+        (click)="removeRelatedResource()"
+      >
+        <fdr-icon name="close" size="sm" />
+      </button>
+    </div>
+  }
+
+  <form class="fdr-new-ticket-page__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="ticket-subject">Assunto</label>
+      <input
+        id="ticket-subject"
+        type="text"
+        class="fdr-field__input"
+        formControlName="subject"
+        [attr.aria-invalid]="isFieldInvalid('subject')"
+        [attr.aria-describedby]="isFieldInvalid('subject') ? 'ticket-subject-error' : null"
+      />
+      @if (isFieldInvalid('subject')) {
+        <p class="fdr-field__error" id="ticket-subject-error">O assunto é obrigatório.</p>
+      }
+    </div>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="ticket-description">Descrição</label>
+      <textarea
+        id="ticket-description"
+        class="fdr-field__input fdr-new-ticket-page__textarea"
+        rows="5"
+        formControlName="description"
+        [attr.aria-invalid]="isFieldInvalid('description')"
+        [attr.aria-describedby]="isFieldInvalid('description') ? 'ticket-description-error' : null"
+      ></textarea>
+      @if (isFieldInvalid('description')) {
+        <p class="fdr-field__error" id="ticket-description-error">A descrição é obrigatória.</p>
+      }
+    </div>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="ticket-category">Categoria</label>
+      <select
+        id="ticket-category"
+        class="fdr-field__input"
+        formControlName="category"
+        [attr.aria-invalid]="isFieldInvalid('category')"
+        [attr.aria-describedby]="isFieldInvalid('category') ? 'ticket-category-error' : null"
+      >
+        <option value="" disabled>Selecionar categoria</option>
+        @for (category of categories; track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+      @if (isFieldInvalid('category')) {
+        <p class="fdr-field__error" id="ticket-category-error">A categoria é obrigatória.</p>
+      }
+    </div>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="ticket-priority">Prioridade</label>
+      <select
+        id="ticket-priority"
+        class="fdr-field__input"
+        formControlName="priority"
+        [attr.aria-invalid]="isFieldInvalid('priority')"
+        [attr.aria-describedby]="isFieldInvalid('priority') ? 'ticket-priority-error' : null"
+      >
+        <option value="" disabled>Selecionar prioridade</option>
+        @for (priority of priorities; track priority) {
+          <option [value]="priority">{{ priorityLabels[priority] }}</option>
+        }
+      </select>
+      @if (isFieldInvalid('priority')) {
+        <p class="fdr-field__error" id="ticket-priority-error">A prioridade é obrigatória.</p>
+      }
+      @if (isBlockingPriority()) {
+        <p class="fdr-new-ticket-page__blocking-warning" role="alert">
+          {{ blockingPriorityWarning }}
+        </p>
+      }
+    </div>
+
+    <fdr-button type="submit" [disabled]="isSubmitting()">
+      {{ isSubmitting() ? 'A criar pedido...' : 'Criar pedido' }}
+    </fdr-button>
+  </form>
+</div>

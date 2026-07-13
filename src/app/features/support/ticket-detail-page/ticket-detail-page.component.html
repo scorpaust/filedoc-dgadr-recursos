@@ -1,0 +1,91 @@
+@if (loading()) {
+  <div class="fdr-ticket-detail-page__skeleton">
+    <fdr-skeleton variant="card" height="8rem" />
+    <fdr-skeleton variant="card" height="16rem" />
+  </div>
+} @else if (notFound()) {
+  <fdr-empty-state
+    icon="search"
+    title="Pedido não encontrado"
+    description="O pedido que procura não existe ou não está disponível."
+    actionLabel="Voltar aos meus pedidos"
+    (actionClicked)="goToMyTickets()"
+  />
+} @else if (ticket(); as ticket) {
+  <div class="fdr-ticket-detail-page">
+    <header class="fdr-ticket-detail-page__header">
+      <fdr-ticket-reference [reference]="ticket.reference" />
+      <h1 class="fdr-ticket-detail-page__subject">{{ ticket.subject }}</h1>
+      <div class="fdr-ticket-detail-page__tags">
+        <fdr-tag [label]="ticket.category" />
+        <fdr-tag [label]="priorityLabel(ticket.priority)" [tone]="priorityTone(ticket.priority)" />
+        <fdr-tag [label]="statusLabel(ticket.status)" [tone]="statusTone(ticket.status)" />
+      </div>
+    </header>
+
+    <fdr-ticket-timeline [entries]="timelineEntries()" />
+
+    @if (canConfirmResolution()) {
+      <div class="fdr-ticket-detail-page__resolution">
+        <p>Este pedido foi marcado como resolvido pela equipa de suporte.</p>
+        <fdr-button variant="primary" (clicked)="confirmResolution()"
+          >Confirmar resolução</fdr-button
+        >
+      </div>
+    }
+
+    @if (canReply()) {
+      <form
+        class="fdr-ticket-detail-page__reply-form"
+        [formGroup]="replyForm"
+        (ngSubmit)="submitReply()"
+        novalidate
+      >
+        <div class="fdr-field">
+          <label class="fdr-field__label" for="reply-content">Responder</label>
+          <textarea
+            id="reply-content"
+            class="fdr-field__input fdr-ticket-detail-page__reply-textarea"
+            rows="4"
+            formControlName="content"
+          ></textarea>
+        </div>
+
+        @if (pendingAttachments().length > 0) {
+          <ul class="fdr-ticket-detail-page__pending-attachments">
+            @for (fileName of pendingAttachments(); track fileName; let index = $index) {
+              <li>
+                <fdr-icon name="paperclip" size="sm" />
+                <span>{{ fileName }}</span>
+                <button
+                  type="button"
+                  aria-label="Remover anexo {{ fileName }}"
+                  (click)="removePendingAttachment(index)"
+                >
+                  <fdr-icon name="close" size="sm" />
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="fdr-ticket-detail-page__reply-actions">
+          <label class="fdr-ticket-detail-page__attach-label">
+            <fdr-icon name="paperclip" size="sm" />
+            Anexar informação adicional
+            <input
+              type="file"
+              class="fdr-visually-hidden"
+              [disabled]="pendingAttachments().length >= maxAttachments"
+              (change)="onFileSelected($event)"
+            />
+          </label>
+
+          <fdr-button type="submit" [disabled]="isSubmittingReply()">
+            {{ isSubmittingReply() ? 'A enviar...' : 'Enviar resposta' }}
+          </fdr-button>
+        </div>
+      </form>
+    }
+  </div>
+}

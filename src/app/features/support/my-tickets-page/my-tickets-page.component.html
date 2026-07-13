@@ -1,0 +1,75 @@
+<section class="fdr-my-tickets">
+  <div class="fdr-my-tickets__header">
+    <h1 class="fdr-my-tickets__title">Os meus pedidos de suporte</h1>
+    <fdr-button variant="primary" (clicked)="goToNewTicket()">Novo pedido</fdr-button>
+  </div>
+
+  <fdr-segmented-control
+    [options]="statusOptions"
+    [selected]="statusFilter()"
+    (selectedChange)="onStatusFilterChange($event)"
+  />
+
+  @if (loading()) {
+    <div class="fdr-my-tickets__skeletons" aria-hidden="true">
+      @for (placeholder of skeletonPlaceholders; track placeholder) {
+        <fdr-skeleton variant="card" height="4rem" />
+      }
+    </div>
+  } @else if (isEmpty()) {
+    <fdr-empty-state
+      icon="headset"
+      title="Ainda não tem pedidos de suporte"
+      description="Crie um novo pedido sempre que precisar de ajuda."
+      actionLabel="Criar pedido"
+      (actionClicked)="goToNewTicket()"
+    />
+  } @else if (noResultsForFilter()) {
+    <fdr-empty-state
+      icon="search"
+      title="Nenhum pedido com este estado"
+      description="Experimente selecionar outro estado no filtro."
+      actionLabel="Ver todos"
+      (actionClicked)="onClearFilter()"
+    />
+  } @else {
+    <table class="fdr-my-tickets__table">
+      <caption class="fdr-visually-hidden">
+        Lista dos meus pedidos de suporte
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Referência</th>
+          <th scope="col">Assunto</th>
+          <th scope="col">Categoria</th>
+          <th scope="col">Prioridade</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Atualizado em</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ticket of filteredTickets(); track ticket.id) {
+          <tr class="fdr-my-tickets__row">
+            <td data-label="Referência"><fdr-ticket-reference [reference]="ticket.reference" /></td>
+            <td data-label="Assunto">
+              <a class="fdr-my-tickets__subject-link" [routerLink]="['/suporte', ticket.id]">{{
+                ticket.subject
+              }}</a>
+            </td>
+            <td data-label="Categoria">{{ ticket.category }}</td>
+            <td data-label="Prioridade">
+              <fdr-tag
+                [label]="priorityLabel(ticket.priority)"
+                [tone]="priorityTone(ticket.priority)"
+              />
+            </td>
+            <td data-label="Estado">
+              <fdr-tag [label]="statusLabel(ticket.status)" [tone]="statusTone(ticket.status)" />
+            </td>
+            <td data-label="Atualizado em">{{ formatDate(ticket.updatedAt) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

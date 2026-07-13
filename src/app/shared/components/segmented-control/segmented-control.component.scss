@@ -1,5 +1,6 @@
 .fdr-segmented {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: var(--fdr-space-1);
   padding: var(--fdr-space-1);
   border-radius: var(--fdr-radius-md);
