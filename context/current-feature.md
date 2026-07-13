@@ -8,7 +8,7 @@ Fase 6 (UI) — Suporte (Pedidos do Trabalhador)
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso (implementação completa; commit efetuado, integração em `main` por fazer)
+Concluída
 
 ## Objetivos
 
@@ -139,4 +139,5 @@ Ver `context/features/fase-6-ui-suporte-trabalhador.md`.
   - ferramenta de validação manual desta fase: Playwright instalado apenas na pasta de scratchpad (fora do projeto, nunca adicionado a `package.json`), a controlar Chromium local contra `ng serve`, autenticando com a ferramenta de simulação de função (sessão só em memória, como já documentado desde a Fase 3) e navegando por cliques dentro da SPA;
   - validação manual completa (22 verificações automatizadas no total, entre dois scripts descartáveis): Marta Silva (`EMPLOYEE`) só vê os próprios pedidos, nunca os de João Antunes/Paulo Matos; filtro de estado funcional; criação de pedido gera referência no formato `SUP-AAAA-XXXXXX` e navega para o detalhe; aviso da prioridade "Bloqueante" aparece só quando selecionada; resposta com anexo simulado atualiza o histórico; "Confirmar resolução" só disponível em "Resolvido" e transita corretamente para "Encerrado" (com a caixa de resposta e a própria ação a desaparecerem depois); aceder a um pedido de outro utilizador ou a um id inexistente mostra sempre a mesma mensagem genérica "Pedido não encontrado"; navegação por teclado (setas) no filtro de estado; fluxo completo a partir do botão "Pedir suporte sobre este tema" (Fase 4) até ao formulário com o recurso corretamente pré-associado e o assunto pré-preenchido; sem overflow horizontal a 320/375/768/1024/1440 px; zero erros de consola;
   - `lint`, `typecheck`, `format:check` e `test` (210/210) revalidados após a correção do `TagComponent`, todos a passar sem erros;
-  - commit efetuado em `feature/fase-6-ui-suporte-trabalhador` ("Fase 6 (UI) — Suporte (Pedidos do Trabalhador)"), a pedido do utilizador.
+  - commit efetuado em `feature/fase-6-ui-suporte-trabalhador` ("Fase 6 (UI) — Suporte (Pedidos do Trabalhador)"), a pedido do utilizador;
+  - branch `feature/fase-6-ui-suporte-trabalhador` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida; `lint`, `typecheck`, `test` (210/210) e `build` revalidados em `main` após o merge, todos a passar (uma primeira execução da suite mostrou uma falha intermitente por timeout em `app-header.component.spec.ts`, não relacionada com esta fase — mesma intermitência já documentada desde a Fase 4 —, confirmada como não determinística por uma segunda execução limpa).
