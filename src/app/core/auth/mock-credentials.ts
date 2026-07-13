@@ -10,4 +10,5 @@ export const mockCredentials: readonly MockCredential[] = [
   { email: 'carlos.vieira@dgadr.gov.pt', password: 'Demo123!' },
   { email: 'joao.antunes@dgadr.gov.pt', password: 'Demo123!' },
   { email: 'ana.ferreira@dgadr.gov.pt', password: 'Demo123!' },
+  { email: 'sofia.ramos@dgadr.gov.pt', password: 'Demo123!' },
 ];

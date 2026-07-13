@@ -3,11 +3,15 @@
     <li
       class="fdr-ticket-timeline__entry"
       [class.fdr-ticket-timeline__entry--status-change]="entry.kind === 'status-change'"
+      [class.fdr-ticket-timeline__entry--internal-note]="entry.kind === 'internal-note'"
     >
       <div class="fdr-ticket-timeline__meta">
         <span class="fdr-ticket-timeline__author">{{ entry.author }}</span>
         @if (entry.authorRole) {
           <span class="fdr-ticket-timeline__role">{{ entry.authorRole }}</span>
+        }
+        @if (entry.kind === 'internal-note') {
+          <fdr-tag label="Nota interna" tone="warning" />
         }
         <span class="fdr-ticket-timeline__date">{{ formatDate(entry.createdAt) }}</span>
       </div>

@@ -1,0 +1,237 @@
+<section class="fdr-support-management">
+  <div class="fdr-support-management__list-panel">
+    <h1 class="fdr-support-management__title">Gestão de suporte</h1>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="ticket-search">Pesquisar</label>
+      <input
+        id="ticket-search"
+        type="search"
+        class="fdr-field__input"
+        [formControl]="searchControl"
+        placeholder="Referência, assunto ou solicitante..."
+      />
+    </div>
+
+    <fdr-segmented-control
+      [options]="statusChipOptions"
+      [selected]="statusFilter()"
+      (selectedChange)="statusFilter.set($event)"
+    />
+
+    @if (loading()) {
+      <div class="fdr-support-management__skeletons" aria-hidden="true">
+        <fdr-skeleton variant="card" height="4rem" />
+        <fdr-skeleton variant="card" height="4rem" />
+        <fdr-skeleton variant="card" height="4rem" />
+      </div>
+    } @else if (!hasResults()) {
+      <fdr-empty-state
+        icon="search"
+        title="Nenhum pedido corresponde aos filtros"
+        description="Experimente outro termo de pesquisa ou outro estado."
+        actionLabel="Limpar filtros"
+        (actionClicked)="onSearchClear()"
+      />
+    } @else {
+      <ul class="fdr-support-management__queue">
+        @for (ticket of tickets(); track ticket.id) {
+          <li>
+            <button
+              type="button"
+              class="fdr-support-management__queue-item"
+              [class.fdr-support-management__queue-item--selected]="
+                ticket.id === selectedTicketId()
+              "
+              [attr.aria-pressed]="ticket.id === selectedTicketId()"
+              (click)="selectTicket(ticket.id)"
+            >
+              <fdr-ticket-reference [reference]="ticket.reference" />
+              <span class="fdr-support-management__queue-subject">{{ ticket.subject }}</span>
+              <span class="fdr-support-management__queue-meta"
+                >{{ ticket.category }} · {{ ticket.requester }} · {{ assigneeName(ticket) }}</span
+              >
+              <span class="fdr-support-management__queue-tags">
+                <fdr-tag
+                  [label]="priorityLabel(ticket.priority)"
+                  [tone]="priorityTone(ticket.priority)"
+                />
+                <fdr-tag [label]="statusLabel(ticket.status)" [tone]="statusTone(ticket.status)" />
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <div class="fdr-support-management__detail-panel">
+    @if (selectedTicket(); as ticket) {
+      <header class="fdr-support-management__header">
+        <fdr-ticket-reference [reference]="ticket.reference" />
+        <h2 class="fdr-support-management__subject">{{ ticket.subject }}</h2>
+        <p class="fdr-support-management__requester">
+          Solicitante: {{ ticket.requester }} ({{ ticket.requesterRole }})
+        </p>
+
+        <div class="fdr-support-management__tags">
+          <fdr-tag [label]="ticket.category" />
+          <fdr-tag
+            [label]="priorityLabel(ticket.priority)"
+            [tone]="priorityTone(ticket.priority)"
+          />
+          <fdr-tag [label]="statusLabel(ticket.status)" [tone]="statusTone(ticket.status)" />
+        </div>
+
+        @if (associatedResource(); as resource) {
+          <p class="fdr-support-management__resource">
+            Recurso associado:
+            <a [routerLink]="['/recursos', resource.slug]">{{ resource.title }}</a>
+          </p>
+        }
+
+        <div class="fdr-support-management__controls">
+          <div class="fdr-field">
+            <label class="fdr-field__label" for="ticket-assignee">Atribuído a</label>
+            <select
+              id="ticket-assignee"
+              class="fdr-field__input"
+              [value]="ticket.assigneeId ?? ''"
+              (change)="onAssigneeChange($event)"
+            >
+              <option value="" disabled>Não atribuído</option>
+              @for (agent of agents; track agent.id) {
+                <option [value]="agent.id">{{ agent.name }}</option>
+              }
+            </select>
+          </div>
+          <fdr-button variant="outline" (clicked)="assignToMe()">Atribuir a mim</fdr-button>
+          <fdr-button variant="outline" (clicked)="openResourcePicker()"
+            >Associar recurso</fdr-button
+          >
+        </div>
+
+        <div class="fdr-support-management__controls">
+          <div class="fdr-field">
+            <label class="fdr-field__label" for="ticket-category">Categoria</label>
+            <select
+              id="ticket-category"
+              class="fdr-field__input"
+              [value]="ticket.category"
+              (change)="onCategoryChange($event)"
+            >
+              @for (category of categories; track category) {
+                <option [value]="category">{{ category }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="fdr-field">
+            <label class="fdr-field__label" for="ticket-priority">Prioridade</label>
+            <select
+              id="ticket-priority"
+              class="fdr-field__input"
+              [value]="ticket.priority"
+              (change)="onPriorityChange($event)"
+            >
+              @for (priority of priorities; track priority) {
+                <option [value]="priority">{{ priorityLabel(priority) }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="fdr-field">
+            <label class="fdr-field__label" for="ticket-status">Estado</label>
+            <select
+              id="ticket-status"
+              class="fdr-field__input"
+              [value]="ticket.status"
+              (change)="onStatusChange($event)"
+            >
+              @for (status of statuses; track status) {
+                <option [value]="status">{{ statusLabel(status) }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="fdr-support-management__resolution-actions">
+          @if (canResolve()) {
+            <fdr-button variant="primary" (clicked)="resolveTicket()">Marcar resolvido</fdr-button>
+          }
+          @if (canClose()) {
+            <fdr-button variant="outline" (clicked)="closeTicket()">Encerrar</fdr-button>
+          }
+        </div>
+      </header>
+
+      <fdr-ticket-timeline [entries]="timelineEntries()" />
+
+      @if (canReply()) {
+        <form
+          class="fdr-support-management__reply-form"
+          [formGroup]="replyForm"
+          (ngSubmit)="submitReply()"
+          novalidate
+        >
+          <div
+            class="fdr-support-management__reply-mode"
+            role="radiogroup"
+            aria-label="Tipo de resposta"
+          >
+            <label>
+              <input
+                type="radio"
+                name="reply-mode"
+                value="public"
+                [checked]="replyMode() === 'public'"
+                (change)="setReplyMode('public')"
+              />
+              Resposta pública
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="reply-mode"
+                value="internal"
+                [checked]="replyMode() === 'internal'"
+                (change)="setReplyMode('internal')"
+              />
+              Nota interna
+            </label>
+          </div>
+
+          <div class="fdr-field">
+            <label class="fdr-field__label" for="reply-content">
+              {{
+                replyMode() === 'internal' ? 'Escrever nota interna' : 'Responder ao solicitante'
+              }}
+            </label>
+            <textarea
+              id="reply-content"
+              class="fdr-field__input fdr-support-management__reply-textarea"
+              rows="4"
+              formControlName="content"
+            ></textarea>
+          </div>
+
+          <fdr-button type="submit" [disabled]="isSubmittingReply()">
+            {{
+              isSubmittingReply()
+                ? 'A enviar...'
+                : replyMode() === 'internal'
+                  ? 'Guardar nota interna'
+                  : 'Enviar resposta'
+            }}
+          </fdr-button>
+        </form>
+      }
+    } @else {
+      <fdr-empty-state
+        icon="clipboard"
+        title="Selecione um pedido"
+        description="Escolha um pedido na lista à esquerda para ver o respetivo detalhe."
+      />
+    }
+  </div>
+</section>
