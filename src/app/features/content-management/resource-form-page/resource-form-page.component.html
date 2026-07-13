@@ -1,0 +1,243 @@
+<div class="fdr-resource-form">
+  <h1 class="fdr-resource-form__title">
+    {{ isEditMode() ? 'Editar recurso' : 'Criar recurso' }}
+  </h1>
+
+  <form class="fdr-resource-form__form" [formGroup]="form" novalidate>
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="resource-title">Título</label>
+      <input
+        id="resource-title"
+        type="text"
+        class="fdr-field__input"
+        formControlName="title"
+        [attr.aria-invalid]="isFieldInvalid('title')"
+      />
+      @if (isFieldInvalid('title')) {
+        <p class="fdr-field__error">O título é obrigatório.</p>
+      }
+    </div>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="resource-slug">Slug</label>
+      <div class="fdr-resource-form__slug-row">
+        <input
+          id="resource-slug"
+          type="text"
+          class="fdr-field__input"
+          formControlName="slug"
+          [attr.aria-invalid]="isFieldInvalid('slug')"
+        />
+        <fdr-button variant="outline" size="sm" type="button" (clicked)="generateSlug()">
+          Gerar a partir do título
+        </fdr-button>
+      </div>
+      @if (isFieldInvalid('slug')) {
+        <p class="fdr-field__error">O slug é obrigatório e deve ser único.</p>
+      }
+    </div>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="resource-summary">Resumo</label>
+      <textarea
+        id="resource-summary"
+        class="fdr-field__input"
+        rows="2"
+        formControlName="summary"
+        [attr.aria-invalid]="isFieldInvalid('summary')"
+      ></textarea>
+      @if (isFieldInvalid('summary')) {
+        <p class="fdr-field__error">O resumo é obrigatório.</p>
+      }
+    </div>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="resource-description">Descrição</label>
+      <textarea
+        id="resource-description"
+        class="fdr-field__input"
+        rows="4"
+        formControlName="description"
+        [attr.aria-invalid]="isFieldInvalid('description')"
+      ></textarea>
+      @if (isFieldInvalid('description')) {
+        <p class="fdr-field__error">A descrição é obrigatória.</p>
+      }
+    </div>
+
+    <div class="fdr-resource-form__row">
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="resource-type">Tipo</label>
+        <select id="resource-type" class="fdr-field__input" formControlName="type">
+          <option value="video">Vídeo</option>
+          <option value="guide">Guia</option>
+        </select>
+      </div>
+
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="resource-difficulty">Dificuldade</label>
+        <select
+          id="resource-difficulty"
+          class="fdr-field__input"
+          formControlName="difficulty"
+          [attr.aria-invalid]="isFieldInvalid('difficulty')"
+        >
+          <option value="" disabled>Selecionar dificuldade</option>
+          @for (difficulty of difficulties; track difficulty) {
+            <option [value]="difficulty">{{ difficultyLabels[difficulty] }}</option>
+          }
+        </select>
+        @if (isFieldInvalid('difficulty')) {
+          <p class="fdr-field__error">A dificuldade é obrigatória.</p>
+        }
+      </div>
+    </div>
+
+    <div class="fdr-resource-form__row">
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="resource-workflow">Fluxo</label>
+        <select
+          id="resource-workflow"
+          class="fdr-field__input"
+          formControlName="workflow"
+          [attr.aria-invalid]="isFieldInvalid('workflow')"
+        >
+          <option value="" disabled>Selecionar fluxo</option>
+          @for (workflow of workflows(); track workflow.id) {
+            <option [value]="workflow.label">{{ workflow.label }}</option>
+          }
+        </select>
+        @if (isFieldInvalid('workflow')) {
+          <p class="fdr-field__error">O fluxo é obrigatório.</p>
+        }
+      </div>
+
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="resource-document-type">Tipo de documento</label>
+        <select
+          id="resource-document-type"
+          class="fdr-field__input"
+          formControlName="documentType"
+          [attr.aria-invalid]="isFieldInvalid('documentType')"
+        >
+          <option value="" disabled>Selecionar tipo de documento</option>
+          @for (documentType of documentTypes(); track documentType.id) {
+            <option [value]="documentType.label">{{ documentType.label }}</option>
+          }
+        </select>
+        @if (isFieldInvalid('documentType')) {
+          <p class="fdr-field__error">O tipo de documento é obrigatório.</p>
+        }
+      </div>
+    </div>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="resource-tags">Etiquetas</label>
+      <input id="resource-tags" type="text" class="fdr-field__input" formControlName="tags" />
+      <p class="fdr-resource-form__hint">Separadas por vírgula (opcional).</p>
+    </div>
+
+    @if (isVideo()) {
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="resource-duration">Duração</label>
+        <input
+          id="resource-duration"
+          type="text"
+          class="fdr-field__input"
+          formControlName="duration"
+          placeholder="ex.: 5:30"
+          [attr.aria-invalid]="isFieldInvalid('duration')"
+        />
+        @if (isFieldInvalid('duration')) {
+          <p class="fdr-field__error">A duração é obrigatória para vídeos.</p>
+        }
+      </div>
+    } @else {
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="resource-pages">Número de páginas</label>
+        <input
+          id="resource-pages"
+          type="number"
+          min="1"
+          class="fdr-field__input"
+          formControlName="pages"
+          [attr.aria-invalid]="isFieldInvalid('pages')"
+        />
+        @if (isFieldInvalid('pages')) {
+          <p class="fdr-field__error">O número de páginas é obrigatório para guias.</p>
+        }
+      </div>
+    }
+
+    <fdr-file-upload
+      [kind]="isVideo() ? 'video' : 'pdf'"
+      [label]="isVideo() ? 'Ficheiro de vídeo' : 'Ficheiro PDF'"
+      [currentFileName]="currentMainFileName()"
+      (selectionChange)="onMainFileSelected($event)"
+    />
+    @if (publishAttempted() && !hasMainFile()) {
+      <p class="fdr-field__error">
+        É necessário selecionar o ficheiro principal para publicar este recurso.
+      </p>
+    }
+
+    <fdr-file-upload
+      kind="image"
+      label="Miniatura"
+      [currentFileName]="currentThumbnailFileName()"
+      (selectionChange)="onThumbnailSelected($event)"
+    />
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="resource-thumbnail-alt">
+        Texto alternativo da miniatura
+      </label>
+      <input
+        id="resource-thumbnail-alt"
+        type="text"
+        class="fdr-field__input"
+        formControlName="thumbnailAlt"
+      />
+      @if (publishAttempted() && hasThumbnail() && !thumbnailAltControl.value.trim()) {
+        <p class="fdr-field__error">
+          O texto alternativo é obrigatório quando existe uma miniatura.
+        </p>
+      }
+    </div>
+
+    <div class="fdr-resource-form__actions">
+      <fdr-button
+        type="button"
+        variant="outline"
+        [disabled]="isSubmitting()"
+        (clicked)="saveDraft()"
+      >
+        {{ isEditMode() ? 'Guardar alterações' : 'Guardar como rascunho' }}
+      </fdr-button>
+
+      @if (canUnpublish()) {
+        <fdr-button
+          type="button"
+          variant="outline"
+          [disabled]="isSubmitting()"
+          (clicked)="unpublish()"
+        >
+          Despublicar
+        </fdr-button>
+      } @else {
+        <fdr-button
+          type="button"
+          variant="primary"
+          [disabled]="isSubmitting()"
+          (clicked)="publish()"
+        >
+          Publicar
+        </fdr-button>
+      }
+
+      @if (canPreview()) {
+        <fdr-button type="button" variant="ghost" (clicked)="preview()">Pré-visualizar</fdr-button>
+      }
+    </div>
+  </form>
+</div>

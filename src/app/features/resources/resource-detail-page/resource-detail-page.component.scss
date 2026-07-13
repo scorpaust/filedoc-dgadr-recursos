@@ -4,6 +4,15 @@
   gap: var(--fdr-space-5);
   padding: var(--fdr-space-6) var(--fdr-space-5);
 
+  &__preview-banner {
+    margin: 0;
+    padding: var(--fdr-space-3) var(--fdr-space-4);
+    border-radius: var(--fdr-radius-md);
+    background: var(--fdr-tone-warning-bg);
+    color: var(--fdr-tone-warning-text);
+    font-weight: var(--fdr-font-weight-medium);
+  }
+
   &__back {
     display: inline-flex;
     align-items: center;

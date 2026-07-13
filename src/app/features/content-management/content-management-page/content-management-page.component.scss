@@ -1,0 +1,11 @@
+.fdr-content-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-5);
+  padding: var(--fdr-space-6) var(--fdr-space-5);
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-2xl);
+  }
+}

@@ -1,0 +1,12 @@
+.fdr-confirm-dialog {
+  &__message {
+    margin: 0 0 var(--fdr-space-5);
+    color: var(--fdr-text-secondary);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--fdr-space-3);
+  }
+}

@@ -31,7 +31,14 @@ export type IconName =
   | 'key'
   | 'paperclip'
   | 'send'
-  | 'user';
+  | 'user'
+  | 'edit'
+  | 'copy'
+  | 'archive'
+  | 'upload'
+  | 'arrow-up'
+  | 'arrow-down'
+  | 'trash';
 
 export type IconSize = 'sm' | 'md' | 'lg';
 
@@ -185,6 +192,37 @@ const SIZE_PX: Record<IconSize, number> = { sm: 16, md: 20, lg: 24 };
         @case ('user') {
           <circle cx="12" cy="8" r="4" />
           <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+        }
+        @case ('edit') {
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+        }
+        @case ('copy') {
+          <rect x="9" y="9" width="12" height="12" rx="2" />
+          <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+        }
+        @case ('archive') {
+          <rect x="3" y="4" width="18" height="4" rx="1" />
+          <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8" />
+          <path d="M10 13h4" />
+        }
+        @case ('upload') {
+          <path d="M12 21V9" />
+          <path d="M7 13l5-5 5 5" />
+          <path d="M4 20h16" />
+        }
+        @case ('arrow-up') {
+          <path d="M12 19V5" />
+          <path d="M6 11l6-6 6 6" />
+        }
+        @case ('arrow-down') {
+          <path d="M12 5v14" />
+          <path d="M18 13l-6 6-6-6" />
+        }
+        @case ('trash') {
+          <path d="M4 7h16" />
+          <path d="M9 7V4h6v3" />
+          <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />
         }
       }
     </svg>

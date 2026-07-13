@@ -1,0 +1,50 @@
+.fdr-resource-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-5);
+  max-width: 40rem;
+  padding: var(--fdr-space-6) var(--fdr-space-5);
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-2xl);
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-5);
+  }
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fdr-space-4);
+
+    > .fdr-field {
+      flex: 1 1 12rem;
+    }
+  }
+
+  &__slug-row {
+    display: flex;
+    align-items: center;
+    gap: var(--fdr-space-3);
+
+    .fdr-field__input {
+      flex: 1;
+    }
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: var(--fdr-text-sm);
+    color: var(--fdr-text-muted);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fdr-space-3);
+  }
+}

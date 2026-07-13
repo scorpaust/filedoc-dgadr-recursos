@@ -1,0 +1,127 @@
+@use '../../../../styles/mixins' as *;
+
+.fdr-resource-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-4);
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fdr-space-3);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-xl);
+  }
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--fdr-space-4);
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-3);
+  }
+
+  // Evita que uma tabela larga (7 colunas) force scroll horizontal na página inteira —
+  // o scroll fica contido no próprio contentor da tabela (320–1440 px de referência).
+  &__table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+    min-width: 48rem;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: var(--fdr-space-3) var(--fdr-space-4);
+      text-align: left;
+      border-bottom: 1px solid var(--fdr-border);
+    }
+
+    th {
+      font-size: var(--fdr-text-sm);
+      color: var(--fdr-text-secondary);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--fdr-space-2);
+  }
+
+  &__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: var(--fdr-radius-sm);
+    background: transparent;
+    color: var(--fdr-text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+
+    &:hover {
+      background: var(--fdr-bg-hover);
+      color: var(--fdr-text-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+// Cartões empilhados em ecrãs estreitos, tal como já decidido para "Os meus pedidos" (Fase 6).
+@media (max-width: 767px) {
+  .fdr-resource-table__table {
+    display: block;
+    min-width: 0;
+
+    thead {
+      @include visually-hidden;
+    }
+
+    tbody,
+    tr {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      margin-bottom: var(--fdr-space-4);
+      padding: var(--fdr-space-3) var(--fdr-space-4);
+      border: 1px solid var(--fdr-border);
+      border-radius: var(--fdr-radius-md);
+    }
+
+    td {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--fdr-space-3);
+      padding: var(--fdr-space-2) 0;
+      border-bottom: none;
+
+      &::before {
+        content: attr(data-label);
+        font-size: var(--fdr-text-sm);
+        font-weight: var(--fdr-font-weight-medium);
+        color: var(--fdr-text-secondary);
+      }
+    }
+  }
+}

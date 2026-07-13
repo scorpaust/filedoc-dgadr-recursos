@@ -12,7 +12,7 @@ const GUIDE_SLUG = 'assinar-um-despacho-digitalmente'; // res-2
 const DRAFT_SLUG = 'corrigir-metadados-de-um-oficio'; // res-3, related to res-1
 
 describe('ResourceDetailPageComponent', () => {
-  function createFixture(role: UserRole, slug: string) {
+  function createFixture(role: UserRole, slug: string, previewMode = false) {
     TestBed.configureTestingModule({
       providers: [provideRouter([])],
     });
@@ -27,6 +27,7 @@ describe('ResourceDetailPageComponent', () => {
 
     const fixture = TestBed.createComponent(ResourceDetailPageComponent);
     fixture.componentRef.setInput('slug', slug);
+    fixture.componentRef.setInput('previewMode', previewMode);
     return fixture;
   }
 
@@ -170,5 +171,39 @@ describe('ResourceDetailPageComponent', () => {
     fixture.detectChanges();
 
     expect(el.textContent).toContain('1:05');
+  });
+
+  describe('preview mode (Fase 8 — UI)', () => {
+    it('shows a draft resource even for a role that could not otherwise see it', async () => {
+      const fixture = createFixture('EMPLOYEE', DRAFT_SLUG, true);
+      await settle(fixture);
+      const el = fixture.nativeElement as HTMLElement;
+      const resource = resources.find((candidate) => candidate.slug === DRAFT_SLUG)!;
+      expect(el.textContent).toContain(resource.title);
+      expect(el.textContent).toContain('Pré-visualização');
+    });
+
+    it('hides the "request support" action', async () => {
+      const fixture = createFixture('CONTENT_EDITOR', GUIDE_SLUG, true);
+      await settle(fixture);
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.textContent).not.toContain('Pedir suporte sobre este tema');
+    });
+
+    it('points the back link to content management instead of the public catalog', async () => {
+      const fixture = createFixture('CONTENT_EDITOR', GUIDE_SLUG, true);
+      await settle(fixture);
+      const el = fixture.nativeElement as HTMLElement;
+      const backLink = el.querySelector('.fdr-detail__back') as HTMLAnchorElement;
+      expect(backLink.getAttribute('href')).toBe('/conteudos');
+      expect(backLink.textContent).toContain('Voltar à gestão de conteúdos');
+    });
+
+    it('does not record the resource as last viewed', async () => {
+      const fixture = createFixture('CONTENT_EDITOR', GUIDE_SLUG, true);
+      await settle(fixture);
+      const lastViewedResourceService = TestBed.inject(LastViewedResourceService);
+      expect(lastViewedResourceService.lastViewed()).toBeNull();
+    });
   });
 });
