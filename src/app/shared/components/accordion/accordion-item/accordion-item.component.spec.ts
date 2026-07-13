@@ -11,13 +11,13 @@ describe('AccordionItemComponent', () => {
     const trigger = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
     const content = fixture.nativeElement.querySelector('[role="region"]') as HTMLElement;
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
-    expect(content.hidden).toBe(true);
+    expect(content.hasAttribute('inert')).toBe(true);
 
     trigger.click();
     fixture.detectChanges();
     await fixture.whenStable();
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
-    expect(content.hidden).toBe(false);
+    expect(content.hasAttribute('inert')).toBe(false);
   });
 
   it('links the trigger and the content region via aria attributes', async () => {

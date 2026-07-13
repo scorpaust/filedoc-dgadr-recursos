@@ -28,12 +28,15 @@ let nextAccordionItemId = 0;
       </h3>
       <div
         class="fdr-accordion-item__content"
+        [class.fdr-accordion-item__content--expanded]="expanded()"
         role="region"
         [id]="contentId"
         [attr.aria-labelledby]="triggerId"
-        [hidden]="!expanded()"
+        [attr.inert]="expanded() ? null : ''"
       >
-        <ng-content />
+        <div class="fdr-accordion-item__content-inner">
+          <ng-content />
+        </div>
       </div>
     </div>
   `,

@@ -42,7 +42,28 @@
   }
 
   &__content {
-    padding: 0 var(--fdr-space-5) var(--fdr-space-4);
+    overflow: hidden;
+    max-height: 0;
     color: var(--fdr-text-secondary);
+    transition: max-height var(--fdr-duration-base) var(--fdr-easing);
+
+    // Limite generoso, muito acima de qualquer resposta real, para nunca cortar
+    // conteúdo — o custo é uma animação de abertura ligeiramente mais rápida do
+    // que a duração nominal quando o conteúdo real é bastante mais curto que o limite.
+    &--expanded {
+      max-height: 60rem;
+    }
+
+    @include reduced-motion {
+      transition: none;
+    }
+  }
+
+  // O padding vive neste wrapper interno, não no elemento com `max-height`: a altura
+  // "auto" de uma caixa acomoda sempre o seu próprio padding, mesmo com `max-height: 0`
+  // e `box-sizing: border-box` — por isso o padding tinha de estar num filho, para ser
+  // cortado inteiramente pelo `overflow: hidden` do contentor exterior quando colapsado.
+  &__content-inner {
+    padding: 0 var(--fdr-space-5) var(--fdr-space-4);
   }
 }

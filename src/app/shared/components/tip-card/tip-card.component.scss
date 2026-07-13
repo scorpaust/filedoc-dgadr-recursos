@@ -1,0 +1,23 @@
+.fdr-tip-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fdr-space-3);
+  padding: var(--fdr-space-4);
+  border-radius: var(--fdr-radius-lg);
+  border: 1px solid var(--fdr-border);
+  background: var(--fdr-bg-surface);
+
+  &__marker {
+    flex-shrink: 0;
+    width: 0.625rem;
+    height: 0.625rem;
+    margin-top: 0.375rem;
+    border-radius: var(--fdr-radius-full);
+    background: var(--fdr-accent-primary);
+  }
+
+  &__text {
+    margin: 0;
+    color: var(--fdr-text-primary);
+  }
+}
