@@ -28,7 +28,12 @@
             [class.fdr-taxonomy-management__item--inactive]="!item.active"
           >
             @if (editingId() === item.id) {
-              <input type="text" class="fdr-field__input" [formControl]="editControl" />
+              <input
+                type="text"
+                class="fdr-field__input"
+                aria-label="Editar nome da taxonomia"
+                [formControl]="editControl"
+              />
               <div class="fdr-taxonomy-management__item-actions">
                 <fdr-button size="sm" (clicked)="saveEdit(item)">Guardar</fdr-button>
                 <fdr-button size="sm" variant="outline" (clicked)="cancelEdit()"
@@ -46,7 +51,7 @@
                 <button
                   type="button"
                   class="fdr-taxonomy-management__icon-action"
-                  [attr.aria-label]="'Subir ' + item.label"
+                  aria-label="Subir {{ item.label }}"
                   (click)="reorder(item, 'up')"
                 >
                   <fdr-icon name="arrow-up" size="sm" />
@@ -54,7 +59,7 @@
                 <button
                   type="button"
                   class="fdr-taxonomy-management__icon-action"
-                  [attr.aria-label]="'Descer ' + item.label"
+                  aria-label="Descer {{ item.label }}"
                   (click)="reorder(item, 'down')"
                 >
                   <fdr-icon name="arrow-down" size="sm" />
@@ -62,7 +67,7 @@
                 <button
                   type="button"
                   class="fdr-taxonomy-management__icon-action"
-                  [attr.aria-label]="'Editar ' + item.label"
+                  aria-label="Editar {{ item.label }}"
                   (click)="startEdit(item)"
                 >
                   <fdr-icon name="edit" size="sm" />
@@ -70,7 +75,7 @@
                 <button
                   type="button"
                   class="fdr-taxonomy-management__icon-action"
-                  [attr.aria-label]="(item.active ? 'Desativar ' : 'Ativar ') + item.label"
+                  aria-label="{{ item.active ? 'Desativar' : 'Ativar' }} {{ item.label }}"
                   (click)="toggleActive(item)"
                 >
                   <fdr-icon [name]="item.active ? 'ban' : 'check'" size="sm" />
@@ -78,7 +83,7 @@
                 <button
                   type="button"
                   class="fdr-taxonomy-management__icon-action"
-                  [attr.aria-label]="'Eliminar ' + item.label"
+                  aria-label="Eliminar {{ item.label }}"
                   (click)="confirmDelete(item)"
                 >
                   <fdr-icon name="trash" size="sm" />

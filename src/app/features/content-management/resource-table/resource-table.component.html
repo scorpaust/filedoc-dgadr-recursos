@@ -87,7 +87,7 @@
                   <button
                     type="button"
                     class="fdr-resource-table__action"
-                    [attr.aria-label]="'Duplicar ' + resource.title"
+                    aria-label="Duplicar {{ resource.title }}"
                     (click)="duplicate(resource)"
                   >
                     <fdr-icon name="copy" size="sm" />
@@ -96,7 +96,7 @@
                     <button
                       type="button"
                       class="fdr-resource-table__action"
-                      [attr.aria-label]="'Restaurar ' + resource.title"
+                      aria-label="Restaurar {{ resource.title }}"
                       (click)="restore(resource)"
                     >
                       <fdr-icon name="upload" size="sm" />
@@ -105,10 +105,9 @@
                     <button
                       type="button"
                       class="fdr-resource-table__action"
-                      [attr.aria-label]="
-                        (resource.status === 'published' ? 'Despublicar ' : 'Publicar ') +
-                        resource.title
-                      "
+                      aria-label="{{
+                        resource.status === 'published' ? 'Despublicar' : 'Publicar'
+                      }} {{ resource.title }}"
                       (click)="togglePublish(resource)"
                     >
                       <fdr-icon
@@ -119,7 +118,7 @@
                     <button
                       type="button"
                       class="fdr-resource-table__action"
-                      [attr.aria-label]="'Arquivar ' + resource.title"
+                      aria-label="Arquivar {{ resource.title }}"
                       (click)="confirmArchive(resource)"
                     >
                       <fdr-icon name="archive" size="sm" />
