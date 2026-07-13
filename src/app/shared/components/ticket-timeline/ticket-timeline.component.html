@@ -1,0 +1,27 @@
+<ol class="fdr-ticket-timeline">
+  @for (entry of entries(); track entry.id) {
+    <li
+      class="fdr-ticket-timeline__entry"
+      [class.fdr-ticket-timeline__entry--status-change]="entry.kind === 'status-change'"
+    >
+      <div class="fdr-ticket-timeline__meta">
+        <span class="fdr-ticket-timeline__author">{{ entry.author }}</span>
+        @if (entry.authorRole) {
+          <span class="fdr-ticket-timeline__role">{{ entry.authorRole }}</span>
+        }
+        <span class="fdr-ticket-timeline__date">{{ formatDate(entry.createdAt) }}</span>
+      </div>
+      <p class="fdr-ticket-timeline__content">{{ entry.content }}</p>
+      @if (entry.attachments && entry.attachments.length > 0) {
+        <ul class="fdr-ticket-timeline__attachments">
+          @for (attachment of entry.attachments; track attachment.id) {
+            <li class="fdr-ticket-timeline__attachment">
+              <fdr-icon name="paperclip" size="sm" />
+              {{ attachment.fileName }}
+            </li>
+          }
+        </ul>
+      }
+    </li>
+  }
+</ol>

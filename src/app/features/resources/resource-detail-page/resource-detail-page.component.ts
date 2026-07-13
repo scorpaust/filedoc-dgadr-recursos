@@ -86,7 +86,7 @@ export class ResourceDetailPageComponent {
   }
 
   protected requestSupport(resource: Resource): void {
-    this.router.navigate(['/suporte'], {
+    this.router.navigate(['/suporte/novo'], {
       queryParams: { recurso: resource.slug, assunto: resource.title },
     });
   }

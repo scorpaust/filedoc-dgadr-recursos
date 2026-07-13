@@ -49,6 +49,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'suporte/novo',
+        loadComponent: () =>
+          import('./features/support/new-ticket-page/new-ticket-page.component').then(
+            (m) => m.NewTicketPageComponent,
+          ),
+      },
+      {
         path: 'suporte/gestao',
         loadComponent: () =>
           import('./features/support/support-management-page/support-management-page.component').then(
@@ -56,6 +63,13 @@ export const routes: Routes = [
           ),
         canActivate: [roleGuard],
         data: { roles: ['SUPPORT_AGENT', 'ADMIN'] },
+      },
+      {
+        path: 'suporte/:id',
+        loadComponent: () =>
+          import('./features/support/ticket-detail-page/ticket-detail-page.component').then(
+            (m) => m.TicketDetailPageComponent,
+          ),
       },
       {
         path: 'conteudos',

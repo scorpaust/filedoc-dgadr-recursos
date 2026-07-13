@@ -1,0 +1,66 @@
+.fdr-ticket-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__entry {
+    padding: var(--fdr-space-4);
+    border: 1px solid var(--fdr-border);
+    border-radius: var(--fdr-radius-md);
+    background: var(--fdr-bg-surface-raised);
+
+    &--status-change {
+      border-style: dashed;
+      background: transparent;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--fdr-space-2);
+    margin-bottom: var(--fdr-space-2);
+    font-size: var(--fdr-text-sm);
+  }
+
+  &__author {
+    font-weight: var(--fdr-font-weight-medium);
+    color: var(--fdr-text-primary);
+  }
+
+  &__role {
+    color: var(--fdr-text-secondary);
+  }
+
+  &__date {
+    margin-left: auto;
+    color: var(--fdr-text-muted);
+  }
+
+  &__content {
+    margin: 0;
+    white-space: pre-wrap;
+    color: var(--fdr-text-primary);
+  }
+
+  &__attachments {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-1);
+    margin: var(--fdr-space-3) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fdr-space-2);
+    font-size: var(--fdr-text-sm);
+    color: var(--fdr-text-secondary);
+  }
+}
