@@ -30,7 +30,8 @@ export type IconName =
   | 'log-out'
   | 'key'
   | 'paperclip'
-  | 'send';
+  | 'send'
+  | 'user';
 
 export type IconSize = 'sm' | 'md' | 'lg';
 
@@ -180,6 +181,10 @@ const SIZE_PX: Record<IconSize, number> = { sm: 16, md: 20, lg: 24 };
         @case ('send') {
           <path d="M22 2L11 13" />
           <path d="M22 2l-7 20-4-9-9-4z" />
+        }
+        @case ('user') {
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
         }
       }
     </svg>

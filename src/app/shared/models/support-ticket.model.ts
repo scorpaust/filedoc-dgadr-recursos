@@ -47,6 +47,11 @@ export interface TicketAttachment {
   readonly fileName: string;
 }
 
+// "status-change" identifica entradas geradas automaticamente pelas operações de agente
+// (Fase 7 — UI), com o mesmo formato de uma mensagem normal, para reutilização direta
+// pelo `TicketTimelineComponent`.
+export type TicketMessageKind = 'message' | 'status-change';
+
 export interface TicketMessage {
   readonly id: string;
   readonly author: string;
@@ -54,6 +59,7 @@ export interface TicketMessage {
   readonly createdAt: string;
   readonly content: string;
   readonly internal: boolean;
+  readonly kind?: TicketMessageKind;
   readonly attachments?: readonly TicketAttachment[];
 }
 
@@ -68,7 +74,7 @@ export interface SupportTicket {
   readonly requesterId: string;
   readonly requester: string;
   readonly requesterRole: string;
-  readonly assignee?: string;
+  readonly assigneeId?: string;
   readonly relatedResourceId?: string;
   readonly createdAt: string;
   readonly updatedAt: string;

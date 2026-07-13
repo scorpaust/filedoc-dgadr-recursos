@@ -47,4 +47,13 @@ export const users: readonly AppUser[] = [
     status: 'active',
     lastAccess: '2026-07-09',
   },
+  {
+    id: 'user-6',
+    name: 'Sofia Ramos',
+    email: 'sofia.ramos@dgadr.gov.pt',
+    career: 'Assistente Técnico',
+    role: 'SUPPORT_AGENT',
+    status: 'active',
+    lastAccess: '2026-07-10',
+  },
 ];

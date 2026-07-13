@@ -1,0 +1,57 @@
+@use '../../../../styles/mixins' as *;
+
+.fdr-resource-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-4);
+  min-width: min(28rem, 80vw);
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-2);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-2);
+    max-height: 20rem;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  &__option {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-1);
+    width: 100%;
+    padding: var(--fdr-space-3);
+    border: 1px solid var(--fdr-border);
+    border-radius: var(--fdr-radius-md);
+    background: var(--fdr-bg-surface-raised);
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--fdr-accent-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__title {
+    font-weight: var(--fdr-font-weight-medium);
+    color: var(--fdr-text-primary);
+  }
+
+  &__summary {
+    font-size: var(--fdr-text-sm);
+    color: var(--fdr-text-secondary);
+  }
+}

@@ -16,6 +16,12 @@
       border-style: dashed;
       background: transparent;
     }
+
+    &--internal-note {
+      border-style: dashed;
+      border-color: var(--fdr-tone-warning-border);
+      background: var(--fdr-tone-warning-bg);
+    }
   }
 
   &__meta {

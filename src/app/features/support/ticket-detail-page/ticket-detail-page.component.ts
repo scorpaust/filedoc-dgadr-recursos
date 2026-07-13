@@ -84,11 +84,14 @@ export class TicketDetailPageComponent {
     }
     // Filtro redundante por definição — nesta vista o serviço nunca devolve notas
     // internas — mas mantido como segunda linha de defesa (project-spec.md, secção I).
+    // As alterações de estado/categoria/prioridade/atribuição feitas pelo agente
+    // (Fase 7 — UI) chegam como mensagens normais com `kind: 'status-change'` e
+    // `internal: false`, pelo que ficam visíveis aqui tal como no protótipo.
     return ticket.messages
       .filter((message) => !message.internal)
       .map((message) => ({
         id: message.id,
-        kind: 'message',
+        kind: message.kind ?? 'message',
         author: message.author,
         authorRole: message.authorRole,
         createdAt: message.createdAt,

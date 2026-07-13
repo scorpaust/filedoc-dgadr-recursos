@@ -1,0 +1,39 @@
+<fdr-dialog title="Associar recurso formativo" (closed)="close()">
+  <div class="fdr-resource-picker">
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="resource-picker-search">Pesquisar recurso</label>
+      <input
+        id="resource-picker-search"
+        type="search"
+        class="fdr-field__input"
+        [formControl]="searchControl"
+        placeholder="Título, resumo ou etiqueta..."
+      />
+    </div>
+
+    @if (loading()) {
+      <div class="fdr-resource-picker__skeletons" aria-hidden="true">
+        <fdr-skeleton variant="card" height="3rem" />
+        <fdr-skeleton variant="card" height="3rem" />
+        <fdr-skeleton variant="card" height="3rem" />
+      </div>
+    } @else if (results().items.length === 0) {
+      <fdr-empty-state
+        icon="search"
+        title="Nenhum recurso encontrado"
+        description="Experimente outro termo de pesquisa."
+      />
+    } @else {
+      <ul class="fdr-resource-picker__list">
+        @for (resource of results().items; track resource.id) {
+          <li>
+            <button type="button" class="fdr-resource-picker__option" (click)="select(resource)">
+              <span class="fdr-resource-picker__title">{{ resource.title }}</span>
+              <span class="fdr-resource-picker__summary">{{ resource.summary }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</fdr-dialog>

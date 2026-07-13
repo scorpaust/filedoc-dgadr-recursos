@@ -1,0 +1,162 @@
+:host {
+  display: block;
+}
+
+.fdr-support-management {
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: var(--fdr-space-5);
+  padding: var(--fdr-space-6) var(--fdr-space-5);
+
+  &__title {
+    margin: 0 0 var(--fdr-space-4);
+    font-size: var(--fdr-text-2xl);
+  }
+
+  &__list-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-4);
+    min-width: 0;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-3);
+  }
+
+  &__queue {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-y: auto;
+  }
+
+  &__queue-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--fdr-space-2);
+    width: 100%;
+    padding: var(--fdr-space-3);
+    border: 1px solid var(--fdr-border);
+    border-radius: var(--fdr-radius-md);
+    background: var(--fdr-bg-surface-raised);
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &--selected {
+      border-color: var(--fdr-accent-primary);
+      box-shadow: 0 0 0 1px var(--fdr-accent-primary);
+    }
+  }
+
+  &__queue-subject {
+    font-weight: var(--fdr-font-weight-medium);
+    color: var(--fdr-text-primary);
+  }
+
+  &__queue-meta {
+    font-size: var(--fdr-text-sm);
+    color: var(--fdr-text-secondary);
+  }
+
+  &__queue-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fdr-space-2);
+  }
+
+  &__detail-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-5);
+    min-width: 0;
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-3);
+  }
+
+  &__subject {
+    margin: 0;
+    font-size: var(--fdr-text-2xl);
+  }
+
+  &__requester {
+    margin: 0;
+    color: var(--fdr-text-secondary);
+  }
+
+  &__resource {
+    margin: 0;
+    color: var(--fdr-text-secondary);
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fdr-space-2);
+  }
+
+  &__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--fdr-space-3);
+  }
+
+  &__resolution-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fdr-space-3);
+  }
+
+  &__reply-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-3);
+    padding-top: var(--fdr-space-4);
+    border-top: 1px solid var(--fdr-border);
+  }
+
+  &__reply-mode {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fdr-space-4);
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--fdr-space-2);
+    }
+  }
+
+  &__reply-textarea {
+    height: auto;
+    padding: var(--fdr-space-3) var(--fdr-space-4);
+    resize: vertical;
+  }
+}
+
+// Colapso do painel de lista+detalhe para uma coluna em ecrãs estreitos
+// (critério de aceitação da Fase 7 — UI), mesma referência de 1024 px já usada
+// nas restantes fases para o breakpoint "tablet".
+@media (max-width: 1023px) {
+  .fdr-support-management {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .fdr-support-management {
+    padding: var(--fdr-space-5) var(--fdr-space-4);
+  }
+}

@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { TicketAttachment } from '../../models';
 import { IconComponent } from '../icon/icon.component';
+import { TagComponent } from '../tag/tag.component';
 
-// Pensado desde já para ser reutilizado pela Fase 7 (vista de agente), que acrescentará
-// notas internas como um novo valor de "kind" — a forma da entrada não deve mudar.
-export type TicketTimelineEntryKind = 'message' | 'status-change';
+// "internal-note" acrescentado pela Fase 7 (vista de agente) — a forma da entrada
+// não mudou, tal como previsto na Fase 6.
+export type TicketTimelineEntryKind = 'message' | 'status-change' | 'internal-note';
 
 export interface TicketTimelineEntry {
   readonly id: string;
@@ -25,7 +26,7 @@ function formatEntryDate(iso: string): string {
 
 @Component({
   selector: 'fdr-ticket-timeline',
-  imports: [IconComponent],
+  imports: [IconComponent, TagComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ticket-timeline.component.html',
   styleUrl: './ticket-timeline.component.scss',
