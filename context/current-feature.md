@@ -1,20 +1,20 @@
 # Funcionalidade Atual
 
-Fase 4 (UI) — Detalhe de Recurso (Vídeo / Guia)
+Fase 5 (UI) — Dicas & Perguntas Frequentes
 
-<!-- Ver especificação completa em context/features/fase-4-ui-detalhe-recurso.md -->
+<!-- Ver especificação completa em context/features/fase-5-ui-dicas-faq.md -->
 
 ## Estado
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Concluída
+Em progresso
 
 ## Objetivos
 
 <!-- Objetivos e requisitos -->
 
-Ver `context/features/fase-4-ui-detalhe-recurso.md`.
+Ver `context/features/fase-5-ui-dicas-faq.md`.
 
 ## Notas
 
@@ -103,3 +103,17 @@ Ver `context/features/fase-4-ui-detalhe-recurso.md`.
   - validação: `lint`, `typecheck`, `format:check` e `test` (161/161 testes, incluindo 2 novos no `VideoPlayerComponent`, 2 novos no `ResourceMetaComponent` e 1 novo de integração na página de detalhe) e `build` (produção) todos a passar sem erros; confirmação visual no browser — duração real "0:06" a corresponder ao leitor nativo, "3 páginas" consistente em todos os guias.
   - commit efetuado em `feature/fase-4-ui-detalhe-recurso` ("Fase 4 (UI) — Detalhe de Recurso (Vídeo / Guia)"), a pedido do utilizador;
   - branch `feature/fase-4-ui-detalhe-recurso` integrada em `main` por pedido do utilizador (merge de integração, sem squash); `lint`, `typecheck`, `test` (161/161) e `build` revalidados em `main` após o merge, todos a passar; branch não apagada (ao contrário da Fase 3, não foi pedida a remoção).
+- Criação da especificação da Fase 5 (UI) — Dicas & Perguntas Frequentes (`context/features/fase-5-ui-dicas-faq.md`), independente da Fase 4 e podendo ser desenvolvida em paralelo; implementação ainda não iniciada.
+- Início da Fase 5 (UI) — Dicas & Perguntas Frequentes, na branch `feature/fase-5-ui-dicas-faq`.
+- Implementação completa da Fase 5 (UI), validada manualmente no browser; commit por autorizar:
+  - `Tip` (`shared/models/tip.model.ts`) e `Faq` (`shared/models/faq.model.ts`) estendidos com `sortOrder`; `Faq` também com `category?: string` (opcional, conforme `project-spec.md`, secção G); `shared/mocks/tips.mock.ts` e `shared/mocks/faqs.mock.ts` expandidos com `sortOrder` em todos os itens, uma dica e uma pergunta em rascunho, e duas categorias de perguntas (mais um grupo sem categoria), para validar visibilidade e agrupamento;
+  - `TipsFaqMockService` novo (`features/tips-faq/data`), único serviço a servir dicas e perguntas frequentes (`getTips()`/`getFaqs()`), com a mesma regra de visibilidade por estado editorial/função já usada nas Fases 3 e 4, e ordenação por `sortOrder`; testado exaustivamente;
+  - `TipCardComponent` novo (`shared/components/tip-card`): marcador circular decorativo (`aria-hidden`) mais texto, conforme protótipo;
+  - `AccordionItemComponent` (Fase 1) estendido para animar a abertura/fecho do painel (`max-height` 0 → limite generoso de 60rem, com `transition` a usar `var(--fdr-duration-base)` — já reduzido a `0ms` globalmente sob `prefers-reduced-motion`, tal como as restantes transições da aplicação); substituído `[hidden]` por `[attr.inert]` no painel colapsado, para impedir o foco em conteúdo oculto sem cortar a transição; testes atualizados (`content.hidden` → `content.hasAttribute('inert')`); esta era a primeira utilização real do `AccordionComponent`/`AccordionItemComponent` fora dos testes unitários da Fase 1;
+  - bug encontrado pelo utilizador em validação manual (screenshot) e corrigido: a primeira versão da animação (técnica `grid-template-rows` 0fr/1fr) e uma segunda tentativa (`max-height: 0` com o padding no mesmo elemento) deixavam sempre ~16 px de resposta visível e cortada em todos os itens do acordeão, mesmo colapsados. Causa raiz confirmada por inspeção do estilo computado num browser real: a altura "auto" de uma caixa acomoda sempre o seu próprio `padding-bottom`, mesmo com `max-height: 0` e `box-sizing: border-box` — `max-height` nunca reduz a caixa abaixo do padding+borda que ela própria define. Corrigido movendo o padding para um `<div>` interno (`&__content-inner`), separado do elemento com `overflow: hidden`/`max-height`, para que esse padding seja cortado inteiramente pelo contentor exterior quando colapsado — confirmado com `offsetHeight: 0` no elemento `.fdr-accordion-item__content` colapsado;
+  - decisão registada (risco em aberto do `fase-5-ui-dicas-faq.md`): o acordeão permite várias perguntas abertas em simultâneo — cada `AccordionItemComponent` já gere o seu próprio estado `expanded` de forma independente (decisão herdada da Fase 1, não alterada), sem necessidade de coordenação entre itens;
+  - `TipsFaqPageComponent` (`features/tips-faq/tips-faq-page`) reescrito por completo (deixou de ser placeholder): secção "Dicas rápidas" com grelha de `TipCardComponent`; secção "Perguntas frequentes" agrupada por categoria (uma pergunta sem categoria cai numa secção genérica "Outras perguntas"), cada grupo com o seu próprio `AccordionComponent`; skeleton enquanto os dados mock são "carregados" (`forkJoin` das duas chamadas do serviço, via `toSignal`); `EmptyStateComponent` para o caso (não coberto pelos dados mock reais, mas suportado e testado com um `TipsFaqMockService` simulado) de não existirem dicas nem perguntas publicadas para a função atual;
+  - validação automática: `lint`, `typecheck`, `format:check` e `test` (176/176 testes, incluindo os novos `TipsFaqMockService`, `TipCardComponent`, a extensão do `AccordionItemComponent` e a reescrita de `TipsFaqPageComponent`) e `build` (produção) todos a passar sem erros; confirmado por segunda execução que a falha intermitente por timeout no teste pré-existente `AppShellComponent` (já documentada desde a Fase 4) não é uma regressão desta fase; `format:check` corrigiu formatação real (não apenas fim de linha `core.autocrlf`) em 7 ficheiros desta fase antes de confirmar — `npx prettier --write` aplicado a todos os ficheiros criados/alterados;
+  - ferramenta de validação manual desta fase: sem Playwright disponível nesta sessão (ao contrário das fases anteriores), foi montada uma alternativa ad-hoc com `puppeteer-core` (instalado apenas na pasta de scratchpad, fora do projeto, nunca adicionado a `package.json`) a controlar o Microsoft Edge local, para poder autenticar com a ferramenta de simulação de função (sessão só em memória, como já documentado desde a Fase 3) e navegar dentro da SPA (via clique em links, não `page.goto` direto, para não perder a sessão);
+  - validação manual completa: login como `EMPLOYEE` não mostra a dica nem a pergunta em rascunho; login como `CONTENT_EDITOR` mostra ambas; navegação só por teclado (Tab até ao primeiro item do acordeão, `Enter` e `Espaço` alternam `aria-expanded` corretamente); sem overflow horizontal a 320/375/768/1024/1440 px (incl. gaveta de navegação móvel a 375 px); inspeção visual em modo claro e escuro sem problemas aparentes; confirmado por `getComputedStyle` que `--fdr-duration-base` é `0ms` sob `prefers-reduced-motion: reduce`;
+  - commit por autorizar.

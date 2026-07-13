@@ -1,0 +1,55 @@
+<div class="fdr-tips-faq">
+  <header class="fdr-tips-faq__header">
+    <h1 class="fdr-tips-faq__title">Dicas & Perguntas frequentes</h1>
+  </header>
+
+  @if (loading()) {
+    <div class="fdr-tips-faq__skeletons" aria-hidden="true">
+      <div class="fdr-tips-faq__tips-grid">
+        @for (placeholder of tipSkeletonPlaceholders; track placeholder) {
+          <fdr-skeleton variant="card" height="4.5rem" />
+        }
+      </div>
+      <fdr-skeleton variant="card" height="3rem" />
+      <fdr-skeleton variant="card" height="3rem" />
+      <fdr-skeleton variant="card" height="3rem" />
+    </div>
+  } @else if (isEmpty()) {
+    <fdr-empty-state
+      icon="lightbulb"
+      title="Sem dicas ou perguntas disponíveis"
+      description="Ainda não existem dicas ou perguntas frequentes publicadas."
+    />
+  } @else {
+    @if (tips().length > 0) {
+      <section class="fdr-tips-faq__section" aria-labelledby="fdr-tips-faq-tips-heading">
+        <h2 id="fdr-tips-faq-tips-heading" class="fdr-tips-faq__section-title">Dicas rápidas</h2>
+        <div class="fdr-tips-faq__tips-grid">
+          @for (tip of tips(); track tip.id) {
+            <fdr-tip-card [tip]="tip" />
+          }
+        </div>
+      </section>
+    }
+
+    @if (faqGroups().length > 0) {
+      <section class="fdr-tips-faq__section" aria-labelledby="fdr-tips-faq-faq-heading">
+        <h2 id="fdr-tips-faq-faq-heading" class="fdr-tips-faq__section-title">
+          Perguntas frequentes
+        </h2>
+        @for (group of faqGroups(); track group.category ?? '__generic__') {
+          <div class="fdr-tips-faq__faq-group">
+            <h3 class="fdr-tips-faq__faq-group-title">
+              {{ group.category ?? 'Outras perguntas' }}
+            </h3>
+            <fdr-accordion>
+              @for (faq of group.faqs; track faq.id) {
+                <fdr-accordion-item [title]="faq.question">{{ faq.answer }}</fdr-accordion-item>
+              }
+            </fdr-accordion>
+          </div>
+        }
+      </section>
+    }
+  }
+</div>
