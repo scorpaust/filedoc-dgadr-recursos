@@ -45,6 +45,9 @@ export class ResourceDetailPageComponent {
   private readonly router = inject(Router);
 
   readonly slug = input.required<string>();
+  // Ligado via `data.previewMode` na rota `/conteudos/recursos/:slug/pre-visualizacao`
+  // (Fase 8 — UI): ignora o estado editorial e não regista "último recurso visto".
+  readonly previewMode = input(false);
 
   protected readonly loading = signal(true);
   protected readonly videoDuration = signal<number | undefined>(undefined);
@@ -55,7 +58,11 @@ export class ResourceDetailPageComponent {
         this.loading.set(true);
         this.videoDuration.set(undefined);
       }),
-      switchMap((slug) => this.resourceService.getBySlug(slug)),
+      switchMap((slug) =>
+        this.previewMode()
+          ? this.resourceService.getForPreview(slug)
+          : this.resourceService.getBySlug(slug),
+      ),
       switchMap((resource) =>
         resource
           ? this.resourceService
@@ -65,7 +72,7 @@ export class ResourceDetailPageComponent {
       ),
       tap((detail) => {
         this.loading.set(false);
-        if (detail.resource) {
+        if (detail.resource && !this.previewMode()) {
           this.lastViewedResourceService.record(detail.resource.slug, detail.resource.title);
         }
       }),
@@ -82,7 +89,7 @@ export class ResourceDetailPageComponent {
   }
 
   protected goToCatalog(): void {
-    this.router.navigateByUrl('/recursos');
+    this.router.navigateByUrl(this.previewMode() ? '/conteudos' : '/recursos');
   }
 
   protected requestSupport(resource: Resource): void {

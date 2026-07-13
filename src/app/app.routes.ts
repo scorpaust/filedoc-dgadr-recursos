@@ -81,6 +81,33 @@ export const routes: Routes = [
         data: { roles: ['CONTENT_EDITOR', 'ADMIN'] },
       },
       {
+        path: 'conteudos/recursos/novo',
+        loadComponent: () =>
+          import('./features/content-management/resource-form-page/resource-form-page.component').then(
+            (m) => m.ResourceFormPageComponent,
+          ),
+        canActivate: [roleGuard],
+        data: { roles: ['CONTENT_EDITOR', 'ADMIN'] },
+      },
+      {
+        path: 'conteudos/recursos/:id/editar',
+        loadComponent: () =>
+          import('./features/content-management/resource-form-page/resource-form-page.component').then(
+            (m) => m.ResourceFormPageComponent,
+          ),
+        canActivate: [roleGuard],
+        data: { roles: ['CONTENT_EDITOR', 'ADMIN'] },
+      },
+      {
+        path: 'conteudos/recursos/:slug/pre-visualizacao',
+        loadComponent: () =>
+          import('./features/resources/resource-detail-page/resource-detail-page.component').then(
+            (m) => m.ResourceDetailPageComponent,
+          ),
+        canActivate: [roleGuard],
+        data: { roles: ['CONTENT_EDITOR', 'ADMIN'], previewMode: true },
+      },
+      {
         path: 'administracao',
         loadComponent: () =>
           import('./features/administration/administration-page/administration-page.component').then(

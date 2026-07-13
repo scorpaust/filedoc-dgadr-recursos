@@ -1,0 +1,253 @@
+<section class="fdr-tips-faq-management">
+  <div class="fdr-tips-faq-management__column">
+    <h2 class="fdr-tips-faq-management__title">Dicas rápidas</h2>
+
+    <form
+      class="fdr-tips-faq-management__new-form"
+      [formGroup]="newTipForm"
+      (ngSubmit)="addTip()"
+      novalidate
+    >
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="new-tip-text">Nova dica</label>
+        <textarea
+          id="new-tip-text"
+          class="fdr-field__input"
+          rows="2"
+          formControlName="text"
+        ></textarea>
+      </div>
+      <fdr-button type="submit">Adicionar dica</fdr-button>
+    </form>
+
+    <ul class="fdr-tips-faq-management__list">
+      @for (tip of tips(); track tip.id) {
+        <li class="fdr-tips-faq-management__item">
+          @if (editingTipId() === tip.id) {
+            <textarea class="fdr-field__input" rows="2" [formControl]="editTipControl"></textarea>
+            <div class="fdr-tips-faq-management__item-actions">
+              <fdr-button size="sm" (clicked)="saveTip(tip)">Guardar</fdr-button>
+              <fdr-button size="sm" variant="outline" (clicked)="cancelEditTip()"
+                >Cancelar</fdr-button
+              >
+            </div>
+          } @else {
+            <div class="fdr-tips-faq-management__item-header">
+              <fdr-tag [label]="statusLabel(tip.status)" [tone]="statusTone(tip.status)" />
+              <div class="fdr-tips-faq-management__item-actions">
+                <button
+                  type="button"
+                  class="fdr-tips-faq-management__icon-action"
+                  aria-label="Subir dica"
+                  (click)="reorderTip(tip, 'up')"
+                >
+                  <fdr-icon name="arrow-up" size="sm" />
+                </button>
+                <button
+                  type="button"
+                  class="fdr-tips-faq-management__icon-action"
+                  aria-label="Descer dica"
+                  (click)="reorderTip(tip, 'down')"
+                >
+                  <fdr-icon name="arrow-down" size="sm" />
+                </button>
+                <button
+                  type="button"
+                  class="fdr-tips-faq-management__icon-action"
+                  [attr.aria-label]="'Editar dica: ' + tip.text"
+                  (click)="startEditTip(tip)"
+                >
+                  <fdr-icon name="edit" size="sm" />
+                </button>
+                @if (tip.status === 'archived') {
+                  <button
+                    type="button"
+                    class="fdr-tips-faq-management__icon-action"
+                    aria-label="Restaurar dica"
+                    (click)="restoreTip(tip)"
+                  >
+                    <fdr-icon name="upload" size="sm" />
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="fdr-tips-faq-management__icon-action"
+                    [attr.aria-label]="
+                      (tip.status === 'published' ? 'Despublicar' : 'Publicar') + ' dica'
+                    "
+                    (click)="togglePublishTip(tip)"
+                  >
+                    <fdr-icon [name]="tip.status === 'published' ? 'ban' : 'check'" size="sm" />
+                  </button>
+                  <button
+                    type="button"
+                    class="fdr-tips-faq-management__icon-action"
+                    aria-label="Arquivar dica"
+                    (click)="archiveTip(tip)"
+                  >
+                    <fdr-icon name="archive" size="sm" />
+                  </button>
+                }
+              </div>
+            </div>
+            <p class="fdr-tips-faq-management__item-text">{{ tip.text }}</p>
+          }
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="fdr-tips-faq-management__column">
+    <h2 class="fdr-tips-faq-management__title">Perguntas frequentes</h2>
+
+    <form
+      class="fdr-tips-faq-management__new-form"
+      [formGroup]="newFaqForm"
+      (ngSubmit)="addFaq()"
+      novalidate
+    >
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="new-faq-question">Pergunta</label>
+        <input
+          id="new-faq-question"
+          type="text"
+          class="fdr-field__input"
+          formControlName="question"
+        />
+      </div>
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="new-faq-answer">Resposta</label>
+        <textarea
+          id="new-faq-answer"
+          class="fdr-field__input"
+          rows="2"
+          formControlName="answer"
+        ></textarea>
+      </div>
+      <div class="fdr-field">
+        <label class="fdr-field__label" for="new-faq-category">Categoria (opcional)</label>
+        <input
+          id="new-faq-category"
+          type="text"
+          class="fdr-field__input"
+          formControlName="category"
+        />
+      </div>
+      <fdr-button type="submit">Adicionar pergunta</fdr-button>
+    </form>
+
+    <ul class="fdr-tips-faq-management__list">
+      @for (faq of faqs(); track faq.id) {
+        <li class="fdr-tips-faq-management__item">
+          @if (editingFaqId() === faq.id) {
+            <form [formGroup]="editFaqForm" novalidate>
+              <div class="fdr-field">
+                <label class="fdr-field__label" for="edit-faq-question-{{ faq.id }}"
+                  >Pergunta</label
+                >
+                <input
+                  id="edit-faq-question-{{ faq.id }}"
+                  type="text"
+                  class="fdr-field__input"
+                  formControlName="question"
+                />
+              </div>
+              <div class="fdr-field">
+                <label class="fdr-field__label" for="edit-faq-answer-{{ faq.id }}">Resposta</label>
+                <textarea
+                  id="edit-faq-answer-{{ faq.id }}"
+                  class="fdr-field__input"
+                  rows="2"
+                  formControlName="answer"
+                ></textarea>
+              </div>
+              <div class="fdr-field">
+                <label class="fdr-field__label" for="edit-faq-category-{{ faq.id }}"
+                  >Categoria (opcional)</label
+                >
+                <input
+                  id="edit-faq-category-{{ faq.id }}"
+                  type="text"
+                  class="fdr-field__input"
+                  formControlName="category"
+                />
+              </div>
+            </form>
+            <div class="fdr-tips-faq-management__item-actions">
+              <fdr-button size="sm" (clicked)="saveFaq(faq)">Guardar</fdr-button>
+              <fdr-button size="sm" variant="outline" (clicked)="cancelEditFaq()"
+                >Cancelar</fdr-button
+              >
+            </div>
+          } @else {
+            <div class="fdr-tips-faq-management__item-header">
+              <fdr-tag [label]="statusLabel(faq.status)" [tone]="statusTone(faq.status)" />
+              <div class="fdr-tips-faq-management__item-actions">
+                <button
+                  type="button"
+                  class="fdr-tips-faq-management__icon-action"
+                  aria-label="Subir pergunta"
+                  (click)="reorderFaq(faq, 'up')"
+                >
+                  <fdr-icon name="arrow-up" size="sm" />
+                </button>
+                <button
+                  type="button"
+                  class="fdr-tips-faq-management__icon-action"
+                  aria-label="Descer pergunta"
+                  (click)="reorderFaq(faq, 'down')"
+                >
+                  <fdr-icon name="arrow-down" size="sm" />
+                </button>
+                <button
+                  type="button"
+                  class="fdr-tips-faq-management__icon-action"
+                  [attr.aria-label]="'Editar pergunta: ' + faq.question"
+                  (click)="startEditFaq(faq)"
+                >
+                  <fdr-icon name="edit" size="sm" />
+                </button>
+                @if (faq.status === 'archived') {
+                  <button
+                    type="button"
+                    class="fdr-tips-faq-management__icon-action"
+                    aria-label="Restaurar pergunta"
+                    (click)="restoreFaq(faq)"
+                  >
+                    <fdr-icon name="upload" size="sm" />
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="fdr-tips-faq-management__icon-action"
+                    [attr.aria-label]="
+                      (faq.status === 'published' ? 'Despublicar' : 'Publicar') + ' pergunta'
+                    "
+                    (click)="togglePublishFaq(faq)"
+                  >
+                    <fdr-icon [name]="faq.status === 'published' ? 'ban' : 'check'" size="sm" />
+                  </button>
+                  <button
+                    type="button"
+                    class="fdr-tips-faq-management__icon-action"
+                    aria-label="Arquivar pergunta"
+                    (click)="archiveFaq(faq)"
+                  >
+                    <fdr-icon name="archive" size="sm" />
+                  </button>
+                }
+              </div>
+            </div>
+            <p class="fdr-tips-faq-management__item-text">
+              <strong>{{ faq.question }}</strong>
+            </p>
+            <p class="fdr-tips-faq-management__item-text">{{ faq.answer }}</p>
+            @if (faq.category) {
+              <p class="fdr-tips-faq-management__item-category">{{ faq.category }}</p>
+            }
+          }
+        </li>
+      }
+    </ul>
+  </div>
+</section>

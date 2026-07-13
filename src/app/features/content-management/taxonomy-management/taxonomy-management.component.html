@@ -1,0 +1,93 @@
+<section class="fdr-taxonomy-management">
+  @for (kind of kinds; track kind) {
+    <div class="fdr-taxonomy-management__column">
+      <h2 class="fdr-taxonomy-management__title">{{ kindLabels[kind] }}</h2>
+
+      <form
+        class="fdr-taxonomy-management__new-form"
+        [formGroup]="newFormByKind[kind]"
+        (ngSubmit)="create(kind)"
+        novalidate
+      >
+        <div class="fdr-field">
+          <label class="fdr-field__label" for="new-taxonomy-{{ kind }}">Novo nome</label>
+          <input
+            id="new-taxonomy-{{ kind }}"
+            type="text"
+            class="fdr-field__input"
+            formControlName="label"
+          />
+        </div>
+        <fdr-button type="submit" size="sm">Adicionar</fdr-button>
+      </form>
+
+      <ul class="fdr-taxonomy-management__list">
+        @for (item of itemsForKind(kind); track item.id) {
+          <li
+            class="fdr-taxonomy-management__item"
+            [class.fdr-taxonomy-management__item--inactive]="!item.active"
+          >
+            @if (editingId() === item.id) {
+              <input type="text" class="fdr-field__input" [formControl]="editControl" />
+              <div class="fdr-taxonomy-management__item-actions">
+                <fdr-button size="sm" (clicked)="saveEdit(item)">Guardar</fdr-button>
+                <fdr-button size="sm" variant="outline" (clicked)="cancelEdit()"
+                  >Cancelar</fdr-button
+                >
+              </div>
+            } @else {
+              <span class="fdr-taxonomy-management__label">
+                {{ item.label }}
+                @if (!item.active) {
+                  <span class="fdr-taxonomy-management__inactive-badge">inativa</span>
+                }
+              </span>
+              <div class="fdr-taxonomy-management__item-actions">
+                <button
+                  type="button"
+                  class="fdr-taxonomy-management__icon-action"
+                  [attr.aria-label]="'Subir ' + item.label"
+                  (click)="reorder(item, 'up')"
+                >
+                  <fdr-icon name="arrow-up" size="sm" />
+                </button>
+                <button
+                  type="button"
+                  class="fdr-taxonomy-management__icon-action"
+                  [attr.aria-label]="'Descer ' + item.label"
+                  (click)="reorder(item, 'down')"
+                >
+                  <fdr-icon name="arrow-down" size="sm" />
+                </button>
+                <button
+                  type="button"
+                  class="fdr-taxonomy-management__icon-action"
+                  [attr.aria-label]="'Editar ' + item.label"
+                  (click)="startEdit(item)"
+                >
+                  <fdr-icon name="edit" size="sm" />
+                </button>
+                <button
+                  type="button"
+                  class="fdr-taxonomy-management__icon-action"
+                  [attr.aria-label]="(item.active ? 'Desativar ' : 'Ativar ') + item.label"
+                  (click)="toggleActive(item)"
+                >
+                  <fdr-icon [name]="item.active ? 'ban' : 'check'" size="sm" />
+                </button>
+                <button
+                  type="button"
+                  class="fdr-taxonomy-management__icon-action"
+                  [attr.aria-label]="'Eliminar ' + item.label"
+                  (click)="confirmDelete(item)"
+                >
+                  <fdr-icon name="trash" size="sm" />
+                </button>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</section>

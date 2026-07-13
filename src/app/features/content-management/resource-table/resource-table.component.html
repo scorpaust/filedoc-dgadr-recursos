@@ -1,0 +1,136 @@
+<section class="fdr-resource-table">
+  <div class="fdr-resource-table__header">
+    <h2 class="fdr-resource-table__title">Recursos</h2>
+    <fdr-button variant="primary" (clicked)="createResource()">Criar recurso</fdr-button>
+  </div>
+
+  <div class="fdr-resource-table__filters">
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="resource-search">Pesquisar</label>
+      <input
+        id="resource-search"
+        type="search"
+        class="fdr-field__input"
+        [formControl]="searchControl"
+        placeholder="Título, autor ou etiqueta..."
+      />
+    </div>
+
+    <fdr-segmented-control
+      [options]="statusOptions"
+      [selected]="statusFilter()"
+      (selectedChange)="statusFilter.set($event)"
+    />
+  </div>
+
+  @if (loading()) {
+    <div class="fdr-resource-table__skeletons" aria-hidden="true">
+      <fdr-skeleton variant="card" height="3rem" />
+      <fdr-skeleton variant="card" height="3rem" />
+      <fdr-skeleton variant="card" height="3rem" />
+    </div>
+  } @else if (!hasResults()) {
+    <fdr-empty-state
+      icon="search"
+      title="Nenhum recurso corresponde aos filtros"
+      description="Experimente outro termo de pesquisa ou outro estado."
+      actionLabel="Limpar filtros"
+      (actionClicked)="onSearchClear()"
+    />
+  } @else {
+    <div class="fdr-resource-table__table-wrapper">
+      <table class="fdr-resource-table__table">
+        <caption class="fdr-visually-hidden">
+          Lista de recursos formativos
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Recurso</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Fluxo</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Atualizado</th>
+            <th scope="col">Autor</th>
+            <th scope="col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (resource of resources(); track resource.id) {
+            <tr>
+              <td data-label="Recurso">{{ resource.title }}</td>
+              <td data-label="Tipo">{{ resource.type === 'video' ? 'Vídeo' : 'Guia' }}</td>
+              <td data-label="Fluxo">{{ resource.workflow }}</td>
+              <td data-label="Estado">
+                <fdr-tag
+                  [label]="statusLabel(resource.status)"
+                  [tone]="statusTone(resource.status)"
+                />
+              </td>
+              <td data-label="Atualizado">{{ formatDate(resource.updatedAt) }}</td>
+              <td data-label="Autor">{{ resource.author }}</td>
+              <td data-label="Ações">
+                <div class="fdr-resource-table__actions">
+                  <a
+                    class="fdr-resource-table__action"
+                    [routerLink]="['/conteudos/recursos', resource.id, 'editar']"
+                    aria-label="Editar {{ resource.title }}"
+                  >
+                    <fdr-icon name="edit" size="sm" />
+                  </a>
+                  <a
+                    class="fdr-resource-table__action"
+                    [routerLink]="['/conteudos/recursos', resource.slug, 'pre-visualizacao']"
+                    aria-label="Pré-visualizar {{ resource.title }}"
+                  >
+                    <fdr-icon name="eye" size="sm" />
+                  </a>
+                  <button
+                    type="button"
+                    class="fdr-resource-table__action"
+                    [attr.aria-label]="'Duplicar ' + resource.title"
+                    (click)="duplicate(resource)"
+                  >
+                    <fdr-icon name="copy" size="sm" />
+                  </button>
+                  @if (resource.status === 'archived') {
+                    <button
+                      type="button"
+                      class="fdr-resource-table__action"
+                      [attr.aria-label]="'Restaurar ' + resource.title"
+                      (click)="restore(resource)"
+                    >
+                      <fdr-icon name="upload" size="sm" />
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="fdr-resource-table__action"
+                      [attr.aria-label]="
+                        (resource.status === 'published' ? 'Despublicar ' : 'Publicar ') +
+                        resource.title
+                      "
+                      (click)="togglePublish(resource)"
+                    >
+                      <fdr-icon
+                        [name]="resource.status === 'published' ? 'ban' : 'check'"
+                        size="sm"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      class="fdr-resource-table__action"
+                      [attr.aria-label]="'Arquivar ' + resource.title"
+                      (click)="confirmArchive(resource)"
+                    >
+                      <fdr-icon name="archive" size="sm" />
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

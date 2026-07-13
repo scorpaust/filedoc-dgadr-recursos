@@ -10,14 +10,20 @@
     icon="search"
     title="Recurso não encontrado"
     description="O recurso que procura não existe ou não está disponível."
-    actionLabel="Voltar ao catálogo"
+    [actionLabel]="previewMode() ? 'Voltar à gestão de conteúdos' : 'Voltar ao catálogo'"
     (actionClicked)="goToCatalog()"
   />
 } @else if (resource(); as resource) {
   <article class="fdr-detail">
-    <a class="fdr-detail__back" routerLink="/recursos">
+    @if (previewMode()) {
+      <p class="fdr-detail__preview-banner" role="status">
+        Pré-visualização — este ecrã não é visível ao público.
+      </p>
+    }
+
+    <a class="fdr-detail__back" [routerLink]="previewMode() ? '/conteudos' : '/recursos'">
       <fdr-icon name="arrow-left" size="sm" />
-      Voltar ao catálogo
+      {{ previewMode() ? 'Voltar à gestão de conteúdos' : 'Voltar ao catálogo' }}
     </a>
 
     <div class="fdr-detail__layout">
@@ -38,9 +44,11 @@
 
         <p class="fdr-detail__description">{{ resource.description }}</p>
 
-        <fdr-button variant="outline" (clicked)="requestSupport(resource)">
-          Pedir suporte sobre este tema
-        </fdr-button>
+        @if (!previewMode()) {
+          <fdr-button variant="outline" (clicked)="requestSupport(resource)">
+            Pedir suporte sobre este tema
+          </fdr-button>
+        }
       </div>
 
       <aside class="fdr-detail__sidebar">

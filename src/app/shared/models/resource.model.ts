@@ -24,8 +24,12 @@ export const DOCUMENT_TYPES = [
   'Diversos',
 ] as const;
 
-export type Workflow = (typeof WORKFLOWS)[number];
-export type DocumentType = (typeof DOCUMENT_TYPES)[number];
+// Decisão (Fase 8 — UI): alargado de união literal para `string`, para permitir que
+// editores/administradores criem novos fluxos e tipos de documento em `TaxonomyMockService`
+// sem quebrar a tipagem de `Resource`. `WORKFLOWS`/`DOCUMENT_TYPES` continuam a servir de
+// semente inicial da taxonomia (ver `shared/mocks/taxonomies.mock.ts`).
+export type Workflow = string;
+export type DocumentType = string;
 
 export interface Resource {
   readonly id: string;
@@ -51,4 +55,8 @@ export interface Resource {
   readonly captionsUrl?: string;
   /** Só definido para `type: 'guide'`. */
   readonly pdfUrl?: string;
+  /** Miniatura do recurso (Fase 8 — UI, gestão de conteúdos). */
+  readonly thumbnailUrl?: string;
+  /** Texto alternativo da miniatura, obrigatório para publicar (project-spec.md, secção N). */
+  readonly thumbnailAlt?: string;
 }

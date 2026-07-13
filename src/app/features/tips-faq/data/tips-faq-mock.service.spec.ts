@@ -1,4 +1,4 @@
-import { firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserRole } from '../../../shared/models';
@@ -96,5 +96,102 @@ describe('TipsFaqMockService', () => {
     expect(orders).toEqual([...orders].sort((a, b) => a - b));
     expect(result.some((faq) => faq.category !== undefined)).toBe(true);
     expect(result.some((faq) => faq.category === undefined)).toBe(true);
+  });
+
+  describe('gestão editorial (Fase 8)', () => {
+    async function run<T>(observable: Observable<T>): Promise<T> {
+      const promise = firstValueFrom(observable);
+      await vi.advanceTimersByTimeAsync(300);
+      return promise;
+    }
+
+    beforeEach(() => {
+      loginAs('CONTENT_EDITOR');
+    });
+
+    it('creates a tip as draft, appended after the existing ones', async () => {
+      const before = await run(service.listAllTips());
+      const created = await run(service.createTip('Nova dica de teste.'));
+      expect(created.status).toBe('draft');
+      expect(created.sortOrder).toBe(before.length + 1);
+    });
+
+    it('rejects creating a tip with empty text', async () => {
+      await expect(firstValueFrom(service.createTip('   '))).rejects.toThrow();
+    });
+
+    it('updates, publishes, unpublishes and archives a tip', async () => {
+      const created = await run(service.createTip('Dica original.'));
+      const updated = await run(service.updateTip(created.id, 'Dica editada.'));
+      expect(updated.text).toBe('Dica editada.');
+
+      const published = await run(service.publishTip(created.id));
+      expect(published.status).toBe('published');
+
+      const unpublished = await run(service.unpublishTip(created.id));
+      expect(unpublished.status).toBe('draft');
+
+      const archived = await run(service.archiveTip(created.id));
+      expect(archived.status).toBe('archived');
+
+      const restored = await run(service.restoreTip(created.id));
+      expect(restored.status).toBe('draft');
+    });
+
+    it('reorders a tip up and down via sortOrder swap, without moving past the edges', async () => {
+      const all = await run(service.listAllTips());
+      const [first, second] = all;
+      const movedUp = await run(service.reorderTip(second.id, 'up'));
+      expect(movedUp.find((tip) => tip.id === second.id)?.sortOrder).toBe(first.sortOrder);
+
+      const staysAtEdge = await run(service.reorderTip(first.id, 'up'));
+      expect(staysAtEdge.find((tip) => tip.id === first.id)?.sortOrder).toBe(first.sortOrder);
+    });
+
+    it('creates a faq as draft with optional category', async () => {
+      const created = await run(
+        service.createFaq({ question: 'Pergunta de teste?', answer: 'Resposta de teste.' }),
+      );
+      expect(created.status).toBe('draft');
+      expect(created.category).toBeUndefined();
+    });
+
+    it('rejects creating a faq without a question or answer', async () => {
+      await expect(
+        firstValueFrom(service.createFaq({ question: '', answer: 'Resposta.' })),
+      ).rejects.toThrow();
+    });
+
+    it('updates, publishes, unpublishes and archives a faq', async () => {
+      const created = await run(
+        service.createFaq({ question: 'Pergunta original?', answer: 'Resposta original.' }),
+      );
+      const updated = await run(
+        service.updateFaq(created.id, {
+          question: 'Pergunta editada?',
+          answer: 'Resposta editada.',
+        }),
+      );
+      expect(updated.question).toBe('Pergunta editada?');
+
+      const published = await run(service.publishFaq(created.id));
+      expect(published.status).toBe('published');
+
+      const unpublished = await run(service.unpublishFaq(created.id));
+      expect(unpublished.status).toBe('draft');
+
+      const archived = await run(service.archiveFaq(created.id));
+      expect(archived.status).toBe('archived');
+
+      const restored = await run(service.restoreFaq(created.id));
+      expect(restored.status).toBe('draft');
+    });
+
+    it('reorders a faq down via sortOrder swap', async () => {
+      const all = await run(service.listAllFaqs());
+      const [first, second] = all;
+      const movedDown = await run(service.reorderFaq(first.id, 'down'));
+      expect(movedDown.find((faq) => faq.id === first.id)?.sortOrder).toBe(second.sortOrder);
+    });
   });
 });
