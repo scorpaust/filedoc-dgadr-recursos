@@ -2,32 +2,22 @@
   <h2 class="fdr-resource-meta__title">Detalhes</h2>
 
   <dl class="fdr-resource-meta__list">
-    <div class="fdr-resource-meta__row">
-      <dt>Fluxo</dt>
-      <dd><fdr-tag [label]="resource().workflow" /></dd>
-    </div>
+    <dt>Fluxo</dt>
+    <dd><fdr-tag [label]="resource().workflow" /></dd>
 
-    <div class="fdr-resource-meta__row">
-      <dt>Tipo de documento</dt>
-      <dd><fdr-tag [label]="resource().documentType" /></dd>
-    </div>
+    <dt>Tipo de documento</dt>
+    <dd><fdr-tag [label]="resource().documentType" /></dd>
 
-    <div class="fdr-resource-meta__row">
-      <dt>Dificuldade</dt>
-      <dd><fdr-tag [label]="difficultyLabel()" [difficulty]="resource().difficulty" /></dd>
-    </div>
+    <dt>Dificuldade</dt>
+    <dd><fdr-tag [label]="difficultyLabel()" [difficulty]="resource().difficulty" /></dd>
 
     @if (extentValue()) {
-      <div class="fdr-resource-meta__row">
-        <dt>{{ extentLabel() }}</dt>
-        <dd>{{ extentValue() }}</dd>
-      </div>
+      <dt>{{ extentLabel() }}</dt>
+      <dd>{{ extentValue() }}</dd>
     }
 
-    <div class="fdr-resource-meta__row">
-      <dt>Atualizado em</dt>
-      <dd><fdr-carimbo [label]="resource().updatedAt" /></dd>
-    </div>
+    <dt>Atualizado em</dt>
+    <dd><fdr-carimbo [label]="resource().updatedAt" /></dd>
   </dl>
 
   @if (resource().tags.length > 0) {
