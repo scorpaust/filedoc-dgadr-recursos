@@ -46,7 +46,7 @@ describe('AppNavComponent', () => {
 
   it('shows a "Recurso" link with the resource title once one has been viewed', async () => {
     const authService = TestBed.inject(AuthService);
-    const employee = users.find((u) => u.role === 'EMPLOYEE' && u.status === 'active')!;
+    const employee = users.find((u) => u.roles.includes('EMPLOYEE') && u.status === 'active')!;
     authService.currentUser.set(employee);
 
     const lastViewedResourceService = TestBed.inject(LastViewedResourceService);
@@ -70,8 +70,8 @@ describe('AppNavComponent', () => {
 
   it('never shows a resource last viewed by a different user', async () => {
     const authService = TestBed.inject(AuthService);
-    const employee = users.find((u) => u.role === 'EMPLOYEE' && u.status === 'active')!;
-    const editor = users.find((u) => u.role === 'CONTENT_EDITOR' && u.status === 'active')!;
+    const employee = users.find((u) => u.roles.includes('EMPLOYEE') && u.status === 'active')!;
+    const editor = users.find((u) => u.roles.includes('CONTENT_EDITOR') && u.status === 'active')!;
 
     authService.currentUser.set(employee);
     const lastViewedResourceService = TestBed.inject(LastViewedResourceService);

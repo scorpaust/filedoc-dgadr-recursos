@@ -1,16 +1,19 @@
 import { Router, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from './auth.service';
+import { UserMockService } from './user-mock.service';
 
 describe('AuthService', () => {
   let service: AuthService;
   let router: Router;
+  let userMockService: UserMockService;
 
   beforeEach(() => {
     vi.useFakeTimers();
     TestBed.configureTestingModule({ providers: [provideRouter([])] });
     service = TestBed.inject(AuthService);
     router = TestBed.inject(Router);
+    userMockService = TestBed.inject(UserMockService);
     vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
   });
 
@@ -20,7 +23,7 @@ describe('AuthService', () => {
 
   it('starts with no authenticated user', () => {
     expect(service.currentUser()).toBeNull();
-    expect(service.currentRole()).toBeNull();
+    expect(service.roles()).toEqual([]);
     expect(service.isAuthenticated()).toBe(false);
   });
 
@@ -34,8 +37,16 @@ describe('AuthService', () => {
       expect.objectContaining({ email: 'marta.silva@dgadr.gov.pt' }),
     );
     expect(service.currentUser()?.name).toBe('Marta Silva');
-    expect(service.currentRole()).toBe('EMPLOYEE');
+    expect(service.roles()).toEqual(['EMPLOYEE']);
     expect(service.isAuthenticated()).toBe(true);
+  });
+
+  it('exposes every function for a mock user with more than one role at once', async () => {
+    service.login('joao.antunes@dgadr.gov.pt', 'Demo123!').subscribe();
+
+    await vi.advanceTimersByTimeAsync(600);
+
+    expect(service.roles()).toEqual(['CONTENT_EDITOR', 'ADMIN']);
   });
 
   it('normalizes the e-mail casing and surrounding spaces before matching', async () => {
@@ -76,6 +87,18 @@ describe('AuthService', () => {
 
     expect(error).toHaveBeenCalled();
     expect(service.isAuthenticated()).toBe(false);
+  });
+
+  it('invalidates the current session as soon as the signed-in mock account is deactivated', async () => {
+    service.login('marta.silva@dgadr.gov.pt', 'Demo123!').subscribe();
+    await vi.advanceTimersByTimeAsync(600);
+    expect(service.isAuthenticated()).toBe(true);
+
+    userMockService.deactivate('user-1').subscribe();
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(service.isAuthenticated()).toBe(false);
+    expect(service.currentUser()).toBeNull();
   });
 
   it('logs out by clearing the current user and redirecting to /login', async () => {

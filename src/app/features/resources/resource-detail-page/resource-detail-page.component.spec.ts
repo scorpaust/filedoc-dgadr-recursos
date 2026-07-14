@@ -18,7 +18,7 @@ describe('ResourceDetailPageComponent', () => {
     });
     const authService = TestBed.inject(AuthService);
     const user = users.find(
-      (candidate) => candidate.role === role && candidate.status === 'active',
+      (candidate) => candidate.roles.includes(role) && candidate.status === 'active',
     );
     if (!user) {
       throw new Error(`No active mock user for role ${role}`);

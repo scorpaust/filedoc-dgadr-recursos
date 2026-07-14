@@ -1,0 +1,27 @@
+<section class="fdr-audit-log-list">
+  <div class="fdr-audit-log-list__header">
+    <h2 class="fdr-audit-log-list__title">Registo de auditoria</h2>
+    <p class="fdr-audit-log-list__disclaimer">
+      Entradas ilustrativas — não representam o histórico real de atividade do sistema.
+    </p>
+  </div>
+
+  @if (hasEntries()) {
+    <ul class="fdr-audit-log-list__items">
+      @for (entry of entries(); track entry.id) {
+        <li class="fdr-audit-log-list__item">
+          <span class="fdr-audit-log-list__actor">{{ entry.actor }}</span>
+          {{ entry.action }}
+          @if (entry.entityLabel) {
+            <strong>{{ entry.entityLabel }}</strong>
+          }
+          <time class="fdr-audit-log-list__time" [attr.datetime]="entry.createdAt">
+            {{ formatDateTime(entry.createdAt) }}
+          </time>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="fdr-audit-log-list__empty">Sem entradas de auditoria.</p>
+  }
+</section>

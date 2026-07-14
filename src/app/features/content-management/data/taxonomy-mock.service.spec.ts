@@ -16,7 +16,9 @@ describe('TaxonomyMockService', () => {
     service = TestBed.inject(TaxonomyMockService);
     resourceService = TestBed.inject(ResourceMockService);
     authService = TestBed.inject(AuthService);
-    const editor = users.find((user) => user.role === 'CONTENT_EDITOR' && user.status === 'active');
+    const editor = users.find(
+      (user) => user.roles.includes('CONTENT_EDITOR') && user.status === 'active',
+    );
     authService.currentUser.set(editor ?? null);
   });
 

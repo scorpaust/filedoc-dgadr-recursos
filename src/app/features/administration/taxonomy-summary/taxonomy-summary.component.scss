@@ -1,0 +1,74 @@
+@use '../../../../styles/mixins' as *;
+
+.fdr-taxonomy-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-4);
+  padding: var(--fdr-space-5);
+  border: 1px solid var(--fdr-border);
+  border-radius: var(--fdr-radius-md);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fdr-space-3);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-lg);
+  }
+
+  &__link {
+    color: var(--fdr-accent-primary);
+    font-weight: var(--fdr-font-weight-medium);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-2);
+  }
+
+  &__counts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: var(--fdr-space-4);
+    margin: 0;
+  }
+
+  &__count {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-1);
+
+    dt {
+      display: flex;
+      align-items: flex-end;
+      // Reserva sempre a altura de duas linhas (a maior etiqueta, "Tipos de documento
+      // ativos", quebra em duas) e alinha o texto ao fundo, para que os valores fiquem
+      // sempre à mesma altura entre colunas, independentemente do número de linhas da
+      // etiqueta — bug reportado pelo utilizador (números desalinhados no widget).
+      min-height: 2.5em;
+      font-size: var(--fdr-text-sm);
+      line-height: 1.25;
+      color: var(--fdr-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+      font-size: var(--fdr-text-2xl);
+      font-weight: var(--fdr-font-weight-semibold);
+    }
+  }
+}

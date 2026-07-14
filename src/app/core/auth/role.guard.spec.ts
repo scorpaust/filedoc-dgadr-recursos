@@ -9,7 +9,7 @@ const mockUser: AppUser = {
   name: 'João Antunes',
   email: 'joao.antunes@dgadr.gov.pt',
   career: 'Chefe de Divisão',
-  role: 'CONTENT_EDITOR',
+  roles: ['CONTENT_EDITOR', 'ADMIN'],
   status: 'active',
   lastAccess: '2026-07-05',
 };
@@ -26,12 +26,12 @@ describe('roleGuard', () => {
     authService = TestBed.inject(AuthService);
   });
 
-  it('allows navigation when the current role is in the allowed list', () => {
+  it('allows navigation when one of the current roles is in the allowed list', () => {
     authService.currentUser.set(mockUser);
 
     const result = TestBed.runInInjectionContext(() =>
       roleGuard(
-        routeWithRoles(['CONTENT_EDITOR', 'ADMIN']),
+        routeWithRoles(['CONTENT_EDITOR', 'SUPPORT_AGENT']),
         {} as unknown as Parameters<typeof roleGuard>[1],
       ),
     );
@@ -39,16 +39,36 @@ describe('roleGuard', () => {
     expect(result).toBe(true);
   });
 
-  it('redirects to /acesso-negado when the current role is not allowed', () => {
+  it('redirects to /acesso-negado when none of the current roles are allowed', () => {
     authService.currentUser.set(mockUser);
 
     const result = TestBed.runInInjectionContext(() =>
-      roleGuard(routeWithRoles(['ADMIN']), {} as unknown as Parameters<typeof roleGuard>[1]),
+      roleGuard(
+        routeWithRoles(['SUPPORT_AGENT']),
+        {} as unknown as Parameters<typeof roleGuard>[1],
+      ),
     );
 
     const router = TestBed.inject(Router);
     expect(result).toEqual(router.createUrlTree(['/acesso-negado']));
     expect((result as UrlTree).toString()).toBe('/acesso-negado');
+  });
+
+  it('allows navigation to both routes protected by different roles for a user accumulating both', () => {
+    authService.currentUser.set(mockUser);
+
+    const contentResult = TestBed.runInInjectionContext(() =>
+      roleGuard(
+        routeWithRoles(['CONTENT_EDITOR', 'ADMIN']),
+        {} as unknown as Parameters<typeof roleGuard>[1],
+      ),
+    );
+    const adminResult = TestBed.runInInjectionContext(() =>
+      roleGuard(routeWithRoles(['ADMIN']), {} as unknown as Parameters<typeof roleGuard>[1]),
+    );
+
+    expect(contentResult).toBe(true);
+    expect(adminResult).toBe(true);
   });
 
   it('redirects to /acesso-negado when there is no authenticated user', () => {

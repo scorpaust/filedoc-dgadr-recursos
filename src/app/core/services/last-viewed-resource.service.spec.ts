@@ -11,7 +11,7 @@ describe('LastViewedResourceService', () => {
 
   function loginAs(role: UserRole): void {
     const user = users.find(
-      (candidate) => candidate.role === role && candidate.status === 'active',
+      (candidate) => candidate.roles.includes(role) && candidate.status === 'active',
     );
     if (!user) {
       throw new Error(`No active mock user for role ${role}`);
@@ -50,8 +50,8 @@ describe('LastViewedResourceService', () => {
   });
 
   it("never shows one user's last viewed resource to a different user", () => {
-    const employee = users.find((u) => u.role === 'EMPLOYEE' && u.status === 'active')!;
-    const editor = users.find((u) => u.role === 'CONTENT_EDITOR' && u.status === 'active')!;
+    const employee = users.find((u) => u.roles.includes('EMPLOYEE') && u.status === 'active')!;
+    const editor = users.find((u) => u.roles.includes('CONTENT_EDITOR') && u.status === 'active')!;
 
     authService.currentUser.set(employee);
     const service = TestBed.inject(LastViewedResourceService);
@@ -68,8 +68,8 @@ describe('LastViewedResourceService', () => {
   });
 
   it("restores each user's own last viewed resource from localStorage on a fresh instance", () => {
-    const employee = users.find((u) => u.role === 'EMPLOYEE' && u.status === 'active')!;
-    const editor = users.find((u) => u.role === 'CONTENT_EDITOR' && u.status === 'active')!;
+    const employee = users.find((u) => u.roles.includes('EMPLOYEE') && u.status === 'active')!;
+    const editor = users.find((u) => u.roles.includes('CONTENT_EDITOR') && u.status === 'active')!;
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({

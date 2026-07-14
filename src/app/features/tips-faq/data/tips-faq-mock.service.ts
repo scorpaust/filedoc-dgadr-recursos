@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { AuthService } from '../../../core/auth/auth.service';
-import { EditorialStatus, Faq, Tip, UserRole } from '../../../shared/models';
+import { EditorialStatus, Faq, Tip, UserRole, hasAnyRole } from '../../../shared/models';
 import { faqs } from '../../../shared/mocks/faqs.mock';
 import { tips } from '../../../shared/mocks/tips.mock';
 
@@ -30,14 +30,14 @@ export class TipsFaqMockService {
   private readonly faqsSignal = signal<readonly Faq[]>(faqs);
 
   getTips(): Observable<readonly Tip[]> {
-    const role = this.authService.currentRole();
-    const visible = this.tipsSignal().filter((tip) => this.isVisible(tip.status, role));
+    const roles = this.authService.roles();
+    const visible = this.tipsSignal().filter((tip) => this.isVisible(tip.status, roles));
     return of(this.sortByOrder(visible)).pipe(delay(SIMULATED_DELAY_MS));
   }
 
   getFaqs(): Observable<readonly Faq[]> {
-    const role = this.authService.currentRole();
-    const visible = this.faqsSignal().filter((faq) => this.isVisible(faq.status, role));
+    const roles = this.authService.roles();
+    const visible = this.faqsSignal().filter((faq) => this.isVisible(faq.status, roles));
     return of(this.sortByOrder(visible)).pipe(delay(SIMULATED_DELAY_MS));
   }
 
@@ -169,12 +169,12 @@ export class TipsFaqMockService {
     return of(this.sortByOrder(reordered)).pipe(delay(SIMULATED_DELAY_MS));
   }
 
-  private isVisible(status: EditorialStatus, role: UserRole | null): boolean {
+  private isVisible(status: EditorialStatus, roles: readonly UserRole[]): boolean {
     if (status === 'archived') {
       return false;
     }
     if (status === 'draft') {
-      return role !== null && EDITOR_ROLES.includes(role);
+      return hasAnyRole(roles, EDITOR_ROLES);
     }
     return true;
   }

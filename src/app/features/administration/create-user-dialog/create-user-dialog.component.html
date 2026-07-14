@@ -1,0 +1,59 @@
+<fdr-dialog title="Criar utilizador" (closed)="cancel()">
+  @if (errorMessage(); as message) {
+    <p class="fdr-create-user-dialog__error" role="alert">{{ message }}</p>
+  }
+
+  <form class="fdr-create-user-dialog__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="create-user-name">Nome</label>
+      <input
+        id="create-user-name"
+        type="text"
+        class="fdr-field__input"
+        formControlName="name"
+        [attr.aria-invalid]="nameControl.invalid && nameControl.touched"
+      />
+    </div>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="create-user-email">E-mail</label>
+      <input
+        id="create-user-email"
+        type="email"
+        class="fdr-field__input"
+        formControlName="email"
+        [attr.aria-invalid]="emailControl.invalid && emailControl.touched"
+      />
+    </div>
+
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="create-user-career">Carreira profissional</label>
+      <input
+        id="create-user-career"
+        type="text"
+        class="fdr-field__input"
+        formControlName="career"
+      />
+    </div>
+
+    <fieldset class="fdr-create-user-dialog__roles">
+      <legend class="fdr-field__label">Funções</legend>
+      @for (role of roleOptions; track role) {
+        <label class="fdr-create-user-dialog__role-option">
+          <input type="checkbox" [checked]="isRoleSelected(role)" (change)="toggleRole(role)" />
+          {{ roleLabels[role] }}
+        </label>
+      }
+      @if (hasNoRoles()) {
+        <p class="fdr-field__error" role="alert">Selecione pelo menos uma função.</p>
+      }
+    </fieldset>
+
+    <div class="fdr-create-user-dialog__actions">
+      <fdr-button type="button" variant="outline" (clicked)="cancel()">Cancelar</fdr-button>
+      <fdr-button type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'A criar...' : 'Criar utilizador' }}
+      </fdr-button>
+    </div>
+  </form>
+</fdr-dialog>

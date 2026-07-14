@@ -2,7 +2,13 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { AuthService } from '../../../core/auth/auth.service';
-import { EditorialStatus, Resource, TaxonomyKind, UserRole } from '../../../shared/models';
+import {
+  EditorialStatus,
+  Resource,
+  TaxonomyKind,
+  UserRole,
+  hasAnyRole,
+} from '../../../shared/models';
 import { resources } from '../../../shared/mocks/resources.mock';
 import { ResourceFormInput } from '../../content-management/data/resource-form-input.model';
 import {
@@ -66,8 +72,8 @@ export class ResourceMockService {
   private readonly resourcesSignal = signal<readonly Resource[]>(resources);
 
   search(params: ResourceSearchParams): Observable<ResourceSearchResult> {
-    const role = this.authService.currentRole();
-    const visible = this.resourcesSignal().filter((resource) => this.isVisible(resource, role));
+    const roles = this.authService.roles();
+    const visible = this.resourcesSignal().filter((resource) => this.isVisible(resource, roles));
     const filtered = this.applyFilters(visible, params);
     const sorted = this.applySort(filtered, params.sort);
 
@@ -79,20 +85,20 @@ export class ResourceMockService {
   }
 
   getBySlug(slug: string): Observable<Resource | undefined> {
-    const role = this.authService.currentRole();
+    const roles = this.authService.roles();
     const resource = this.resourcesSignal().find(
-      (candidate) => candidate.slug === slug && this.isVisible(candidate, role),
+      (candidate) => candidate.slug === slug && this.isVisible(candidate, roles),
     );
     return of(resource).pipe(delay(SIMULATED_DELAY_MS));
   }
 
   getRelated(ids: readonly string[]): Observable<readonly Resource[]> {
-    const role = this.authService.currentRole();
+    const roles = this.authService.roles();
     const related = ids
       .map((id) => this.resourcesSignal().find((candidate) => candidate.id === id))
       .filter(
         (candidate): candidate is Resource =>
-          candidate !== undefined && this.isVisible(candidate, role),
+          candidate !== undefined && this.isVisible(candidate, roles),
       )
       .slice(0, MAX_RELATED);
     return of(related).pipe(delay(SIMULATED_DELAY_MS));
@@ -290,12 +296,12 @@ export class ResourceMockService {
     return this.unpublish(id);
   }
 
-  private isVisible(resource: Resource, role: UserRole | null): boolean {
+  private isVisible(resource: Resource, roles: readonly UserRole[]): boolean {
     if (resource.status === 'archived') {
       return false;
     }
     if (resource.status === 'draft') {
-      return role !== null && EDITOR_ROLES.includes(role);
+      return hasAnyRole(roles, EDITOR_ROLES);
     }
     return true;
   }

@@ -5,3 +5,4 @@ export * from './tip.model';
 export * from './faq.model';
 export * from './app-user.model';
 export * from './taxonomy.model';
+export * from './audit-log.model';
