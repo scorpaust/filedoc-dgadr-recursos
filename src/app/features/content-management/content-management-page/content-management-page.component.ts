@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import {
   SegmentedControlComponent,
   SegmentedControlOption,
@@ -14,6 +15,15 @@ const TAB_OPTIONS: readonly SegmentedControlOption<ContentTab>[] = [
   { value: 'tips-faq', label: 'Dicas & FAQ' },
   { value: 'taxonomies', label: 'Taxonomias' },
 ];
+
+const VALID_TABS: readonly ContentTab[] = ['resources', 'tips-faq', 'taxonomies'];
+
+// O parâmetro `tab` (opcional) permite chegar diretamente a um separador — usado pelo
+// atalho "Gerir →" do resumo de taxonomias na Administração (Fase 9 — UI).
+function initialTabFrom(route: ActivatedRoute): ContentTab {
+  const requested = route.snapshot.queryParamMap.get('tab');
+  return VALID_TABS.includes(requested as ContentTab) ? (requested as ContentTab) : 'resources';
+}
 
 // Página de gestão de conteúdos (Fase 8 — UI), com três sub-áreas dentro da mesma página
 // (decisão registada no `fase-8-ui-gestao-conteudos.md`: mais simples do que rotas
@@ -53,6 +63,8 @@ const TAB_OPTIONS: readonly SegmentedControlOption<ContentTab>[] = [
   styleUrl: './content-management-page.component.scss',
 })
 export class ContentManagementPageComponent {
+  private readonly route = inject(ActivatedRoute);
+
   protected readonly tabOptions = TAB_OPTIONS;
-  protected readonly activeTab = signal<ContentTab>('resources');
+  protected readonly activeTab = signal<ContentTab>(initialTabFrom(this.route));
 }

@@ -15,7 +15,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { mockCredentials } from '../../../core/auth/mock-credentials';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { AppUser, USER_ROLE_LABELS } from '../../../shared/models';
+import { AppUser, formatRoleLabels } from '../../../shared/models';
 import { users } from '../../../shared/mocks/users.mock';
 
 interface DevRoleOption {
@@ -32,7 +32,7 @@ function buildDevRoleOptions(): readonly DevRoleOption[] {
     .map((credential): DevRoleOption | null => {
       const user = users.find((candidate) => candidate.email === credential.email);
       return user
-        ? { user, password: credential.password, roleLabel: USER_ROLE_LABELS[user.role] }
+        ? { user, password: credential.password, roleLabel: formatRoleLabels(user.roles) }
         : null;
     })
     .filter((option): option is DevRoleOption => option !== null);

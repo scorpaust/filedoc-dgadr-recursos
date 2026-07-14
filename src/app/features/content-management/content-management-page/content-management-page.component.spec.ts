@@ -1,4 +1,4 @@
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
@@ -9,7 +9,9 @@ describe('ContentManagementPageComponent', () => {
     vi.useFakeTimers();
     TestBed.configureTestingModule({ providers: [provideRouter([])] });
     const authService = TestBed.inject(AuthService);
-    const editor = users.find((user) => user.role === 'CONTENT_EDITOR' && user.status === 'active');
+    const editor = users.find(
+      (user) => user.roles.includes('CONTENT_EDITOR') && user.status === 'active',
+    );
     authService.currentUser.set(editor ?? null);
   });
 
@@ -61,5 +63,33 @@ describe('ContentManagementPageComponent', () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector('fdr-taxonomy-management')).toBeTruthy();
+  });
+
+  // Regressão: o atalho "Gerir →" do resumo de taxonomias (Fase 9) navega para
+  // `/conteudos?tab=taxonomies` — este valor tem de coincidir com o `ContentTab` interno
+  // (inglês), não com o rótulo em português mostrado na aba.
+  it('opens directly on the taxonomies tab when the "tab" query param requests it', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap({ tab: 'taxonomies' }) } },
+        },
+      ],
+    });
+    const authService = TestBed.inject(AuthService);
+    const editor = users.find(
+      (user) => user.roles.includes('CONTENT_EDITOR') && user.status === 'active',
+    );
+    authService.currentUser.set(editor ?? null);
+
+    const fixture = TestBed.createComponent(ContentManagementPageComponent);
+    fixture.detectChanges();
+    await flush(fixture);
+
+    expect(fixture.nativeElement.querySelector('fdr-taxonomy-management')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('fdr-resource-table')).toBeFalsy();
   });
 });

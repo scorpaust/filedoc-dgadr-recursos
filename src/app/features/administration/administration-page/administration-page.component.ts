@@ -1,16 +1,16 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RoutePlaceholderComponent } from '../../../shared/components/route-placeholder/route-placeholder.component';
+import { AuditLogListComponent } from '../audit-log-list/audit-log-list.component';
+import { TaxonomySummaryComponent } from '../taxonomy-summary/taxonomy-summary.component';
+import { UserTableComponent } from '../user-table/user-table.component';
 
+// Página de administração (Fase 9 — UI), protegida por `roleGuard` (`ADMIN`) em
+// `app.routes.ts`. Reúne a gestão de utilizadores, o resumo de taxonomias (Fase 8) e o
+// registo de auditoria (apenas leitura) na mesma página.
 @Component({
   selector: 'fdr-administration-page',
-  imports: [RoutePlaceholderComponent],
+  imports: [UserTableComponent, TaxonomySummaryComponent, AuditLogListComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <fdr-route-placeholder
-      title="Administração"
-      description="Gestão de utilizadores, funções, taxonomias e auditoria."
-      futurePhaseLabel="fase futura da via de UI"
-    />
-  `,
+  templateUrl: './administration-page.component.html',
+  styleUrl: './administration-page.component.scss',
 })
 export class AdministrationPageComponent {}

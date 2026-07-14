@@ -14,7 +14,9 @@ describe('ResourcePickerDialogComponent', () => {
       providers: [{ provide: DialogRef, useValue: { close: closeSpy } }],
     });
     const authService = TestBed.inject(AuthService);
-    const employee = users.find((user) => user.role === 'EMPLOYEE' && user.status === 'active');
+    const employee = users.find(
+      (user) => user.roles.includes('EMPLOYEE') && user.status === 'active',
+    );
     authService.currentUser.set(employee ?? null);
   });
 

@@ -22,14 +22,11 @@ describe('ResourceCatalogPageComponent', () => {
   // componente — caso contrário a primeira pesquisa corre sem função atribuída.
   function createFixture(role: UserRole, queryParams: Params = {}) {
     TestBed.configureTestingModule({
-      providers: [
-        provideRouter([]),
-        { provide: ActivatedRoute, useValue: fakeRoute(queryParams) },
-      ],
+      providers: [provideRouter([]), { provide: ActivatedRoute, useValue: fakeRoute(queryParams) }],
     });
     const authService = TestBed.inject(AuthService);
     const user = users.find(
-      (candidate) => candidate.role === role && candidate.status === 'active',
+      (candidate) => candidate.roles.includes(role) && candidate.status === 'active',
     );
     if (!user) {
       throw new Error(`No active mock user for role ${role}`);

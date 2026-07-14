@@ -1,0 +1,32 @@
+.fdr-edit-roles-dialog {
+  &__error {
+    margin: 0 0 var(--fdr-space-4);
+    padding: var(--fdr-space-3);
+    border-radius: var(--fdr-radius-md);
+    border: 1px solid var(--fdr-tone-danger-border);
+    background: var(--fdr-tone-danger-bg);
+    color: var(--fdr-tone-danger-text);
+    font-size: var(--fdr-text-sm);
+  }
+
+  &__roles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fdr-space-2);
+    margin: 0 0 var(--fdr-space-5);
+    padding: 0;
+    border: none;
+  }
+
+  &__role-option {
+    display: flex;
+    align-items: center;
+    gap: var(--fdr-space-2);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--fdr-space-3);
+  }
+}

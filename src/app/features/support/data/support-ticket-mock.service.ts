@@ -12,7 +12,7 @@ import {
   TicketMessage,
   TicketPriority,
   TicketStatus,
-  USER_ROLE_LABELS,
+  formatRoleLabels,
 } from '../../../shared/models';
 import { supportTickets } from '../../../shared/mocks/support-tickets.mock';
 import { agentName } from '../agent.util';
@@ -228,7 +228,7 @@ export class SupportTicketMockService {
     const message: TicketMessage = {
       id: `msg-${nextMessageSequence++}`,
       author: user.name,
-      authorRole: USER_ROLE_LABELS[user.role],
+      authorRole: formatRoleLabels(user.roles),
       createdAt: now,
       content,
       internal: true,
@@ -254,7 +254,7 @@ export class SupportTicketMockService {
     const message: TicketMessage = {
       id: `msg-${nextMessageSequence++}`,
       author: user.name,
-      authorRole: USER_ROLE_LABELS[user.role],
+      authorRole: formatRoleLabels(user.roles),
       createdAt: now,
       content,
       internal: false,
@@ -286,7 +286,7 @@ export class SupportTicketMockService {
     const message: TicketMessage = {
       id: `msg-${nextMessageSequence++}`,
       author: user.name,
-      authorRole: USER_ROLE_LABELS[user.role],
+      authorRole: formatRoleLabels(user.roles),
       createdAt: now,
       content: historyText(user),
       internal: false,

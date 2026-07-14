@@ -17,7 +17,7 @@ describe('authGuard', () => {
       name: 'Marta Silva',
       email: 'marta.silva@dgadr.gov.pt',
       career: 'Técnico Superior',
-      role: 'EMPLOYEE',
+      roles: ['EMPLOYEE'],
       status: 'active',
       lastAccess: '2026-07-08',
     });

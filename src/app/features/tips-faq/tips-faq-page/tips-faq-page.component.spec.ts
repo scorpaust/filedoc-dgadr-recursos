@@ -13,7 +13,7 @@ describe('TipsFaqPageComponent', () => {
     TestBed.configureTestingModule({});
     const authService = TestBed.inject(AuthService);
     const user = users.find(
-      (candidate) => candidate.role === role && candidate.status === 'active',
+      (candidate) => candidate.roles.includes(role) && candidate.status === 'active',
     );
     if (!user) {
       throw new Error(`No active mock user for role ${role}`);
@@ -120,7 +120,7 @@ describe('TipsFaqPageComponent', () => {
     });
     const authService = TestBed.inject(AuthService);
     const user = users.find(
-      (candidate) => candidate.role === 'EMPLOYEE' && candidate.status === 'active',
+      (candidate) => candidate.roles.includes('EMPLOYEE') && candidate.status === 'active',
     )!;
     authService.currentUser.set(user);
 

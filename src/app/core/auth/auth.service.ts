@@ -1,10 +1,10 @@
 import { Router } from '@angular/router';
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Observable, of, throwError, timer } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { AppUser, UserRole } from '../../shared/models';
-import { users } from '../../shared/mocks/users.mock';
 import { mockCredentials } from './mock-credentials';
+import { UserMockService } from './user-mock.service';
 
 const SIMULATED_DELAY_MS = 600;
 const INVALID_CREDENTIALS_MESSAGE =
@@ -12,16 +12,32 @@ const INVALID_CREDENTIALS_MESSAGE =
 const CHANGE_PASSWORD_ERROR_MESSAGE =
   'Não foi possível alterar a palavra-passe. Verifique a palavra-passe atual e tente novamente.';
 
-// Serviço de autenticação simulado (Fase 2 — UI). Não efetua qualquer chamada de rede;
-// valida contra `mockCredentials` e `users.mock.ts`. Será substituído, não estendido,
-// quando a integração com a API NestJS real for implementada.
+// Serviço de autenticação simulado (Fase 2 — UI, estendido na Fase 9 para refletir
+// ativação/desativação de contas). Não efetua qualquer chamada de rede; valida contra
+// `mockCredentials` e o `UserMockService` (fonte única e "viva" dos utilizadores mock).
+// Será substituído, não estendido, quando a integração com a API NestJS real for implementada.
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly router = inject(Router);
+  private readonly userMockService = inject(UserMockService);
 
   readonly currentUser = signal<AppUser | null>(null);
-  readonly currentRole = computed<UserRole | null>(() => this.currentUser()?.role ?? null);
-  readonly isAuthenticated = computed(() => this.currentUser() !== null);
+  readonly roles = computed<readonly UserRole[]>(() => this.currentUser()?.roles ?? []);
+  // Reavaliado a cada leitura a partir do estado "vivo" do `UserMockService`: se a conta em
+  // sessão for desativada (ex.: um administrador desativa a própria conta, na Fase 9), a
+  // sessão simulada passa a inválida sem necessidade de um novo pedido de rede.
+  readonly isAuthenticated = computed(() => {
+    const user = this.currentUser();
+    return user !== null && this.userMockService.isActive(user.id);
+  });
+
+  constructor() {
+    effect(() => {
+      if (this.currentUser() !== null && !this.isAuthenticated()) {
+        this.currentUser.set(null);
+      }
+    });
+  }
 
   login(email: string, password: string): Observable<AppUser> {
     const normalizedEmail = email.trim().toLowerCase();
@@ -64,10 +80,7 @@ export class AuthService {
     if (!hasValidCredential) {
       return null;
     }
-    const user = users.find(
-      (candidate) =>
-        candidate.email.toLowerCase() === normalizedEmail && candidate.status === 'active',
-    );
+    const user = this.userMockService.findActiveByEmail(normalizedEmail);
     return user ?? null;
   }
 }

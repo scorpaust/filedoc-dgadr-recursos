@@ -1,0 +1,35 @@
+<section class="fdr-taxonomy-summary">
+  <div class="fdr-taxonomy-summary__header">
+    <h2 class="fdr-taxonomy-summary__title">Taxonomias</h2>
+    <a
+      class="fdr-taxonomy-summary__link"
+      [routerLink]="['/conteudos']"
+      [queryParams]="{ tab: 'taxonomies' }"
+    >
+      Gerir →
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="fdr-taxonomy-summary__skeletons" aria-hidden="true">
+      <fdr-skeleton variant="card" height="2.5rem" />
+      <fdr-skeleton variant="card" height="2.5rem" />
+      <fdr-skeleton variant="card" height="2.5rem" />
+    </div>
+  } @else {
+    <dl class="fdr-taxonomy-summary__counts">
+      <div class="fdr-taxonomy-summary__count">
+        <dt>Fluxos ativos</dt>
+        <dd>{{ workflowCount() }}</dd>
+      </div>
+      <div class="fdr-taxonomy-summary__count">
+        <dt>Tipos de documento ativos</dt>
+        <dd>{{ documentTypeCount() }}</dd>
+      </div>
+      <div class="fdr-taxonomy-summary__count">
+        <dt>Etiquetas ativas</dt>
+        <dd>{{ tagCount() }}</dd>
+      </div>
+    </dl>
+  }
+</section>

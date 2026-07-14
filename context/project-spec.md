@@ -114,10 +114,11 @@ A aplicação define as seguintes funções:
 
 Esclarecimentos importantes:
 
-- cada utilizador tem uma função principal atribuída no sistema;
+- cada utilizador pode ter uma ou mais funções atribuídas em simultâneo (por exemplo, um utilizador pode ser `CONTENT_EDITOR` e `ADMIN` ao mesmo tempo);
+- a autorização de uma ação ou de um ecrã depende de o utilizador possuir, entre as suas funções, pelo menos uma das funções exigidas para essa ação ou ecrã;
 - toda a autorização deve ser validada no backend, independentemente do que é apresentado no frontend;
 - a ocultação de elementos de interface no frontend não constitui, por si só, um mecanismo de controlo de segurança;
-- cada utilizador deve aceder apenas aos dados que a sua função permite consultar ou alterar.
+- cada utilizador deve aceder apenas aos dados que as suas funções permitem consultar ou alterar.
 
 ---
 
@@ -624,11 +625,12 @@ Os administradores podem:
 - listar utilizadores;
 - pesquisar por nome;
 - pesquisar por e-mail;
-- filtrar por função;
+- filtrar por função (um utilizador pode corresponder a mais do que um filtro, caso tenha mais do que uma função);
 - filtrar por estado;
 - criar conta;
 - alterar nome;
-- atribuir função;
+- atribuir uma ou mais funções a um utilizador;
+- remover funções previamente atribuídas, desde que o utilizador fique sempre com pelo menos uma função;
 - ativar conta;
 - desativar conta;
 - invalidar sessões ativas;
@@ -636,7 +638,7 @@ Os administradores podem:
 
 **Regras:**
 
-- não é permitido remover ou desativar acidentalmente o último administrador ativo;
+- não é permitido remover a função `ADMIN` do último utilizador que a possui, nem desativar esse utilizador, enquanto for o único com essa função;
 - os hashes de palavras-passe nunca são apresentados;
 - as palavras-passe nunca são guardadas em logs;
 - ações sensíveis exigem confirmação explícita;
@@ -690,13 +692,21 @@ O modelo de dados apresentado de seguida é uma proposta inicial e poderá evolu
 - `name`
 - `email`
 - `passwordHash`
-- `role`
 - `status`
 - `lastLoginAt`
 - `createdAt`
 - `updatedAt`
 
-Relações: sessões; recursos criados; recursos atualizados; tickets solicitados; tickets atribuídos; mensagens; anexos; registos de auditoria.
+Relações: funções atribuídas (`USERROLE`); sessões; recursos criados; recursos atualizados; tickets solicitados; tickets atribuídos; mensagens; anexos; registos de auditoria.
+
+### `USERROLE`
+
+Tabela de associação entre utilizadores e funções, permitindo que um utilizador acumule mais do que uma função (por exemplo, `CONTENT_EDITOR` e `ADMIN` em simultâneo):
+
+- `userId`
+- `role` (`EMPLOYEE` | `CONTENT_EDITOR` | `SUPPORT_AGENT` | `ADMIN`)
+
+A chave primária é composta pelos dois valores, impedindo a mesma função de ser atribuída duas vezes ao mesmo utilizador.
 
 ### `SESSION`
 

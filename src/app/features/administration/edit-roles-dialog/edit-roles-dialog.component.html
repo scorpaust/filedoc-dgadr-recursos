@@ -1,0 +1,27 @@
+<fdr-dialog title="Editar funções — {{ user.name }}" (closed)="cancel()">
+  @if (errorMessage(); as message) {
+    <p class="fdr-edit-roles-dialog__error" role="alert">{{ message }}</p>
+  }
+
+  <fieldset class="fdr-edit-roles-dialog__roles">
+    <legend class="fdr-field__label">Funções</legend>
+    @for (role of roleOptions; track role) {
+      <label class="fdr-edit-roles-dialog__role-option">
+        <input type="checkbox" [checked]="isRoleSelected(role)" (change)="toggleRole(role)" />
+        {{ roleLabels[role] }}
+      </label>
+    }
+    @if (hasNoRoles()) {
+      <p class="fdr-field__error" role="alert">
+        Um utilizador tem de ter sempre pelo menos uma função.
+      </p>
+    }
+  </fieldset>
+
+  <div class="fdr-edit-roles-dialog__actions">
+    <fdr-button type="button" variant="outline" (clicked)="cancel()">Cancelar</fdr-button>
+    <fdr-button type="button" [disabled]="isSubmitting()" (clicked)="submit()">
+      {{ isSubmitting() ? 'A guardar...' : 'Guardar' }}
+    </fdr-button>
+  </div>
+</fdr-dialog>

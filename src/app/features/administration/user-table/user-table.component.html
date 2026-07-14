@@ -1,0 +1,137 @@
+<section class="fdr-user-table">
+  <div class="fdr-user-table__header">
+    <h2 class="fdr-user-table__title">Utilizadores</h2>
+    <fdr-button variant="primary" (clicked)="createUser()">Criar utilizador</fdr-button>
+  </div>
+
+  <div class="fdr-user-table__filters">
+    <div class="fdr-field">
+      <label class="fdr-field__label" for="user-search">Pesquisar</label>
+      <input
+        id="user-search"
+        type="search"
+        class="fdr-field__input"
+        [formControl]="searchControl"
+        placeholder="Nome ou e-mail..."
+      />
+    </div>
+
+    <fdr-dropdown-filter
+      label="Função"
+      [options]="roleOptions"
+      [selectedValues]="roleFilter()"
+      (selectedValuesChange)="onRoleFilterChange($event)"
+    />
+
+    <fdr-segmented-control
+      [options]="statusOptions"
+      [selected]="statusFilter()"
+      (selectedChange)="statusFilter.set($event)"
+    />
+  </div>
+
+  @if (loading()) {
+    <div class="fdr-user-table__skeletons" aria-hidden="true">
+      <fdr-skeleton variant="card" height="3rem" />
+      <fdr-skeleton variant="card" height="3rem" />
+      <fdr-skeleton variant="card" height="3rem" />
+    </div>
+  } @else if (!hasResults()) {
+    <fdr-empty-state
+      icon="search"
+      title="Nenhum utilizador corresponde aos filtros"
+      description="Experimente outro termo de pesquisa, outra função ou outro estado."
+      actionLabel="Limpar filtros"
+      (actionClicked)="onSearchClear()"
+    />
+  } @else {
+    <div class="fdr-user-table__table-wrapper">
+      <table class="fdr-user-table__table">
+        <caption class="fdr-visually-hidden">
+          Lista de utilizadores mock
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Utilizador</th>
+            <th scope="col">Carreira profissional</th>
+            <th scope="col">Funções</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Último acesso</th>
+            <th scope="col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td data-label="Utilizador">
+                <div class="fdr-user-table__user">
+                  <span class="fdr-user-table__avatar" aria-hidden="true">
+                    {{ user.name.charAt(0) }}
+                  </span>
+                  <span class="fdr-user-table__user-info">
+                    <span class="fdr-user-table__name">{{ user.name }}</span>
+                    <span class="fdr-user-table__email">{{ user.email }}</span>
+                  </span>
+                </div>
+              </td>
+              <td data-label="Carreira profissional">{{ user.career }}</td>
+              <td data-label="Funções">
+                <div class="fdr-user-table__roles">
+                  @for (role of user.roles; track role) {
+                    <fdr-pill [label]="roleLabels[role]" [tone]="rolePillTones[role]" />
+                  }
+                </div>
+              </td>
+              <td data-label="Estado">
+                <fdr-pill
+                  [label]="user.status === 'active' ? 'Ativo' : 'Inativo'"
+                  [tone]="user.status === 'active' ? 'success' : 'neutral'"
+                />
+              </td>
+              <td data-label="Último acesso">{{ formatLastAccess(user.lastAccess) }}</td>
+              <td data-label="Ações">
+                <div class="fdr-user-table__actions">
+                  <button
+                    type="button"
+                    class="fdr-user-table__action"
+                    aria-label="Editar funções de {{ user.name }}"
+                    (click)="editRoles(user)"
+                  >
+                    <fdr-icon name="edit" size="sm" />
+                  </button>
+                  @if (user.status === 'active') {
+                    <button
+                      type="button"
+                      class="fdr-user-table__action"
+                      aria-label="Desativar {{ user.name }}"
+                      (click)="confirmDeactivate(user)"
+                    >
+                      <fdr-icon name="ban" size="sm" />
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="fdr-user-table__action"
+                      aria-label="Ativar {{ user.name }}"
+                      (click)="activate(user)"
+                    >
+                      <fdr-icon name="check" size="sm" />
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="fdr-user-table__action"
+                    aria-label="Invalidar sessões de {{ user.name }}"
+                    (click)="invalidateSessions(user)"
+                  >
+                    <fdr-icon name="log-out" size="sm" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

@@ -6,7 +6,9 @@ export interface AppUser {
   readonly name: string;
   readonly email: string;
   readonly career: string;
-  readonly role: UserRole;
+  // Um utilizador pode acumular mais do que uma função em simultâneo
+  // (project-spec.md, secção "Funções do sistema"); nunca vazio.
+  readonly roles: readonly UserRole[];
   readonly status: UserStatus;
   readonly lastAccess: string;
 }
@@ -17,3 +19,16 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
   SUPPORT_AGENT: 'Agente de suporte',
   ADMIN: 'Administrador',
 };
+
+// Autorização por interseção: um utilizador acede quando possui, entre as suas
+// funções, pelo menos uma das funções permitidas (project-spec.md, secção "Funções do sistema").
+export function hasAnyRole(
+  userRoles: readonly UserRole[],
+  allowedRoles: readonly UserRole[],
+): boolean {
+  return userRoles.some((role) => allowedRoles.includes(role));
+}
+
+export function formatRoleLabels(roles: readonly UserRole[]): string {
+  return roles.map((role) => USER_ROLE_LABELS[role]).join(' + ');
+}

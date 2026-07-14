@@ -33,9 +33,9 @@ Não existe nesta fase: chamadas HTTP reais, palavras-passe verificadas no servi
 - Ecrã de alteração de palavra-passe (`/definicoes/palavra-passe` ou equivalente), dentro do layout autenticado;
 - `AuthService` simulado, com Signals, capaz de:
   - manter o estado de autenticação em memória (nunca em `localStorage`, para já não induzir um padrão que mais tarde seria confundido com sessão real persistente do lado do cliente);
-  - simular "credenciais válidas" para um pequeno conjunto de utilizadores mock, cada um com uma função diferente (`EMPLOYEE`, `CONTENT_EDITOR`, `SUPPORT_AGENT`, `ADMIN`), para permitir testar visualmente os diferentes acessos nas fases seguintes;
+  - simular "credenciais válidas" para um pequeno conjunto de utilizadores mock, cada um com uma ou mais funções (`EMPLOYEE`, `CONTENT_EDITOR`, `SUPPORT_AGENT`, `ADMIN`) — incluir pelo menos um utilizador mock com mais do que uma função em simultâneo (ex.: `CONTENT_EDITOR` + `ADMIN`), para permitir testar visualmente os diferentes acessos, incluindo os cumulativos, nas fases seguintes;
   - simular "credenciais inválidas" para qualquer outra combinação, com atraso simulado (para testar o estado de carregamento);
-  - expor o utilizador atual, a função atual e um método de logout;
+  - expor o utilizador atual, o conjunto de funções atuais e um método de logout;
 - Guardas de rota (`authGuard`, `roleGuard`) que leem o `AuthService` simulado — funcionalmente coerentes com o que a Fase de integração virá a substituir por chamadas reais, mas sem qualquer chamada de rede nesta fase;
 - Formulário de login com Angular Reactive Forms, validação client-side (formato de e-mail, campo obrigatório), estados de foco/erro acessíveis;
 - Componente de alternância de visibilidade da palavra-passe;
@@ -80,8 +80,8 @@ Não existe nesta fase: chamadas HTTP reais, palavras-passe verificadas no servi
 ### B. `AuthService` simulado (`core/auth`)
 
 - Signal com o utilizador atual (`null` quando não autenticado);
-- Signal computado com a função atual;
-- Conjunto de utilizadores mock (mínimo um por função: `EMPLOYEE`, `CONTENT_EDITOR`, `SUPPORT_AGENT`, `ADMIN`), com nome, carreira profissional e e-mail fictícios, claramente identificados como dados de demonstração;
+- Signal computado com as funções atuais (`readonly roles: Signal<Role[]>`), já que um utilizador pode acumular mais do que uma;
+- Conjunto de utilizadores mock (mínimo um por função: `EMPLOYEE`, `CONTENT_EDITOR`, `SUPPORT_AGENT`, `ADMIN`, mais pelo menos um utilizador com duas funções em simultâneo), com nome, carreira profissional e e-mail fictícios, claramente identificados como dados de demonstração;
 - Método `login(email, password)`: simula um atraso, valida contra os utilizadores mock, define o utilizador atual ou lança um erro genérico;
 - Método `logout()`: limpa o utilizador atual e redireciona para `/login`;
 - Testes unitários cobrindo: login válido, login inválido, logout, e o estado antes de qualquer autenticação.
@@ -89,7 +89,7 @@ Não existe nesta fase: chamadas HTTP reais, palavras-passe verificadas no servi
 ### C. Guardas de rota
 
 - `authGuard`: bloqueia o acesso a rotas autenticadas quando não existe utilizador atual, redirecionando para `/login`;
-- `roleGuard`: recebe a lista de funções permitidas por rota (via `data` da rota) e redireciona para `/acesso-negado` quando a função atual não está incluída;
+- `roleGuard`: recebe a lista de funções permitidas por rota (via `data` da rota) e redireciona para `/acesso-negado` quando **nenhuma** das funções atuais do utilizador está incluída nessa lista (interseção vazia entre as funções do utilizador e as funções permitidas);
 - Aplicar `authGuard` a todas as rotas autenticadas definidas na Fase 1;
 - Aplicar `roleGuard` já às rotas de Gestão (`/suporte/gestao`, `/conteudos`, `/administracao`), mesmo que o conteúdo real dessas áreas só chegue nas Fases 7–9;
 - Testes unitários dos guardas, incluindo os caminhos negativos (sem sessão, função errada).
@@ -122,6 +122,7 @@ Não existe nesta fase: chamadas HTTP reais, palavras-passe verificadas no servi
 - [ ] O formulário mostra um estado de carregamento durante a simulação do pedido;
 - [ ] Aceder a uma rota autenticada sem sessão simulada redireciona para `/login`;
 - [ ] Aceder a `/administracao` com um utilizador mock `EMPLOYEE` redireciona para `/acesso-negado`;
+- [ ] Um utilizador mock com duas funções (ex.: `CONTENT_EDITOR` + `ADMIN`) acede corretamente a **ambas** as áreas protegidas por essas funções (`/conteudos` e `/administracao`), confirmando que o `roleGuard` avalia corretamente a interseção de funções e não apenas uma única função;
 - [ ] Terminar sessão limpa o estado e devolve a `/login`;
 - [ ] A alteração de palavra-passe valida a confirmação e mostra sucesso/erro simulados;
 - [ ] Todos os campos têm *labels* associados, mensagens de erro ligadas por `aria-describedby`, e o formulário é navegável e submetível apenas por teclado;

@@ -13,7 +13,9 @@ describe('ResourceTableComponent', () => {
     TestBed.configureTestingModule({ providers: [provideRouter([])] });
     const authService = TestBed.inject(AuthService);
     toastService = TestBed.inject(ToastService);
-    const editor = users.find((user) => user.role === 'CONTENT_EDITOR' && user.status === 'active');
+    const editor = users.find(
+      (user) => user.roles.includes('CONTENT_EDITOR') && user.status === 'active',
+    );
     authService.currentUser.set(editor ?? null);
   });
 
