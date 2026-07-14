@@ -104,6 +104,27 @@ export class ResourceMockService {
     return of(related).pipe(delay(SIMULATED_DELAY_MS));
   }
 
+  // "Recursos em destaque" (Fase 10 — UI, página inicial). Decisão registada
+  // (fase-10-ui-pagina-inicial.md, "Riscos e decisões em aberto"): sem campo explícito
+  // `isFeatured` nos dados mock, o destaque usa os recursos publicados mais recentemente
+  // (`publishedAt`) — propositadamente distinto de `listRecent` (`updatedAt`), para que as
+  // duas secções da página inicial não fiquem idênticas.
+  listFeatured(limit: number): Observable<readonly Resource[]> {
+    const sorted = [...this.visibleResources()].sort((a, b) =>
+      b.publishedAt.localeCompare(a.publishedAt),
+    );
+    return of(sorted.slice(0, limit)).pipe(delay(SIMULATED_DELAY_MS));
+  }
+
+  // "Recursos recentes" (Fase 10 — UI, página inicial): os últimos recursos publicados
+  // ordenados pela data de última atualização (`updatedAt`), não pela de publicação.
+  listRecent(limit: number): Observable<readonly Resource[]> {
+    const sorted = [...this.visibleResources()].sort((a, b) =>
+      b.updatedAt.localeCompare(a.updatedAt),
+    );
+    return of(sorted.slice(0, limit)).pipe(delay(SIMULATED_DELAY_MS));
+  }
+
   // A partir daqui: operações de gestão editorial (Fase 8 — UI). Ao contrário de `search`/
   // `getBySlug`/`getRelated`, nenhuma destas restringe por `isVisible` — a autorização de
   // acesso a `/conteudos` já foi garantida pelo `roleGuard` na rota.
@@ -294,6 +315,11 @@ export class ResourceMockService {
   // preso sem saída, tal como as restantes ações editoriais desta fase).
   restore(id: string): Observable<Resource> {
     return this.unpublish(id);
+  }
+
+  private visibleResources(): readonly Resource[] {
+    const roles = this.authService.roles();
+    return this.resourcesSignal().filter((resource) => this.isVisible(resource, roles));
   }
 
   private isVisible(resource: Resource, roles: readonly UserRole[]): boolean {

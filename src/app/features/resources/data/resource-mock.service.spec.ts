@@ -250,6 +250,60 @@ describe('ResourceMockService', () => {
     expect(related.map((resource) => resource.id)).toEqual([published.id]);
   });
 
+  describe('listFeatured / listRecent (Fase 10 — página inicial)', () => {
+    async function listFeatured(limit: number) {
+      const promise = firstValueFrom(service.listFeatured(limit));
+      await vi.advanceTimersByTimeAsync(300);
+      return promise;
+    }
+
+    async function listRecent(limit: number) {
+      const promise = firstValueFrom(service.listRecent(limit));
+      await vi.advanceTimersByTimeAsync(300);
+      return promise;
+    }
+
+    it('orders featured resources by publication date, most recent first', async () => {
+      loginAs('ADMIN');
+      const expected = resources
+        .filter((resource) => resource.status !== 'archived')
+        .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+        .slice(0, 4)
+        .map((resource) => resource.id);
+      const featured = await listFeatured(4);
+      expect(featured.map((resource) => resource.id)).toEqual(expected);
+    });
+
+    it('orders recent resources by last update date, distinct from the featured ordering', async () => {
+      loginAs('ADMIN');
+      const expected = resources
+        .filter((resource) => resource.status !== 'archived')
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        .slice(0, 4)
+        .map((resource) => resource.id);
+      const recent = await listRecent(4);
+      expect(recent.map((resource) => resource.id)).toEqual(expected);
+    });
+
+    it('respects the limit and never includes archived or (for EMPLOYEE) draft resources', async () => {
+      loginAs('EMPLOYEE');
+      const featured = await listFeatured(2);
+      const recent = await listRecent(2);
+      expect(featured.length).toBe(2);
+      expect(recent.length).toBe(2);
+      expect(featured.some((resource) => resource.status !== 'published')).toBe(false);
+      expect(recent.some((resource) => resource.status !== 'published')).toBe(false);
+    });
+
+    it('includes draft resources for CONTENT_EDITOR and ADMIN', async () => {
+      const draftExists = resources.some((resource) => resource.status === 'draft');
+      expect(draftExists).toBe(true);
+      loginAs('CONTENT_EDITOR');
+      const featured = await listFeatured(resources.length);
+      expect(featured.some((resource) => resource.status === 'draft')).toBe(true);
+    });
+  });
+
   describe('gestão editorial (Fase 8)', () => {
     async function run<T>(observable: Observable<T>): Promise<T> {
       const promise = firstValueFrom(observable);

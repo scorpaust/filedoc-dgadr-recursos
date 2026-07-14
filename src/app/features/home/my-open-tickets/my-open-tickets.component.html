@@ -1,0 +1,38 @@
+<section class="fdr-my-open-tickets" aria-labelledby="my-open-tickets-heading">
+  <div class="fdr-my-open-tickets__header">
+    <h2 id="my-open-tickets-heading" class="fdr-my-open-tickets__title">Os meus pedidos</h2>
+    <a class="fdr-my-open-tickets__link" routerLink="/suporte">Ver todos</a>
+  </div>
+
+  @if (loading()) {
+    <ul class="fdr-my-open-tickets__list" aria-hidden="true">
+      @for (placeholder of skeletonPlaceholders; track placeholder) {
+        <li><fdr-skeleton variant="card" height="3rem" /></li>
+      }
+    </ul>
+  } @else if (isEmpty()) {
+    <fdr-empty-state
+      icon="check"
+      title="Sem pedidos de suporte abertos"
+      description="Não tem neste momento nenhum pedido de suporte pendente."
+    />
+  } @else {
+    <!-- O `@for` é lido como texto solto por linters estáticos (ex.: webhint/axe do Microsoft
+         Edge Tools, que não interpreta control flow do Angular); mesmo falso positivo já
+         documentado em `AppNavComponent` desde a Fase 2 — confirmado via axe-core em runtime
+         que o `<ul>` só contém `<li>`. -->
+    <ul class="fdr-my-open-tickets__list">
+      @for (ticket of openTickets(); track ticket.id) {
+        <li>
+          <a class="fdr-my-open-tickets__item" [routerLink]="['/suporte', ticket.id]">
+            <fdr-ticket-reference [reference]="ticket.reference" />
+            <span class="fdr-my-open-tickets__subject" [attr.title]="ticket.subject">{{
+              ticket.subject
+            }}</span>
+            <fdr-tag [label]="statusLabel(ticket.status)" [tone]="statusTone(ticket.status)" />
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>
