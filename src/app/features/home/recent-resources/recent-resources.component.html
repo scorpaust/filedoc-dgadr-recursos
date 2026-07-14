@@ -1,0 +1,34 @@
+<section class="fdr-recent-resources" aria-labelledby="recent-resources-heading">
+  <h2 id="recent-resources-heading" class="fdr-recent-resources__title">Recursos recentes</h2>
+
+  @if (loading()) {
+    <ul class="fdr-recent-resources__list" aria-hidden="true">
+      @for (placeholder of skeletonPlaceholders; track placeholder) {
+        <li><fdr-skeleton variant="card" height="3rem" /></li>
+      }
+    </ul>
+  } @else if (isEmpty()) {
+    <fdr-empty-state
+      icon="file"
+      title="Ainda não há recursos publicados"
+      description="Os recursos recentes aparecem aqui assim que forem publicados."
+    />
+  } @else {
+    <!-- O `@for` é lido como texto solto por linters estáticos (ex.: webhint/axe do Microsoft
+         Edge Tools, que não interpreta control flow do Angular); mesmo falso positivo já
+         documentado em `AppNavComponent` desde a Fase 2 — confirmado via axe-core em runtime
+         que o `<ul>` só contém `<li>`. -->
+    <ul class="fdr-recent-resources__list">
+      @for (resource of items(); track resource.id) {
+        <li>
+          <a class="fdr-recent-resources__item" [routerLink]="['/recursos', resource.slug]">
+            <span class="fdr-recent-resources__title-text">{{ resource.title }}</span>
+            <span class="fdr-recent-resources__meta"
+              >Atualizado {{ formatDate(resource.updatedAt) }}</span
+            >
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

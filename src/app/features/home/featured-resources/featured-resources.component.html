@@ -1,0 +1,25 @@
+<section class="fdr-featured-resources" aria-labelledby="featured-resources-heading">
+  <h2 id="featured-resources-heading" class="fdr-featured-resources__title">
+    Recursos em destaque
+  </h2>
+
+  @if (loading()) {
+    <div class="fdr-featured-resources__grid" aria-hidden="true">
+      @for (placeholder of skeletonPlaceholders; track placeholder) {
+        <fdr-skeleton variant="card" height="14rem" />
+      }
+    </div>
+  } @else if (isEmpty()) {
+    <fdr-empty-state
+      icon="grid"
+      title="Ainda não há recursos em destaque"
+      description="Volte mais tarde para ver os recursos formativos em destaque."
+    />
+  } @else {
+    <div class="fdr-featured-resources__grid">
+      @for (resource of items(); track resource.id) {
+        <fdr-resource-card [resource]="resource" />
+      }
+    </div>
+  }
+</section>

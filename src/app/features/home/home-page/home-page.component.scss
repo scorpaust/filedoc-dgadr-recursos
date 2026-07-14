@@ -1,0 +1,103 @@
+@use '../../../../styles/mixins' as *;
+
+.fdr-home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fdr-space-6);
+  padding: var(--fdr-space-6) var(--fdr-space-5);
+}
+
+.fdr-home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--fdr-space-4);
+  padding: var(--fdr-space-7) var(--fdr-space-6);
+  border-radius: var(--fdr-radius-lg);
+  background: linear-gradient(135deg, var(--fdr-petroleo-700), var(--fdr-azul-700));
+  color: var(--fdr-branco);
+
+  &__title {
+    margin: 0;
+    max-width: 40rem;
+    font-size: var(--fdr-text-3xl);
+  }
+
+  &__subtitle {
+    margin: 0;
+    max-width: 40rem;
+    font-size: var(--fdr-text-base);
+    color: var(--fdr-azul-100);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fdr-space-3);
+  }
+}
+
+.fdr-home-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+  gap: var(--fdr-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__card {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    gap: var(--fdr-space-2);
+    padding: var(--fdr-space-5);
+    border-radius: var(--fdr-radius-lg);
+    border: 1px solid var(--fdr-border);
+    background: var(--fdr-bg-surface);
+    color: var(--fdr-text-primary);
+    text-decoration: none;
+    transition: border-color var(--fdr-duration-fast) var(--fdr-easing);
+
+    &:hover {
+      border-color: var(--fdr-border-strong);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__icon {
+    color: var(--fdr-accent-primary);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--fdr-text-lg);
+  }
+
+  &__description {
+    margin: 0;
+    color: var(--fdr-text-secondary);
+    font-size: var(--fdr-text-sm);
+  }
+}
+
+.fdr-home-search {
+  display: flex;
+  gap: var(--fdr-space-3);
+
+  &__field {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .fdr-home {
+    padding: var(--fdr-space-5) var(--fdr-space-4);
+  }
+
+  .fdr-home-hero {
+    padding: var(--fdr-space-5) var(--fdr-space-4);
+  }
+}

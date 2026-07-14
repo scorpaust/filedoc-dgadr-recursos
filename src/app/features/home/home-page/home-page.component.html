@@ -1,0 +1,55 @@
+<section class="fdr-home">
+  <section class="fdr-home-hero">
+    <h1 class="fdr-home-hero__title">Domine o Filedoc, passo a passo.</h1>
+    <p class="fdr-home-hero__subtitle">
+      Consulte vídeos, guias práticos e dicas para executar os principais fluxos documentais. Quando
+      precisar, coloque uma questão ou registe um pedido de suporte.
+    </p>
+    <div class="fdr-home-hero__actions">
+      <fdr-button variant="primary" (clicked)="goToResources()">Ver recursos</fdr-button>
+      <fdr-button variant="outline" (clicked)="goToNewTicket()">Pedir suporte</fdr-button>
+    </div>
+  </section>
+
+  <h2 class="fdr-visually-hidden">Funcionalidades principais</h2>
+  <!-- O `@for` é lido como texto solto por linters estáticos (ex.: webhint/axe do Microsoft
+       Edge Tools, que não interpreta control flow do Angular); mesmo falso positivo já
+       documentado em `AppNavComponent` desde a Fase 2 — confirmado via axe-core em runtime
+       que o `<ul>` só contém `<li>`. -->
+  <ul class="fdr-home-features">
+    @for (card of featureCards; track card.title) {
+      <li>
+        <a
+          class="fdr-home-features__card"
+          [routerLink]="card.routerLink"
+          [queryParams]="card.queryParams"
+        >
+          <fdr-icon class="fdr-home-features__icon" [name]="card.icon" size="lg" />
+          <h3 class="fdr-home-features__title">{{ card.title }}</h3>
+          <p class="fdr-home-features__description">{{ card.description }}</p>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <form class="fdr-home-search" [formGroup]="searchForm" (ngSubmit)="onSearchSubmit()">
+    <div class="fdr-field fdr-home-search__field">
+      <label class="fdr-visually-hidden" for="home-search">Pesquisa rápida de recursos</label>
+      <input
+        id="home-search"
+        type="search"
+        class="fdr-field__input"
+        placeholder="Pesquisar vídeos, guias e outros recursos"
+        formControlName="query"
+      />
+    </div>
+    <fdr-button type="submit" variant="primary">
+      <fdr-icon name="search" />
+      <span class="fdr-visually-hidden">Pesquisar</span>
+    </fdr-button>
+  </form>
+
+  <fdr-featured-resources />
+  <fdr-recent-resources />
+  <fdr-my-open-tickets />
+</section>
