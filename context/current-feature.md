@@ -8,7 +8,7 @@ Fase 11 (UI) — Acessibilidade, Responsividade e Testes E2E de UI
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Concluída — commit ainda por autorizar
+Concluída
 
 ## Objetivos
 
@@ -255,4 +255,14 @@ Ver `context/features/fase-11-ui-acessibilidade-e2e.md`.
   - **alvos táteis**: 3 correções adicionais no viewport móvel (≤767 px) para o mínimo indicativo de 44×44 px, sem alterar o tamanho mais compacto em ecrã largo: botões de ícone do cabeçalho (gaveta/tema), botão de fechar do `DialogComponent`, botões de navegação da `PaginationComponent`;
   - validação automática completa: `lint`, `format:check` (sem regressões nos ficheiros desta fase — o aviso pré-existente por fim de linha `core.autocrlf`, documentado desde a Fase 2, continua a afetar apenas ficheiros não tocados por esta fase, confirmado por comparação de `git diff --stat` contra `main`), `typecheck`, `test` (348 testes; uma execução mostrou 1 falha por timeout em `taxonomy-management.component.spec.ts`, confirmada por reexecução isolada, em 7.6 s, como a mesma intermitência não determinística por lentidão da máquina já documentada desde a Fase 4) e `build` (produção) todos a passar sem erros;
   - `test:e2e`: suite completa (58 testes — 21 da tarefa A, 15 das tarefas B–E, 15 dos catorze fluxos, mais duas variantes de rota) a passar de forma consistente e repetida em várias execuções completas, incluindo depois de cada correção de bug; nenhuma instabilidade residual aceite sem correção, conforme exigido pelos critérios de aceitação da especificação — as únicas falhas ao longo da implementação foram diagnosticadas e corrigidas uma a uma (seletores de teste incorretos por papel ARIA/nome de classe, ou os 4 bugs reais documentados acima), nunca "resolvidas" por repetição automática;
-  - commit ainda por autorizar.
+  - commit efetuado em `feature/fase-11-ui-acessibilidade-e2e` ("Fase 11 (UI) — Acessibilidade, Responsividade e Testes E2E de UI"), a pedido do utilizador.
+- branch `feature/fase-11-ui-acessibilidade-e2e` integrada em `main` por pedido do utilizador (merge de integração, sem squash); `lint`, `typecheck`, `build` e `test` (348/348, sem intermitências desta vez) revalidados em `main` após o merge, todos a passar sem erros; nenhuma alteração de código necessária além da já registada acima.
+
+## Fecho da via de UI
+
+Com a Fase 11 concluída e integrada em `main`, a via de desenvolvimento do UI
+(Fases 1 a 11) está terminada: aplicação Angular completa, navegável, acessível e
+responsiva, com todas as áreas previstas em `project-overview.md`, a funcionar
+inteiramente sobre dados e serviços simulados, e com uma suite E2E (Playwright) e um
+pipeline de CI a validar esse estado de forma repetível. O trabalho segue agora para a
+via de integração com a API real, começando por `context/features/fase-1-fundacao.md`.
