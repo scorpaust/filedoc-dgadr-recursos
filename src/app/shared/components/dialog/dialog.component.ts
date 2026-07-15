@@ -20,6 +20,7 @@ let nextDialogId = 0;
       type="button"
       class="fdr-dialog-scrim"
       aria-label="Fechar diálogo"
+      tabindex="-1"
       (click)="closed.emit()"
     ></button>
     <div

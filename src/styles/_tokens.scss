@@ -25,13 +25,20 @@
   --fdr-azul-100: #e4f1fb;
 
   // Âmbar / amarelo
+  --fdr-ambar-800: #8f5c10;
   --fdr-ambar-700: #a06a12;
   --fdr-ambar-500: #d99b2b;
   --fdr-ambar-300: #f0c977;
   --fdr-ambar-100: #fbf0da;
 
   // Laranja / terracota (cor de destaque principal, ações primárias)
-  --fdr-laranja-700: #b8532f;
+  --fdr-laranja-900: #6e3119;
+  // Ambos ligeiramente mais escuros que a média tonal "700"/"900" de outras escalas, de
+  // propósito: dão margem de segurança generosa acima do mínimo de 4.5:1 (branco sobre este
+  // tom, Fase 11) — medições reais em Chromium (axe-core) variam por antialiasing, e
+  // tons com contraste nominal calculado mais próximo do limite (~4.9–5.7:1) ainda assim
+  // mediram, por vezes, abaixo de 4.5:1; ambos os tons aqui medem acima de 7:1.
+  --fdr-laranja-700: #8f4022;
   --fdr-laranja-500: #d97757;
   --fdr-laranja-300: #f0a688;
   --fdr-laranja-100: #fce8e0;

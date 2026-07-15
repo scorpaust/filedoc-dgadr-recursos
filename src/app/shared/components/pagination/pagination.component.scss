@@ -42,11 +42,17 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    // Alvo tátil com o mínimo indicativo de 44×44 px em viewport móvel (Fase 11, tarefa E).
+    @media (max-width: 767px) {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+    }
   }
 
   &__page--current {
-    border-color: var(--fdr-accent-primary);
-    background: var(--fdr-accent-primary);
+    border-color: var(--fdr-accent-primary-solid);
+    background: var(--fdr-accent-primary-solid);
     color: var(--fdr-accent-primary-text);
   }
 

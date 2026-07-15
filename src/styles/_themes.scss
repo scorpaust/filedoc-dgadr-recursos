@@ -20,8 +20,13 @@
   --fdr-text-muted: var(--fdr-cinza-300);
   --fdr-text-inverse: var(--fdr-cinza-950);
 
+  // Usado para texto/ícones/contornos sobre fundos escuros — não para preenchimentos
+  // sólidos com texto branco por cima (botões, etiquetas selecionadas, contador de
+  // filtros), que usam sempre `--fdr-accent-primary-solid`/`-solid-hover`, cujo contraste
+  // contra texto branco tem de se manter em qualquer tema (Fase 11, tarefa A/D).
   --fdr-accent-primary: var(--fdr-laranja-500);
-  --fdr-accent-primary-hover: var(--fdr-laranja-700);
+  --fdr-accent-primary-solid: var(--fdr-laranja-700);
+  --fdr-accent-primary-solid-hover: var(--fdr-laranja-900);
   --fdr-accent-primary-text: var(--fdr-branco);
 
   --fdr-link: var(--fdr-azul-300);
@@ -71,8 +76,12 @@
   --fdr-text-muted: var(--fdr-cinza-500);
   --fdr-text-inverse: var(--fdr-cinza-50);
 
-  --fdr-accent-primary: var(--fdr-laranja-500);
-  --fdr-accent-primary-hover: var(--fdr-laranja-700);
+  // `--fdr-laranja-500` (usado no tema escuro) só atinge 3.12:1 sobre fundos claros —
+  // insuficiente para texto normal (WCAG AA exige 4.5:1); o tema claro usa por isso um tom
+  // mais escuro só para este papel de texto/ícone/contorno (confirmado por axe-core, Fase 11).
+  --fdr-accent-primary: var(--fdr-laranja-700);
+  --fdr-accent-primary-solid: var(--fdr-laranja-700);
+  --fdr-accent-primary-solid-hover: var(--fdr-laranja-900);
   --fdr-accent-primary-text: var(--fdr-branco);
 
   --fdr-link: var(--fdr-azul-700);
@@ -86,8 +95,10 @@
   --fdr-tone-info-text: var(--fdr-azul-700);
   --fdr-tone-info-border: var(--fdr-azul-300);
 
+  // `--fdr-ambar-700` só atinge 4.07:1 sobre `--fdr-ambar-100` — abaixo do mínimo AA de
+  // 4.5:1 para texto normal (confirmado por axe-core, Fase 11); `--fdr-ambar-800` atinge 5:1.
   --fdr-tone-warning-bg: var(--fdr-ambar-100);
-  --fdr-tone-warning-text: var(--fdr-ambar-700);
+  --fdr-tone-warning-text: var(--fdr-ambar-800);
   --fdr-tone-warning-border: var(--fdr-ambar-300);
 
   --fdr-tone-danger-bg: var(--fdr-coral-100);

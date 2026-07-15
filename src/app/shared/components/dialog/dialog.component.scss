@@ -41,6 +41,8 @@
 
   &__close {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: var(--fdr-space-2);
     border: none;
     border-radius: var(--fdr-radius-sm);
@@ -50,6 +52,12 @@
 
     &:hover {
       background: var(--fdr-bg-hover);
+    }
+
+    // Alvo tátil com o mínimo indicativo de 44×44 px em viewport móvel (Fase 11, tarefa E).
+    @media (max-width: 767px) {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
     }
   }
 

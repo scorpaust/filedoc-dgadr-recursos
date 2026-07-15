@@ -25,9 +25,7 @@
     width: 2.25rem;
     height: 2.25rem;
     border-radius: var(--fdr-radius-full);
-    // Fundo mais escuro que --fdr-accent-primary: o texto branco sobre --fdr-accent-primary
-    // fica abaixo do contraste WCAG AA (3.12:1); esta combinação atinge ~4.86:1.
-    background: var(--fdr-accent-primary-hover);
+    background: var(--fdr-accent-primary-solid);
     color: var(--fdr-accent-primary-text);
     font-size: var(--fdr-text-sm);
     font-weight: var(--fdr-font-weight-semibold);

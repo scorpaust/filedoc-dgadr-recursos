@@ -18,7 +18,7 @@
     cursor: pointer;
 
     &--selected {
-      background: var(--fdr-accent-primary);
+      background: var(--fdr-accent-primary-solid);
       color: var(--fdr-accent-primary-text);
     }
   }
