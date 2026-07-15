@@ -19,8 +19,8 @@
   }
 
   &--selected {
-    background: var(--fdr-accent-primary);
-    border-color: var(--fdr-accent-primary);
+    background: var(--fdr-accent-primary-solid);
+    border-color: var(--fdr-accent-primary-solid);
     color: var(--fdr-accent-primary-text);
   }
 }

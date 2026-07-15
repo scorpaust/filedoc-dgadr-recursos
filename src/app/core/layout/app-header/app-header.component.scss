@@ -111,8 +111,24 @@
   }
 
   @media (max-width: 767px) {
+    // Recupera espaço horizontal a larguras estreitas (320–375 px): com a pesquisa já
+    // escondida, a marca, o botão de gaveta e as ações ainda não cabem com o
+    // preenchimento/espaçamento do ecrã largo — encontrado por overflow horizontal real
+    // a 320 px (Fase 11, tarefa C).
+    gap: var(--fdr-space-2);
+    padding: 0 var(--fdr-space-3);
+
     &__search {
       display: none;
+    }
+
+    // Alvos táteis com o mínimo indicativo de 44×44 px em viewport móvel (Fase 11, tarefa
+    // E) — em ecrã largo o botão mantém o tamanho mais compacto, adequado a rato.
+    &__menu-toggle,
+    &__theme-toggle {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+      justify-content: center;
     }
   }
 }

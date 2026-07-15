@@ -51,4 +51,13 @@ export class AppShellComponent {
     this.navDrawerService.close();
     this.lastFocusedBeforeDrawer?.focus();
   }
+
+  // Move o foco diretamente por JavaScript, em vez de deixar o browser navegar para o
+  // fragmento do `href`: com `<base href="/">` (`index.html`), um link apenas de fragmento
+  // resolve contra a base, não contra a rota atual — resultaria numa navegação real para
+  // "/", recarregando a aplicação e perdendo a sessão simulada em memória (Fase 11, tarefa B).
+  protected focusMainContent(event: Event): void {
+    event.preventDefault();
+    document.getElementById('fdr-main-content')?.focus();
+  }
 }
