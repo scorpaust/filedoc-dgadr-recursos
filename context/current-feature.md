@@ -8,7 +8,7 @@ Fase 2 (BD) — Seeds e Validação de Dados
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso (implementação completa, commit ainda por autorizar)
+Concluída
 
 ## Objetivos
 
@@ -298,4 +298,5 @@ pipeline de CI a validar esse estado de forma repetível.
   - `.github/workflows/ci.yml` estendido: `apps/api` passou a correr também `test` (unitários), o seed **duas vezes seguidas** (prova de idempotência) e `test:integration`, antes do `build` já existente;
   - `README.md` e `docs/decisoes-seeds.md` atualizados/criados com os novos comandos (`prisma:seed`, `test:integration`, arranque da base de dados de testes);
   - validação completa e repetida: `apps/api` — `lint`, `format:check`, `typecheck`, `test` (20/20), `test:integration` (32/32, em várias execuções consecutivas, incluindo a partir de uma base de dados de testes vazia) e `build`, todos sem erros; `prisma db seed` corrido duas vezes seguidas contra a base de dados de desenvolvimento, sem erros e sem duplicar nenhuma entidade (contagens confirmadas por query direta: 6 utilizadores, 7 `UserRole`, 8 fluxos, 7 tipos de documento, 12 etiquetas, 24 recursos, 26 `ResourceTag`, 6 dicas, 7 FAQ, 8 tickets, 17 mensagens); `apps/web` revalidado por completo (`lint`, `typecheck`, `test`, `build`) apesar de esta fase não o ter alterado — `format:check` manteve o mesmo aviso pré-existente por fim de linha `core.autocrlf` (documentado desde a Fase 2 da via de UI) e uma execução de `test` mostrou 1 falha por timeout em `taxonomy-management.component.spec.ts`, confirmada por reexecução isolada (3/3) como a mesma intermitência não determinística por lentidão da máquina já documentada desde a Fase 4, não relacionada com esta fase;
-  - commit ainda por autorizar.
+  - commit efetuado em `feature/fase-2-bd-seeds-validacao` ("Fase 2 (BD) — Seeds e Validação de Dados"), a pedido do utilizador; segundo commit pequeno na mesma branch a corrigir um lapso do primeiro (`ci.yml`, `.gitignore`, `README.md` e `apps/api/package.json` tinham ficado de fora por um pathspec inválido — `apps/api/package-lock.json`, que não existe: o lockfile é único na raiz do monorepo — que abortou silenciosamente esse `git add`).
+- branch `feature/fase-2-bd-seeds-validacao` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida; sem revalidação adicional de `lint`/`typecheck`/`test`/`build` após o merge — tal como na Fase 1 (BD), `main` não tinha nenhum commit novo desde a criação da branch, pelo que a árvore resultante do merge é idêntica, ficheiro a ficheiro, à da branch já validada por completo antes do commit.
