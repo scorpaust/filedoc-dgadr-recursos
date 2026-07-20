@@ -1,20 +1,20 @@
 # Funcionalidade Atual
 
-Fase 11 (UI) — Acessibilidade, Responsividade e Testes E2E de UI
+Fase 1 (BD) — Modelo de Dados Completo
 
-<!-- Ver especificação completa em context/features/fase-11-ui-acessibilidade-e2e.md -->
+<!-- Ver especificação completa em context/features/db_ci_cd/fase-1-bd-modelo-dados.md -->
 
 ## Estado
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Concluída
+Em progresso
 
 ## Objetivos
 
 <!-- Objetivos e requisitos -->
 
-Ver `context/features/fase-11-ui-acessibilidade-e2e.md`.
+Ver `context/features/db_ci_cd/fase-1-bd-modelo-dados.md`.
 
 ## Notas
 
@@ -264,5 +264,21 @@ Com a Fase 11 concluída e integrada em `main`, a via de desenvolvimento do UI
 (Fases 1 a 11) está terminada: aplicação Angular completa, navegável, acessível e
 responsiva, com todas as áreas previstas em `project-overview.md`, a funcionar
 inteiramente sobre dados e serviços simulados, e com uma suite E2E (Playwright) e um
-pipeline de CI a validar esse estado de forma repetível. O trabalho segue agora para a
-via de integração com a API real, começando por `context/features/fase-1-fundacao.md`.
+pipeline de CI a validar esse estado de forma repetível.
+
+- As especificações da via de UI (Fases 1 a 11) foram reorganizadas para `context/features/ui/`. O trabalho segue agora para a via de **Base de Dados e Deployment Inicial**, com as respetivas especificações em `context/features/db_ci_cd/`, começando por `context/features/db_ci_cd/fase-1-bd-modelo-dados.md` (Fase 1 (BD) — Modelo de Dados Completo: inicialização do Prisma, ligação ao PostgreSQL de desenvolvimento e o modelo de dados completo — todas as entidades, enums, relações e migrações de `project-spec.md`); implementação ainda não iniciada.
+
+## Via de Base de Dados e Deployment Inicial
+
+- Início da Fase 1 (BD) — Modelo de Dados Completo, na branch `feature/fase-1-bd-modelo-dados`.
+- Reestruturação do repositório para monorepo (npm workspaces), pedida explicitamente pelo utilizador depois de confirmado que `coding-standards.md`/`project-spec.md` já assumiam `apps/web`+`apps/api` mas o repositório ainda tinha a app Angular na raiz: `src/`, `public/`, `e2e/`, `angular.json`, `tsconfig*.json`, `eslint.config.js`, `playwright.config.ts` e o `README.md` original movidos para `apps/web/` (via `git mv`, sem alterações internas — todos os caminhos já eram relativos); `package.json` raiz novo, só orquestrador (`workspaces: ["apps/web", "apps/api"]`, scripts que delegam com `--workspace`); `.gitignore` desancorado da raiz (`dist/`, `node_modules/`, etc., sem `/` inicial) para cobrir ambos os workspaces, mais bloco `.env`/`.env.example`; novo `README.md` de raiz com visão geral do monorepo; `.vscode/tasks.json`/`launch.json` (`npm: start`, `npm: test`) mantidos sem alterações, já que os scripts `start`/`test` da raiz continuam a existir, agora delegando para `apps/web`;
+- `apps/api` criado com `@nestjs/cli new` (scaffold padrão, sem lógica de negócio nova — fora de âmbito desta fase); `tsconfig.json` ajustado para `strict: true` (conforme `.claude/CLAUDE.md`), removendo os relaxamentos que o scaffold trazia por omissão; scripts `format:check`/`typecheck`/`prisma:*` acrescentados ao `apps/api/package.json`, e `lint` alterado para não usar `--fix` automático (mesmo padrão de verificação, não correção silenciosa, usado por `apps/web`);
+- `docker-compose.yml` mínimo (raiz): um único serviço `postgres:16-alpine`, com *health check* e volume persistente, conforme o âmbito explícito da especificação (sem MinIO/API/frontend em contentor); porta do anfitrião mapeada para `5433` (não `5432`) — descoberto durante a validação que este ambiente já tinha um PostgreSQL nativo do Windows a ocupar a porta 5432 por omissão, o que causava falhas de autenticação silenciosas ao ligar via `localhost:5432` (o contentor arrancava e ficava saudável, mas as ligações TCP do anfitrião eram na realidade servidas pela instância nativa); resolvido sem tocar nessa instância nativa, só mudando o mapeamento de porta do `docker-compose.yml` e de todas as referências (`apps/api/.env(.example)`, `README.md`); a `ci.yml` mantém a porta 5432 (runner efémero do GitHub Actions, sem conflito);
+- `apps/api/src/config/env.validation.ts`: função `validate` própria (sem Joi/Zod — decisão registada em `docs/decisoes-modelo-dados.md`, por só ser necessário validar uma variável obrigatória nesta fase) ligada a `ConfigModule.forRoot({ isGlobal: true, validate })` em `AppModule`; rejeita o arranque sem `DATABASE_URL`, confirmado tanto por teste direto da função como pela aplicação completa (compilada e corrida com `node dist/main.js`) a arrancar com sucesso e a ligar-se à base de dados via Prisma quando `DATABASE_URL` está definida;
+- `apps/api/src/prisma/`: `PrismaService` (`extends PrismaClient`, liga/desliga em `onModuleInit`/`onModuleDestroy`) e `PrismaModule` (`@Global()`), centralizando o ciclo de vida do Prisma Client conforme `coding-standards.md`;
+- `apps/api/prisma/schema.prisma`: modelo de dados completo das 13 entidades de `project-spec.md` (`USER`/`USERROLE`/`SESSION`, `RESOURCE`/`WORKFLOW`/`DOCUMENTTYPE`/`TAG`/`RESOURCETAG`, `TIP`/`FAQ`, `SUPPORTTICKET`/`TICKETMESSAGE`/`TICKETATTACHMENT`, `AUDITLOG`), com os 10 enums da especificação (`ResourceStatus`/`ContentStatus` mantidos distintos, apesar de partilharem os 3 valores, para não acoplar os dois ciclos editoriais); `id` em todas as entidades via `cuid()`; todos os campos `DateTime` com `@db.Timestamptz(3)` explícito (o mapeamento por omissão do Prisma para PostgreSQL não inclui fuso horário); regra geral de `onDelete: Restrict` para relações obrigatórias associadas a `User`/taxonomias (citando literalmente a regra "eliminação restrita quando existirem relações relevantes associadas" de `project-spec.md`), com exceções documentadas caso a caso (`User→UserRole`/`Session` em `Cascade`; `AuditLog.actorId` em `SetNull`, exceção deliberada para sobreviver à eliminação da conta; `assigneeId`/`relatedResourceId` em `SetNull`, por serem atribuições substituíveis, não factos históricos); índices para todos os campos de pesquisa/filtro/ordenação identificados em `project-spec.md`, mais um conjunto adicional justificado em `docs/decisoes-modelo-dados.md` (incluindo índices em colunas de chave estrangeira, que o Prisma não cria automaticamente no PostgreSQL, ao contrário do MySQL);
+- 5 migrações Prisma versionadas, uma por grupo coerente, com os nomes já sugeridos na especificação (`add_user_roles`, `add_resource_taxonomies`, `add_tips_faqs`, `add_support_tickets`, `add_audit_log`), todas geradas e aplicadas com `prisma migrate dev` sobre o PostgreSQL real do `docker-compose.yml` (sem `prisma db push` em momento algum); a "primeira migração vazia" da tarefa A da especificação não chegou a produzir uma pasta de migração (o diff entre um schema sem modelos e uma base de dados vazia é vazio, pelo que o Prisma não tem nada para gerar), mas confirmou a ligação com sucesso, que era o objetivo dessa tarefa;
+- `docs/decisoes-modelo-dados.md` novo, com a justificação de cada decisão acima (estratégia de IDs, timestamps, regra geral e exceções de `onDelete`, separação dos dois enums de estado editorial, geração aplicacional da referência do ticket, índices adicionais, ausência de biblioteca de validação de esquema, unicidade de `Session.tokenHash`);
+- validação completa: `prisma format`/`prisma validate` sem alterações pendentes; `prisma migrate status` sem divergências (5 migrações, tudo sincronizado); unicidade confirmada por inspeção direta da base de dados (`\d`) para `User.email`, `Resource.slug`, `SupportTicket.reference` e as chaves compostas de `UserRole`/`ResourceTag`; `apps/api`: `lint`, `format:check` (depois de normalizar com `prettier --write` os ficheiros do scaffold do Nest, que tinham fim de linha CRLF por omissão do `core.autocrlf` neste ambiente Windows — mesma causa raiz já documentada desde a Fase 2 da via de UI, desta vez em ficheiros novos desta fase, por isso corrigida em vez de só anotada), `typecheck` e `build` todos a passar sem erros; `apps/web`, revalidado depois da reestruturação: `lint`, `format:check` (mesmo aviso pré-existente por `core.autocrlf`, já documentado desde a Fase 2, sem regressões novas), `typecheck` e `build` (produção) sem erros; `test` (348 testes) com a mesma intermitência não determinística por lentidão da máquina já documentada desde a Fase 4 (desta vez em `content-management-page`/`resource-table`/`taxonomy-management`, variando entre execuções, incluindo uma execução isolada com falha generalizada por sobreposição de dois processos `ng test` em simultâneo) — não relacionada com a reestruturação; `test:e2e` (Playwright, 57/57) a passar de forma limpa contra a build de produção servida a partir de `apps/web`, confirmando que a via de UI continua inteiramente funcional depois da mudança de estrutura do repositório;
+- corrigido, durante a validação: aviso `@typescript-eslint/no-floating-promises` em `apps/api/src/main.ts` (`bootstrap()` → `void bootstrap()`), único aviso de lint do scaffold gerado pelo Nest CLI;
+- commit ainda por autorizar.

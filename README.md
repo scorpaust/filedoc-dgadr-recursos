@@ -1,59 +1,63 @@
-# FiledocDgadrRecursos
+# Filedoc Recursos Formativos
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.18.
+Monorepo (npm workspaces) com a aplicação Angular (`apps/web`) e a API NestJS + Prisma (`apps/api`).
 
-## Development server
+## Estrutura
 
-To start a local development server, run:
-
-```bash
-ng serve
+```text
+apps/
+├── web/    # Angular — ver apps/web/README.md
+└── api/    # NestJS + Prisma
+docs/       # documentação técnica (contratos, decisões de modelo de dados)
+context/    # especificações e contexto do projeto
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Base de dados de desenvolvimento
 
 ```bash
-ng generate component component-name
+docker compose up -d
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Arranca um PostgreSQL local (porta `5433` no anfitrião — evita conflito com uma eventual instância nativa de PostgreSQL na porta 5432 por omissão; credenciais em `docker-compose.yml`). Ver `apps/api/.env.example` para a variável `DATABASE_URL` esperada.
+
+## Instalação
 
 ```bash
-ng generate --help
+npm install
 ```
 
-## Building
+Instala as dependências de ambos os workspaces (`apps/web` e `apps/api`).
 
-To build the project run:
+## Desenvolvimento
 
 ```bash
-ng build
+npm start              # apps/web — ng serve
+npm run api:start:dev  # apps/api — Nest em modo watch
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Validação
 
 ```bash
-ng test
+npm run lint            # apps/web
+npm run format:check    # apps/web
+npm run typecheck       # apps/web
+npm test                # apps/web
+npm run test:e2e        # apps/web
+npm run build           # apps/web
+
+npm run api:lint
+npm run api:format:check
+npm run api:typecheck
+npm run api:build
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+## Prisma (`apps/api`)
 
 ```bash
-ng e2e
+npm run prisma:generate
+npm run prisma:migrate   # prisma migrate dev
+npm run prisma:validate
+npm run prisma:status    # prisma migrate status
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Ver `docs/decisoes-modelo-dados.md` para as decisões de modelo de dados (estratégia de IDs, timestamps, comportamentos de eliminação).

@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: filedoc
+      POSTGRES_PASSWORD: filedoc
+      POSTGRES_DB: filedoc
+    ports:
+      # 5433 no anfitrião: evita conflito com uma instância nativa de PostgreSQL
+      # já a ocupar a porta 5432 por omissão.
+      - '5433:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U filedoc -d filedoc']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
