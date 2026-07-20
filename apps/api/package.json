@@ -23,14 +23,22 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:validate": "prisma validate",
-    "prisma:status": "prisma migrate status"
+    "prisma:status": "prisma migrate status",
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "test:integration": "jest --config ./test/integration/jest-integration.json --runInBand"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@node-rs/argon2": "^2.0.2",
     "@prisma/client": "^6.19.3",
+    "dotenv": "^17.4.2",
+    "nanoid": "^3.3.16",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
