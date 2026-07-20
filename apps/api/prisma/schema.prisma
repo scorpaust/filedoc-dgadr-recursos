@@ -1,0 +1,356 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Autenticação e utilizadores
+// ---------------------------------------------------------------------------
+
+enum Role {
+  EMPLOYEE
+  CONTENT_EDITOR
+  SUPPORT_AGENT
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  status       UserStatus @default(ACTIVE)
+  lastLoginAt  DateTime?  @db.Timestamptz(3)
+  createdAt    DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime   @updatedAt @db.Timestamptz(3)
+
+  roles               UserRole[]
+  sessions            Session[]
+  createdResources    Resource[]         @relation("ResourceCreatedBy")
+  updatedResources    Resource[]         @relation("ResourceUpdatedBy")
+  createdTips         Tip[]              @relation("TipCreatedBy")
+  updatedTips         Tip[]              @relation("TipUpdatedBy")
+  createdFaqs         Faq[]              @relation("FaqCreatedBy")
+  updatedFaqs         Faq[]              @relation("FaqUpdatedBy")
+  requestedTickets    SupportTicket[]    @relation("TicketRequester")
+  assignedTickets     SupportTicket[]    @relation("TicketAssignee")
+  ticketMessages      TicketMessage[]
+  uploadedAttachments TicketAttachment[]
+  auditLogs           AuditLog[]
+
+  @@index([status])
+}
+
+model UserRole {
+  userId String
+  role   Role
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, role])
+  @@index([role])
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime  @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Taxonomias e recursos
+// ---------------------------------------------------------------------------
+
+enum ResourceType {
+  VIDEO
+  PDF_GUIDE
+}
+
+enum Difficulty {
+  INICIACAO
+  INTERMEDIA
+  AVANCADA
+}
+
+enum ResourceStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+
+  resources Resource[]
+
+  @@index([isActive])
+}
+
+model DocumentType {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+
+  resources Resource[]
+
+  @@index([isActive])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  resources ResourceTag[]
+}
+
+model Resource {
+  id                 String         @id @default(cuid())
+  title              String
+  slug               String         @unique
+  summary            String
+  description        String
+  resourceType       ResourceType
+  difficulty         Difficulty
+  workflowId         String?
+  documentTypeId     String?
+  status             ResourceStatus @default(DRAFT)
+  durationMinutes    Int?
+  stepCount          Int?
+  pageCount          Int?
+  fileObjectKey      String?
+  thumbnailObjectKey String?
+  captionObjectKey   String?
+  publishedAt        DateTime?      @db.Timestamptz(3)
+  createdById        String
+  updatedById        String
+  createdAt          DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime       @updatedAt @db.Timestamptz(3)
+
+  workflow     Workflow?       @relation(fields: [workflowId], references: [id], onDelete: Restrict)
+  documentType DocumentType?   @relation(fields: [documentTypeId], references: [id], onDelete: Restrict)
+  createdBy    User            @relation("ResourceCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy    User            @relation("ResourceUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  tags         ResourceTag[]
+  tickets      SupportTicket[]
+
+  @@index([status])
+  @@index([resourceType])
+  @@index([workflowId])
+  @@index([documentTypeId])
+  @@index([difficulty])
+  @@index([publishedAt])
+}
+
+model ResourceTag {
+  resourceId String
+  tagId      String
+
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Restrict)
+
+  @@id([resourceId, tagId])
+  @@index([tagId])
+}
+
+// ---------------------------------------------------------------------------
+// Dicas e perguntas frequentes
+// ---------------------------------------------------------------------------
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Tip {
+  id          String        @id @default(cuid())
+  title       String
+  content     String
+  status      ContentStatus @default(DRAFT)
+  sortOrder   Int           @default(0)
+  publishedAt DateTime?     @db.Timestamptz(3)
+  createdById String
+  updatedById String
+  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(3)
+
+  createdBy User @relation("TipCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy User @relation("TipUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([sortOrder])
+}
+
+model Faq {
+  id          String        @id @default(cuid())
+  question    String
+  answer      String
+  category    String?
+  status      ContentStatus @default(DRAFT)
+  sortOrder   Int           @default(0)
+  publishedAt DateTime?     @db.Timestamptz(3)
+  createdById String
+  updatedById String
+  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(3)
+
+  createdBy User @relation("FaqCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy User @relation("FaqUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([category])
+}
+
+// ---------------------------------------------------------------------------
+// Suporte (pedidos, mensagens e anexos)
+// ---------------------------------------------------------------------------
+
+enum TicketCategory {
+  ACCESS_PERMISSIONS
+  REGISTRATION
+  ROUTING
+  SIGNATURE
+  SEARCH_ARCHIVE
+  TECHNICAL_ERROR
+  OTHER
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  BLOCKING
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_USER
+  RESOLVED
+  CLOSED
+}
+
+enum MessageVisibility {
+  PUBLIC
+  INTERNAL
+}
+
+model SupportTicket {
+  id                String         @id @default(cuid())
+  reference         String         @unique
+  subject           String
+  description       String
+  category          TicketCategory
+  priority          TicketPriority
+  status            TicketStatus   @default(OPEN)
+  requesterId       String
+  assigneeId        String?
+  relatedResourceId String?
+  resolvedAt        DateTime?      @db.Timestamptz(3)
+  closedAt          DateTime?      @db.Timestamptz(3)
+  createdAt         DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime       @updatedAt @db.Timestamptz(3)
+
+  requester       User               @relation("TicketRequester", fields: [requesterId], references: [id], onDelete: Restrict)
+  assignee        User?              @relation("TicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  relatedResource Resource?          @relation(fields: [relatedResourceId], references: [id], onDelete: SetNull)
+  messages        TicketMessage[]
+  attachments     TicketAttachment[]
+
+  @@index([status])
+  @@index([requesterId])
+  @@index([assigneeId])
+  @@index([category])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model TicketMessage {
+  id         String            @id @default(cuid())
+  ticketId   String
+  authorId   String
+  content    String
+  visibility MessageVisibility @default(PUBLIC)
+  createdAt  DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime          @updatedAt @db.Timestamptz(3)
+
+  ticket      SupportTicket      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author      User               @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  attachments TicketAttachment[]
+
+  @@index([ticketId])
+}
+
+model TicketAttachment {
+  id           String   @id @default(cuid())
+  ticketId     String
+  messageId    String?
+  uploadedById String
+  objectKey    String
+  originalName String
+  mimeType     String
+  size         Int
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+
+  ticket     SupportTicket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  message    TicketMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  uploadedBy User           @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([ticketId])
+  @@index([messageId])
+}
+
+// ---------------------------------------------------------------------------
+// Auditoria
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  actorId       String?
+  action        String
+  entityType    String
+  entityId      String
+  metadata      Json?
+  correlationId String?
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([actorId])
+  @@index([correlationId])
+}

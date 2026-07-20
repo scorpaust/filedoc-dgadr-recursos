@@ -8,6 +8,23 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: filedoc
+          POSTGRES_PASSWORD: filedoc
+          POSTGRES_DB: filedoc
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U filedoc -d filedoc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://filedoc:filedoc@localhost:5432/filedoc?schema=public
+
     steps:
       - uses: actions/checkout@v4
 
@@ -18,10 +35,17 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run lint
-      - run: npm run format:check
-      - run: npm run typecheck
-      - run: npm test
+      - run: npm run lint --workspace apps/web
+      - run: npm run format:check --workspace apps/web
+      - run: npm run typecheck --workspace apps/web
+      - run: npm test --workspace apps/web
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-      - run: npm run build
+      - run: npm run test:e2e --workspace apps/web
+      - run: npm run build --workspace apps/web
+
+      - run: npm run lint --workspace apps/api
+      - run: npm run format:check --workspace apps/api
+      - run: npm run typecheck --workspace apps/api
+      - run: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+      - run: npx prisma validate --schema apps/api/prisma/schema.prisma
+      - run: npm run build --workspace apps/api
