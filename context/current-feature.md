@@ -8,7 +8,7 @@ Fase 3 (Deployment) — Containerização para Produção
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso
+Concluída
 
 ## Objetivos
 
@@ -319,4 +319,5 @@ pipeline de CI a validar esse estado de forma repetível.
   - decisão registada: imagem base `node:22-slim` (não `alpine`), testada e preferida por evitar as incompatibilidades conhecidas entre o Prisma e a `musl libc`; a Web usa `nginxinc/nginx-unprivileged:1.27-alpine` (sem Node.js, sem essa restrição, e já não-root por omissão);
   - o scanner de vulnerabilidades do editor assinalou CVEs conhecidas nas imagens base (`node:22-slim`, `nginx-unprivileged:1.27-alpine`) — deixado por resolver nesta fase, por ser uma limitação inerente a qualquer imagem base atual e cair fora do âmbito explícito da especificação ("otimizações avançadas... só se justificam com métricas reais"); a assumir como trabalho de uma fase de segurança dedicada, não desta containerização;
   - `README.md` atualizado com instruções de build/execução de ambas as imagens, da stack completa via `docker-compose.prod.yml`, do passo manual de migrações, e da estratégia de configuração da Web em runtime;
-  - commit ainda por autorizar.
+  - commit efetuado em `feature/fase-3-deploy-containerizacao` ("Fase 3 (Deployment) — Containerização para Produção"), a pedido do utilizador.
+- branch `feature/fase-3-deploy-containerizacao` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida.
