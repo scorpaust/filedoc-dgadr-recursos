@@ -1,20 +1,20 @@
 # Funcionalidade Atual
 
-Fase 3 (Deployment) — Containerização para Produção
+Fase 4 (Deployment) — Pipeline de CI/CD
 
-<!-- Ver especificação completa em context/features/db_ci_cd/fase-3-deploy-containerizacao.md -->
+<!-- Ver especificação completa em context/features/db_ci_cd/fase-4-deploy-cicd.md -->
 
 ## Estado
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Concluída
+Em progresso
 
 ## Objetivos
 
 <!-- Objetivos e requisitos -->
 
-Ver `context/features/db_ci_cd/fase-3-deploy-containerizacao.md`.
+Ver `context/features/db_ci_cd/fase-4-deploy-cicd.md`.
 
 ## Notas
 
@@ -321,3 +321,15 @@ pipeline de CI a validar esse estado de forma repetível.
   - `README.md` atualizado com instruções de build/execução de ambas as imagens, da stack completa via `docker-compose.prod.yml`, do passo manual de migrações, e da estratégia de configuração da Web em runtime;
   - commit efetuado em `feature/fase-3-deploy-containerizacao` ("Fase 3 (Deployment) — Containerização para Produção"), a pedido do utilizador.
 - branch `feature/fase-3-deploy-containerizacao` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida.
+- Criação da especificação da Fase 4 (Deployment) — Pipeline de CI/CD (`context/features/db_ci_cd/fase-4-deploy-cicd.md`), assumindo como ponto de partida a Fase 3 (Deployment), já concluída, e reutilizando as suites de teste já existentes (unitários/E2E da via de UI, integração da via de BD, `Dockerfile` de produção da Fase 3): workflows de verificação (lint/format/typecheck/testes/build, validação Prisma contra PostgreSQL efémero, testes de integração, suite E2E) em cada *pull request*, workflow de build e publicação de imagens Docker ao integrar em `main` (sem *deploy* automático, deixado para a Fase 5), e proteção da branch principal; implementação ainda não iniciada.
+- Início da Fase 4 (Deployment) — Pipeline de CI/CD, na branch `feature/fase-4-deploy-cicd`.
+- Implementação da Fase 4 (Deployment) — pipeline restruturado em dois workflows, ainda por validar de ponta a ponta num `pull request` real e por autorizar o commit:
+  - `.github/workflows/ci.yml` (job único que já existia desde a Fase 2, cobrindo lint/format/typecheck/testes/build de `apps/web`+`apps/api`, validação Prisma e testes de integração) renomeado para `.github/workflows/verify.yml` e dividido em 4 *jobs* paralelos: `quality` (matriz `web`/`api` — `lint`, `format:check`, `typecheck`, teste unitário, `build`, por esta ordem, falhando no primeiro passo que falhar), `db-validation` (PostgreSQL efémero do runner; `prisma format`+`git diff --exit-code` como equivalente a `--check`; `prisma validate`; `prisma migrate deploy` a partir de uma base de dados vazia seguido de `prisma migrate status`; depois `test:integration`, cujo `global-setup.ts` da Fase 2 já trata de reaplicar migrações e semear a base de dados), `e2e` (suite Playwright completa da Fase 11, sem alterações à configuração existente — continua a usar `ng serve --configuration production`, decisão já tomada na Fase 11 e mantida sem reabertura; relatório/capturas publicados sempre como artefacto via `actions/upload-artifact`) e `dependency-audit` (`npm audit`, `continue-on-error: true`, meramente informativo); corre em cada *pull request* (incluindo de forks, que não têm acesso a segredos) e também em `push` para `main`, mas nunca publica nada;
+  - decisão registada: `prisma format` não tem uma opção `--check` nativa (confirmado com `npx prisma format --help`, Prisma 6.19.3) — implementado o equivalente (`prisma format` seguido de `git diff --exit-code` sobre o `schema.prisma`), que falha exatamente quando o ficheiro versionado não está formatado, sem alterar o comportamento pretendido pela especificação;
+  - decisão registada: a segunda execução explícita do seed (prova de idempotência) que existia no `ci.yml` original foi removida do pipeline — passou a redundante depois da Fase 2 ter introduzido `seed-idempotency.integration-spec.ts`, já coberto por `test:integration`; não há perda de cobertura, só remoção de duplicação;
+  - `.github/workflows/publish-images.yml` novo: só corre em `push` para `main` ou ao criar uma *tag* `v*.*.*` (nunca em `pull_request`, incluindo de forks, por construção do próprio evento — sem necessidade de `pull_request_target`); reconstrói as imagens de produção da Fase 3 (`apps/api`/`apps/web`, sem alterações aos `Dockerfile` existentes) e publica-as no GitHub Container Registry (`ghcr.io/<owner>/filedoc-api`, `ghcr.io/<owner>/filedoc-web`) via `docker/build-push-action`, com `docker/metadata-action` a gerar sempre a *tag* do hash curto do commit, mais `latest` em `main` e a versão semântica quando a origem é uma *tag* Git `vX.Y.Z` — nunca publicada só com `latest`, porque todas as *tags* aplicáveis saem do mesmo `build-push-action` numa única operação; `cache-from`/`cache-to: type=gha` para acelerar builds sucessivos;
+  - `README.md`: nova secção "CI/CD (GitHub Actions)" a documentar os dois workflows e, conforme o entregável 4 da especificação, a convenção de *tags* de imagem;
+  - validação possível nesta sessão (sem daemon Docker disponível no ambiente): sintaxe YAML dos dois workflows confirmada com `js-yaml` (parse sem erros); comando `prisma format`/`git diff --exit-code` confirmado sem alterações contra o `schema.prisma` atual; testes unitários de `apps/api` confirmados a passar sem `DATABASE_URL` definida (22/22), confirmando que o *job* `quality` não precisa do serviço PostgreSQL; `npm audit` confirmado a correr e a reportar (2 vulnerabilidades de severidade baixa, via dependência do Angular CLI) sem interromper o comando;
+  - **por validar antes de considerar a fase concluída**: execução real dos workflows no GitHub Actions (`db-validation`, `e2e` e `publish-images.yml` não foram corridos nesta sessão — sem daemon Docker nem serviço PostgreSQL disponíveis neste ambiente); confirmação de que uma *pull request* falhada bloqueia mesmo o *merge* e de que uma imagem só é publicada a partir de `main`;
+  - **fora do âmbito de ficheiros do repositório, ainda por configurar manualmente**: proteção da branch principal (tarefa F) — exigir os *checks* `quality (web)`, `quality (api)`, `db-validation` e `e2e` (não `dependency-audit`, meramente informativo) e revisão de código antes do *merge*; é uma definição do repositório GitHub, não um ficheiro versionado, e o `gh` CLI não está disponível neste ambiente para a aplicar diretamente — a fazer manualmente em *Settings → Branches* ou via `gh api`, pelo utilizador ou com autorização explícita numa sessão com acesso;
+  - commit ainda por autorizar.
