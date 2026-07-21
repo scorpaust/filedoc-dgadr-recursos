@@ -24,8 +24,8 @@ describe('PaginationComponent', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelectorAll('.fdr-pagination__ellipsis').length).toBeGreaterThan(0);
-    const pageButtons = Array.from(el.querySelectorAll('.fdr-pagination__page')).map(
-      (button) => button.textContent?.trim(),
+    const pageButtons = Array.from(el.querySelectorAll('.fdr-pagination__page')).map((button) =>
+      button.textContent?.trim(),
     );
     expect(pageButtons).toEqual(['1', '4', '5', '6', '20']);
   });
@@ -41,9 +41,9 @@ describe('PaginationComponent', () => {
     const last = setup(5, 5);
     await last.whenStable();
     const lastEl = last.nativeElement as HTMLElement;
-    expect(
-      (lastEl.querySelectorAll('.fdr-pagination__nav')[1] as HTMLButtonElement).disabled,
-    ).toBe(true);
+    expect((lastEl.querySelectorAll('.fdr-pagination__nav')[1] as HTMLButtonElement).disabled).toBe(
+      true,
+    );
   });
 
   it('emits pageChange with the target page when a page button is clicked', async () => {
