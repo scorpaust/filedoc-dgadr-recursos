@@ -1,0 +1,28 @@
+# Aplicado ao contexto de build de apps/web/Dockerfile (BuildKit resolve
+# automaticamente "<Dockerfile>.dockerignore" junto do Dockerfile referido por
+# -f, tomando precedência sobre um .dockerignore genérico na raiz — necessário
+# aqui porque o contexto de build é a raiz do monorepo, partilhado com a API).
+
+**/node_modules
+**/dist
+**/.angular
+**/coverage
+**/test-results
+**/.git
+
+# Nenhum .env real (com segredos) entra no contexto de build; .env.example
+# (sem valores reais) fica disponível como referência/documentação.
+**/.env
+**/.env.*
+!**/.env.example
+
+apps/web/e2e
+apps/web/test-results
+apps/web/README.md
+docs
+README.md
+
+# Só o package.json da API é necessário, para o npm ci validar o workspace
+# contra o package-lock.json partilhado — o resto da API é irrelevante aqui.
+apps/api/**
+!apps/api/package.json

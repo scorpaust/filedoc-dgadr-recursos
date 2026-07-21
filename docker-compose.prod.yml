@@ -1,0 +1,90 @@
+# Stack de produção de referência (Fase 3, Deployment) — sobe PostgreSQL, MinIO,
+# API e Web a partir das imagens de produção construídas pelos Dockerfiles de
+# cada aplicação, em vez dos modos de desenvolvimento do docker-compose.yml.
+#
+# As migrações do Prisma NÃO correm automaticamente no arranque do contentor da
+# API (decisão registada em context/features/db_ci_cd/fase-3-deploy-containerizacao.md,
+# coerente com ai-interaction.md) — ver README.md para o passo explícito.
+#
+#   docker compose -f docker-compose.prod.yml up --build
+
+# Nome de projeto distinto do docker-compose.yml de desenvolvimento — sem isto,
+# o Compose usaria o mesmo nome (derivado do diretório) para os dois ficheiros,
+# e o serviço "postgres" desta stack substituiria o contentor de desenvolvimento
+# em vez de coexistir com ele (confirmado durante a validação desta fase).
+name: filedoc-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: filedoc
+      POSTGRES_PASSWORD: filedoc
+      POSTGRES_DB: filedoc
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres-prod-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U filedoc -d filedoc']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: filedoc
+      MINIO_ROOT_PASSWORD: filedoc123
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio-prod-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: filedoc-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://filedoc:filedoc@postgres:5432/filedoc?schema=public
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: filedoc-web
+    restart: unless-stopped
+    environment:
+      # Endereço alcançável a partir do browser do utilizador (não a rede
+      # interna do Docker) — lido em tempo de arranque do contentor, não de
+      # build (ver apps/web/docker/generate-env-config.sh).
+      API_URL: http://localhost:3000/api/v1
+    ports:
+      - '8080:8080'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres-prod-data:
+  minio-prod-data:
