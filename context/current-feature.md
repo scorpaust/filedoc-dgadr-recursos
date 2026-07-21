@@ -8,7 +8,7 @@ Fase 4 (Deployment) — Pipeline de CI/CD
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso
+Concluída
 
 ## Objetivos
 
@@ -332,4 +332,6 @@ pipeline de CI a validar esse estado de forma repetível.
   - validação possível nesta sessão (sem daemon Docker disponível no ambiente): sintaxe YAML dos dois workflows confirmada com `js-yaml` (parse sem erros); comando `prisma format`/`git diff --exit-code` confirmado sem alterações contra o `schema.prisma` atual; testes unitários de `apps/api` confirmados a passar sem `DATABASE_URL` definida (22/22), confirmando que o *job* `quality` não precisa do serviço PostgreSQL; `npm audit` confirmado a correr e a reportar (2 vulnerabilidades de severidade baixa, via dependência do Angular CLI) sem interromper o comando;
   - **por validar antes de considerar a fase concluída**: execução real dos workflows no GitHub Actions (`db-validation`, `e2e` e `publish-images.yml` não foram corridos nesta sessão — sem daemon Docker nem serviço PostgreSQL disponíveis neste ambiente); confirmação de que uma *pull request* falhada bloqueia mesmo o *merge* e de que uma imagem só é publicada a partir de `main`;
   - **fora do âmbito de ficheiros do repositório, ainda por configurar manualmente**: proteção da branch principal (tarefa F) — exigir os *checks* `quality (web)`, `quality (api)`, `db-validation` e `e2e` (não `dependency-audit`, meramente informativo) e revisão de código antes do *merge*; é uma definição do repositório GitHub, não um ficheiro versionado, e o `gh` CLI não está disponível neste ambiente para a aplicar diretamente — a fazer manualmente em *Settings → Branches* ou via `gh api`, pelo utilizador ou com autorização explícita numa sessão com acesso;
-  - commit ainda por autorizar.
+  - commit efetuado em `feature/fase-4-deploy-cicd` ("ci: restruturar pipeline em verificação (PR) e build & publicação de imagens (main)"), a pedido do utilizador.
+- branch `feature/fase-4-deploy-cicd` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida (só existia localmente, nunca chegou a ser publicada num remoto).
+- Fase marcada como concluída a pedido explícito do utilizador, apesar de os pontos já registados acima como "por validar"/"ainda por configurar manualmente" continuarem em aberto: os workflows nunca correram de facto no GitHub Actions nesta sessão (sem Docker nem `gh` CLI disponíveis no ambiente local), e a proteção da branch principal (tarefa F) ainda não foi configurada — fica como trabalho de acompanhamento após o primeiro push/pull request real.
