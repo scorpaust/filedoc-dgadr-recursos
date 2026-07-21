@@ -155,3 +155,49 @@ da rede interna do Docker — os pedidos partem do lado do cliente.
   `apps/api/Dockerfile.dockerignore` só deixa passar o `package.json` da Web (e
   vice-versa), para o `npm ci` conseguir validar o workspace contra o lockfile
   partilhado sem arrastar o código-fonte da outra aplicação.
+
+## CI/CD (GitHub Actions)
+
+Ver `context/features/db_ci_cd/fase-4-deploy-cicd.md` para a especificação completa.
+Dois workflows distintos, em `.github/workflows/`:
+
+### `verify.yml` — verificação (cada *pull request*)
+
+Nunca publica nada — corre também em *pull requests* de forks, sem acesso a segredos.
+Quatro *jobs*, paralelizados sempre que não têm dependências entre si:
+
+- **`quality (web)` / `quality (api)`** — `lint`, `format:check`, `typecheck`, testes
+  unitários e `build`, por aplicação (matriz), parando no primeiro passo que falhar;
+- **`db-validation`** — `prisma format` (equivalente a `--check`: formata e falha se
+  isso alterar o ficheiro já versionado, já que o Prisma não tem essa opção nativa),
+  `prisma validate`, `prisma migrate deploy` + `prisma migrate status` contra um
+  PostgreSQL efémero do próprio runner (confirma que as migrações aplicam do zero, sem
+  divergência), seguidos dos testes de integração da Fase 2;
+- **`e2e`** — suite Playwright completa (Fase 11) contra `ng serve --configuration
+  production`; relatório e capturas de falha publicados sempre como artefacto do
+  workflow;
+- **`dependency-audit`** — `npm audit`, informativo (`continue-on-error`), não bloqueia
+  o *merge*.
+
+A branch principal deve exigir os *checks* `quality (web)`, `quality (api)`,
+`db-validation` e `e2e` (não `dependency-audit`, apenas informativo) antes de permitir
+*merge* — configuração de proteção de branch feita diretamente no GitHub (fora do
+âmbito de ficheiros do repositório), ainda por aplicar.
+
+### `publish-images.yml` — build & publicação de imagens (só ao integrar em `main`)
+
+Só corre em `push` para `main` ou ao criar uma *tag* `v*.*.*` — nunca a partir de uma
+*pull request*, para que nenhuma origem externa tenha acesso ao `GITHUB_TOKEN` de
+publicação. Reconstrói as imagens de produção (Fase 3) de `apps/api` e `apps/web` e
+publica-as no **GitHub Container Registry** (`ghcr.io`), sem qualquer *deploy*
+automático para um ambiente remoto (Fase 5).
+
+**Convenção de tags** (nunca publicada só com `latest` — sai sempre acompanhada de,
+pelo menos, o hash do commit):
+
+| Imagem | Tags |
+| --- | --- |
+| `ghcr.io/<owner>/filedoc-api` | `sha-<hash-curto>`, `latest` (em `main`), `<versão>` (ao criar uma *tag* Git `vX.Y.Z`) |
+| `ghcr.io/<owner>/filedoc-web` | idem |
+
+`<hash-curto>` é sempre rastreável até ao commit de origem (`git show <hash-curto>`).

@@ -1,0 +1,147 @@
+# Fase 4 (Deployment) — Pipeline de CI/CD (`context/features/db_ci_cd/fase-4-deploy-cicd.md`).
+#
+# Fluxo de VERIFICAÇÃO: corre em cada pull request, nunca publica nada. Separado do
+# fluxo de build & publicação (`publish-images.yml`, só ao integrar em `main`), por
+# razões de segurança dos segredos de publicação — este workflow corre também para
+# pull requests de forks, que não têm acesso a esses segredos.
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Tarefa B da especificação: lint, format:check, typecheck, testes unitários, build,
+  # para apps/web e apps/api — como matriz, para que as duas aplicações corram em
+  # paralelo, cada uma parando no primeiro passo que falhar.
+  quality:
+    name: quality (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [web, api]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+
+      - run: npm run lint --workspace apps/${{ matrix.app }}
+      - run: npm run format:check --workspace apps/${{ matrix.app }}
+      - run: npm run typecheck --workspace apps/${{ matrix.app }}
+      - run: npm test --workspace apps/${{ matrix.app }}
+      - run: npm run build --workspace apps/${{ matrix.app }}
+
+  # Tarefa C: validação do esquema e das migrações Prisma contra um PostgreSQL efémero,
+  # seguida dos testes de integração da Fase 2 (via de BD).
+  db-validation:
+    name: db-validation
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: filedoc
+          POSTGRES_PASSWORD: filedoc
+          POSTGRES_DB: filedoc
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U filedoc -d filedoc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://filedoc:filedoc@localhost:5432/filedoc?schema=public
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+
+      # `prisma format` não tem uma opção `--check` nativa (ao contrário do Prettier);
+      # o equivalente é formatar e falhar se isso alterar o ficheiro versionado.
+      - name: prisma format --check (equivalente)
+        run: |
+          npx prisma format --schema apps/api/prisma/schema.prisma
+          git diff --exit-code -- apps/api/prisma/schema.prisma
+
+      - run: npx prisma validate --schema apps/api/prisma/schema.prisma
+
+      # Aplica as migrações do zero contra a base de dados efémera (não apenas
+      # verificação do histórico local) e confirma que não há divergência nem
+      # migrações pendentes.
+      - run: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+      - run: npx prisma migrate status --schema apps/api/prisma/schema.prisma
+
+      # `test:integration` (Fase 2) já aplica as migrações de novo (idempotente) e
+      # semeia a base de dados uma única vez antes da suite, incluindo o teste
+      # dedicado de idempotência do seed — não repetido aqui para não duplicar essa
+      # cobertura.
+      - run: npm run test:integration --workspace apps/api
+
+  # Tarefa D: build da aplicação e suite E2E (Playwright) da Fase 11 (via de UI). Usa
+  # `ng serve --configuration production` (decisão já tomada na Fase 11, mantida aqui
+  # sem alteração — ver `apps/web/playwright.config.ts`), mais fiel ao comportamento
+  # real do que uma build de desenvolvimento.
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e --workspace apps/web
+
+      - name: Publicar relatório Playwright
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # Análise básica de dependências (`npm audit`) — reporta vulnerabilidades sem
+  # bloquear o pipeline, conforme o âmbito explícito da Fase 4 (não é um check
+  # obrigatório de proteção de branch).
+  dependency-audit:
+    name: dependency-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+      - run: npm audit
+        continue-on-error: true
