@@ -37,6 +37,13 @@ jobs:
 
       - run: npm ci
 
+      # Necessário para apps/api: sem isto, `@prisma/client` fica com o stub de
+      # fallback (`PrismaClient: any`) até `prisma generate` correr com sucesso — o
+      # `postinstall` automático do pacote não encontra o schema a partir da raiz
+      # do monorepo, o mesmo problema que o Dockerfile já contorna explicitamente.
+      - if: matrix.app == 'api'
+        run: npm run prisma:generate --workspace apps/api
+
       - run: npm run lint --workspace apps/${{ matrix.app }}
       - run: npm run format:check --workspace apps/${{ matrix.app }}
       - run: npm run typecheck --workspace apps/${{ matrix.app }}
@@ -75,20 +82,25 @@ jobs:
 
       - run: npm ci
 
+      # `npm run --workspace` (em vez de `npx prisma ...` a partir da raiz) — o
+      # binário `prisma` não fica hoisted para a raiz do monorepo, só existe em
+      # apps/api/node_modules/.bin; `npx` a partir da raiz não o encontra.
+      - run: npm run prisma:generate --workspace apps/api
+
       # `prisma format` não tem uma opção `--check` nativa (ao contrário do Prettier);
       # o equivalente é formatar e falhar se isso alterar o ficheiro versionado.
       - name: prisma format --check (equivalente)
         run: |
-          npx prisma format --schema apps/api/prisma/schema.prisma
+          npm run prisma:format --workspace apps/api
           git diff --exit-code -- apps/api/prisma/schema.prisma
 
-      - run: npx prisma validate --schema apps/api/prisma/schema.prisma
+      - run: npm run prisma:validate --workspace apps/api
 
       # Aplica as migrações do zero contra a base de dados efémera (não apenas
       # verificação do histórico local) e confirma que não há divergência nem
       # migrações pendentes.
-      - run: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
-      - run: npx prisma migrate status --schema apps/api/prisma/schema.prisma
+      - run: npm run prisma:migrate:deploy --workspace apps/api
+      - run: npm run prisma:status --workspace apps/api
 
       # `test:integration` (Fase 2) já aplica as migrações de novo (idempotente) e
       # semeia a base de dados uma única vez antes da suite, incluindo o teste
@@ -113,6 +125,18 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - run: npm ci
+
+      # Workaround para o bug conhecido npm/cli#4828: o `package-lock.json` só tem
+      # registada a variante do binário nativo do Rollup para a plataforma onde foi
+      # gerado (Windows), não para linux-x64-gnu — `npm ci` não a instala neste
+      # runner, e `ng serve` (usado pelo Playwright abaixo) falha a arrancar sem ela.
+      # Instala-a à parte, na versão exata já resolvida para `rollup` no lockfile,
+      # sem tocar no `package-lock.json` partilhado.
+      - name: Instalar binário nativo do Rollup para Linux (workaround npm/cli#4828)
+        run: |
+          ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
+          npm install --no-save "@rollup/rollup-linux-x64-gnu@$ROLLUP_VERSION"
+
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e --workspace apps/web
 

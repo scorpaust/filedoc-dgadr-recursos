@@ -91,10 +91,7 @@ export class ResourceCatalogPageComponent {
   protected readonly typeOptions = TYPE_OPTIONS;
   protected readonly workflowOptions = WORKFLOW_OPTIONS;
   protected readonly difficultyOptions = DIFFICULTY_OPTIONS;
-  protected readonly skeletonPlaceholders = Array.from(
-    { length: PAGE_SIZE },
-    (_, index) => index,
-  );
+  protected readonly skeletonPlaceholders = Array.from({ length: PAGE_SIZE }, (_, index) => index);
 
   protected readonly searchControl = new FormControl(this.initialFilters.query, {
     nonNullable: true,
