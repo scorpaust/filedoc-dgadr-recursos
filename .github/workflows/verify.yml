@@ -44,6 +44,15 @@ jobs:
       - if: matrix.app == 'api'
         run: npm run prisma:generate --workspace apps/api
 
+      # Necessário para apps/web: mesmo workaround do job `e2e` (bug conhecido
+      # npm/cli#4828, falta a variante linux-x64-gnu do Rollup no lockfile) — aqui
+      # afeta também `ng test` (Vitest, via Vite/Rollup), não só `ng serve`.
+      - if: matrix.app == 'web'
+        name: Instalar binário nativo do Rollup para Linux (workaround npm/cli#4828)
+        run: |
+          ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
+          npm install --no-save "@rollup/rollup-linux-x64-gnu@$ROLLUP_VERSION"
+
       - run: npm run lint --workspace apps/${{ matrix.app }}
       - run: npm run format:check --workspace apps/${{ matrix.app }}
       - run: npm run typecheck --workspace apps/${{ matrix.app }}
