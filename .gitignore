@@ -15,8 +15,10 @@ yarn-error.log
 .env
 .env.local
 .env.test
+.env.homolog
 !.env.example
 !.env.test.example
+!.env.homolog.example
 
 # IDEs and editors
 .idea/
@@ -52,3 +54,6 @@ blob-report/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Backups locais de homologação (Fase 5, Deployment — scripts/homolog/backup-postgres.sh)
+/backups/

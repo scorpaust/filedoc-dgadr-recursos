@@ -1,0 +1,112 @@
+# Ambiente de homologação (Fase 5, Deployment) — ver
+# context/features/db_ci_cd/fase-5-deploy-homologacao.md e docs/deploy-homologacao.md.
+#
+# Ao contrário de docker-compose.prod.yml (que constrói as imagens localmente,
+# para validar os Dockerfiles), este ficheiro nunca constrói nada: promove as
+# imagens já publicadas pelo workflow publish-images.yml (Fase 4) para
+# ghcr.io, identificadas pela mesma tag que passou no pipeline de CI/CD —
+# "correr exatamente os bits validados", não uma reconstrução local.
+#
+# O anfitrião concreto onde este ficheiro corre (interno à DGADR ou uma
+# plataforma cloud) é uma decisão institucional ainda não confirmada — ver
+# "Riscos e decisões em aberto" na especificação da Fase 5. Este ficheiro não
+# assume nenhuma delas: funciona em qualquer anfitrião com Docker Compose.
+#
+# As variáveis têm de vir de um ficheiro de segredos fora do repositório
+# (nunca commitado — ver .gitignore), passado explicitamente com --env-file,
+# nunca de um ".env" implícito:
+#
+#   docker compose -f docker-compose.homolog.yml --env-file .env.homolog up -d
+#
+# Ver .env.homolog.example para a lista de variáveis exigidas (nomes, nunca
+# valores) e docs/deploy-homologacao.md para o procedimento completo.
+
+name: filedoc-homolog
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?defina POSTGRES_USER em .env.homolog}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD em .env.homolog}
+      POSTGRES_DB: ${POSTGRES_DB:?defina POSTGRES_DB em .env.homolog}
+    # Só acessível a partir do próprio anfitrião por omissão (nunca exposto
+    # publicamente) — usado pelos scripts de backup/restauro e para
+    # diagnóstico direto; a aplicação liga-se pela rede interna do Compose.
+    ports:
+      - '${BIND_ADDRESS:-127.0.0.1}:${POSTGRES_HOST_PORT:-5433}:5432'
+    volumes:
+      - postgres-homolog-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?defina MINIO_ROOT_USER em .env.homolog}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?defina MINIO_ROOT_PASSWORD em .env.homolog}
+    command: server /data --console-address ":9001"
+    # Buckets privados por defeito (comportamento nativo do MinIO — só fica
+    # público um bucket que seja explicitamente marcado como tal, o que este
+    # ambiente nunca faz). Consola/API só acessíveis a partir do anfitrião.
+    ports:
+      - '${BIND_ADDRESS:-127.0.0.1}:${MINIO_API_HOST_PORT:-9000}:9000'
+      - '${BIND_ADDRESS:-127.0.0.1}:${MINIO_CONSOLE_HOST_PORT:-9001}:9001'
+    volumes:
+      - minio-homolog-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    # Sem "build:" propositadamente — este ficheiro só promove imagens já
+    # publicadas, nunca constrói a partir do código-fonte local.
+    image: "${API_IMAGE:-ghcr.io/scorpaust/filedoc-api}:${IMAGE_TAG:?defina IMAGE_TAG em .env.homolog, ex. sha-abc1234 ou v1.2.3}"
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      # SESSION_SECRET, STORAGE_*, CORS_ALLOWED_ORIGINS: a acrescentar quando
+      # a via de integração de funcionalidades implementar autenticação real
+      # e armazenamento de objetos na API — ver .env.homolog.example.
+    ports:
+      - '${BIND_ADDRESS:-127.0.0.1}:${API_HOST_PORT:-3000}:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  web:
+    image: "${WEB_IMAGE:-ghcr.io/scorpaust/filedoc-web}:${IMAGE_TAG:?defina IMAGE_TAG em .env.homolog, ex. sha-abc1234 ou v1.2.3}"
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      # Endereço alcançável a partir do browser do utilizador (não a rede
+      # interna do Docker), lido em tempo de arranque do contentor — ver
+      # apps/web/docker/generate-env-config.sh. Sem domínio institucional
+      # confirmado, o valor por omissão assume acesso direto ao anfitrião;
+      # ajustar quando existir um proxy/domínio de homologação.
+      API_URL: ${WEB_API_URL:-http://localhost:3000/api/v1}
+    ports:
+      - '${BIND_ADDRESS:-127.0.0.1}:${WEB_HOST_PORT:-8080}:8080'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres-homolog-data:
+  minio-homolog-data:

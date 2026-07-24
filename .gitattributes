@@ -1,0 +1,7 @@
+# Scripts executados dentro de contentores Linux (ex.: entrypoints do
+# Docker) têm sempre de manter terminadores LF, independentemente da
+# configuração core.autocrlf do checkout local — um shebang com CRLF falha
+# silenciosamente no arranque do contentor (confirmado durante a validação
+# local da Fase 5, Deployment, com apps/web/docker/generate-env-config.sh
+# convertido para CRLF por um checkout Windows com core.autocrlf=true).
+*.sh text eol=lf
