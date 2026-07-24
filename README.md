@@ -201,3 +201,32 @@ pelo menos, o hash do commit):
 | `ghcr.io/<owner>/filedoc-web` | idem |
 
 `<hash-curto>` é sempre rastreável até ao commit de origem (`git show <hash-curto>`).
+
+## Homologação (Fase 5, Deployment)
+
+Ver `context/features/db_ci_cd/fase-5-deploy-homologacao.md` para a
+especificação completa. O fornecedor/anfitrião de homologação é uma decisão
+institucional da DGADR ainda não confirmada — por isso este ambiente é
+concretizado como uma simulação Docker Compose autoalojável
+(`docker-compose.homolog.yml`), que promove as imagens já publicadas por
+`publish-images.yml` (nunca constrói localmente) e corre em qualquer
+anfitrião com Docker que venha a ser confirmado:
+
+```bash
+docker compose -f docker-compose.homolog.yml --env-file .env.homolog up -d
+```
+
+- `.env.homolog.example` documenta as variáveis exigidas (nomes, nunca
+  valores) — o `.env.homolog` real fica sempre fora do repositório;
+- `docs/deploy-homologacao.md` — procedimento de *deploy*, passo a passo,
+  incluindo a aplicação explícita de `prisma migrate deploy`;
+- `docs/rollback-homologacao.md` — procedimento de *rollback* de imagem e as
+  suas implicações quando já foram aplicadas migrações não retrocompatíveis;
+- `scripts/homolog/smoke-test.sh` — testes de fumo pós-*deploy*
+  (`/health`, `/ready`, casca da Web);
+- `scripts/homolog/backup-postgres.sh` / `restore-postgres.sh` — backup e
+  restauro da base de dados de homologação.
+
+Este ambiente nunca deve conter dados reais de trabalhadores da DGADR —
+apenas o seed de demonstração idempotente já usado em desenvolvimento
+(`npm run prisma:seed --workspace apps/api`).
