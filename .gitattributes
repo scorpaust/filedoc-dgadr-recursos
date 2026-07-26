@@ -1,7 +1,21 @@
+# Normaliza terminadores de linha para LF em todos os ficheiros de texto,
+# independentemente do checkout (Windows/macOS/Linux) — sem isto, um checkout
+# Windows com core.autocrlf=true mostra praticamente todo o repositório como
+# modificado (diferença de terminadores, sem alteração real de conteúdo).
+* text=auto eol=lf
+
+# Binários explícitos, para nunca serem sujeitos a conversão de fim de linha.
+*.png binary
+*.ico binary
+*.pdf binary
+*.mp4 binary
+
 # Scripts executados dentro de contentores Linux (ex.: entrypoints do
 # Docker) têm sempre de manter terminadores LF, independentemente da
 # configuração core.autocrlf do checkout local — um shebang com CRLF falha
 # silenciosamente no arranque do contentor (confirmado durante a validação
 # local da Fase 5, Deployment, com apps/web/docker/generate-env-config.sh
-# convertido para CRLF por um checkout Windows com core.autocrlf=true).
+# convertido para CRLF por um checkout Windows com core.autocrlf=true). Já
+# coberto pela regra geral acima; mantido explícito por documentar esse
+# incidente concreto.
 *.sh text eol=lf
