@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router, UrlTree, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from './auth.service';
@@ -7,7 +9,9 @@ describe('authGuard', () => {
   let authService: AuthService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    });
     authService = TestBed.inject(AuthService);
   });
 

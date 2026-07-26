@@ -144,6 +144,7 @@ Adaptar à convenção final de URLs deste ambiente, sem inventar um domínio in
 ## Riscos e decisões em aberto
 
 - A escolha concreta de onde este ambiente de homologação corre (fornecedor de alojamento, se autoalojado internamente pela DGADR, etc.) é uma decisão institucional que esta especificação não assume — sinalizar explicitamente esta dependência antes de iniciar a fase;
+  - **direção de trabalho assumida (2026-07-26, ainda sem confirmação institucional da DGADR)**: AWS, com ECS (contentores desta via) atrás de um Application Load Balancer a terminar TLS — coerente com o exemplo já usado na especificação da Fase 1 (Integração). Não implica alterações a esta fase (a simulação Docker Compose autoalojável mantém-se válida como ambiente local/intermédio); a decisão real ainda por confirmar é a topologia final de domínio (Web e API no mesmo domínio vs. subdomínios `app.`/`api.`), que só se fixa quando existir um domínio real associado ao ALB;
 - Confirmar a política de retenção de *backups* de homologação (não precisa de ser tão rigorosa como produção, mas deve existir, mesmo que mínima);
 - O teste de fumo de login fica pendente até a via de integração de funcionalidades ligar a autenticação real — não esquecer de o ativar nessa altura, em vez de o deixar esquecido como documentação desatualizada.
 

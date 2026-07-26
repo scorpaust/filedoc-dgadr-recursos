@@ -95,6 +95,15 @@ describe('LoginPageComponent', () => {
     expect(router.navigateByUrl).not.toHaveBeenCalled();
   });
 
+  it('does not render the removed role-simulation development tool', async () => {
+    const fixture = TestBed.createComponent(LoginPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.fdr-login-page__dev-tool')).toBeNull();
+  });
+
   it('toggles password visibility', async () => {
     const fixture = TestBed.createComponent(LoginPageComponent);
     fixture.detectChanges();
@@ -112,21 +121,5 @@ describe('LoginPageComponent', () => {
     await fixture.whenStable();
 
     expect(passwordInput.type).toBe('text');
-  });
-
-  it('logs in with a dev role option when clicked', async () => {
-    const loginSpy = vi.spyOn(authService, 'login').mockReturnValue(of(mockUser));
-    const fixture = TestBed.createComponent(LoginPageComponent);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    (
-      fixture.nativeElement.querySelector('.fdr-login-page__dev-tool-option') as HTMLButtonElement
-    ).click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(loginSpy).toHaveBeenCalledWith('marta.silva@dgadr.gov.pt', 'Demo123!');
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/inicio');
   });
 });

@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRouteSnapshot, Router, UrlTree, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { AppUser } from '../../shared/models';
@@ -22,7 +24,9 @@ describe('roleGuard', () => {
   let authService: AuthService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    });
     authService = TestBed.inject(AuthService);
   });
 

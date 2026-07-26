@@ -13,6 +13,8 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 
+const MIN_NEW_PASSWORD_LENGTH = 8;
+
 function passwordsMatchValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const newPassword = control.get('newPassword')?.value;
@@ -45,7 +47,7 @@ export class ChangePasswordPageComponent {
   protected readonly form = this.formBuilder.nonNullable.group(
     {
       currentPassword: ['', Validators.required],
-      newPassword: ['', Validators.required],
+      newPassword: ['', [Validators.required, Validators.minLength(MIN_NEW_PASSWORD_LENGTH)]],
       confirmPassword: ['', Validators.required],
     },
     { validators: passwordsMatchValidator() },
@@ -67,6 +69,16 @@ export class ChangePasswordPageComponent {
       this.newPasswordControl.invalid &&
       (this.newPasswordControl.dirty || this.newPasswordControl.touched)
     );
+  }
+
+  protected newPasswordErrorMessage(): string {
+    if (this.newPasswordControl.hasError('required')) {
+      return 'A nova palavra-passe é obrigatória.';
+    }
+    if (this.newPasswordControl.hasError('minlength')) {
+      return `A nova palavra-passe deve ter pelo menos ${MIN_NEW_PASSWORD_LENGTH} carateres.`;
+    }
+    return '';
   }
 
   protected isConfirmPasswordInvalid(): boolean {
@@ -103,10 +115,10 @@ export class ChangePasswordPageComponent {
 
     this.errorMessage.set(null);
     this.isSubmitting.set(true);
-    const { currentPassword } = this.form.getRawValue();
+    const { currentPassword, newPassword } = this.form.getRawValue();
 
     this.authService
-      .changePassword(currentPassword)
+      .changePassword(currentPassword, newPassword)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
