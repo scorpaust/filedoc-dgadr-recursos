@@ -79,7 +79,7 @@ export class SupportTicketMockService {
       status: 'OPEN',
       requesterId: user.id,
       requester: user.name,
-      requesterRole: user.career,
+      requesterRole: user.career ?? formatRoleLabels(user.roles),
       relatedResourceId: input.relatedResourceId,
       createdAt: now,
       updatedAt: now,

@@ -5,7 +5,10 @@ export interface AppUser {
   readonly id: string;
   readonly name: string;
   readonly email: string;
-  readonly career: string;
+  // Carreira profissional — gerida na área de Administração (Fase 8, UI), ainda não
+  // modelada na API real (Fase 1, Integração). Opcional para que o AuthService possa
+  // devolver o utilizador autenticado real sem este campo.
+  readonly career?: string;
   // Um utilizador pode acumular mais do que uma função em simultâneo
   // (project-spec.md, secção "Funções do sistema"); nunca vazio.
   readonly roles: readonly UserRole[];

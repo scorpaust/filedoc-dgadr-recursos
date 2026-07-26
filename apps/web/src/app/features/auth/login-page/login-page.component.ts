@@ -12,31 +12,8 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/auth/auth.service';
-import { mockCredentials } from '../../../core/auth/mock-credentials';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { AppUser, formatRoleLabels } from '../../../shared/models';
-import { users } from '../../../shared/mocks/users.mock';
-
-interface DevRoleOption {
-  readonly user: AppUser;
-  readonly password: string;
-  readonly roleLabel: string;
-}
-
-// Ferramenta de desenvolvimento — permite iniciar sessão rapidamente com um utilizador
-// mock de cada função, para validar visualmente as áreas de Gestão nas fases seguintes.
-// Deve ser removida ou desativada antes da integração com autenticação real.
-function buildDevRoleOptions(): readonly DevRoleOption[] {
-  return mockCredentials
-    .map((credential): DevRoleOption | null => {
-      const user = users.find((candidate) => candidate.email === credential.email);
-      return user
-        ? { user, password: credential.password, roleLabel: formatRoleLabels(user.roles) }
-        : null;
-    })
-    .filter((option): option is DevRoleOption => option !== null);
-}
 
 @Component({
   selector: 'fdr-login-page',
@@ -56,7 +33,6 @@ export class LoginPageComponent implements AfterViewInit {
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly showPassword = signal(false);
-  protected readonly devRoleOptions = buildDevRoleOptions();
 
   protected readonly form = this.formBuilder.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -92,11 +68,6 @@ export class LoginPageComponent implements AfterViewInit {
 
   protected togglePasswordVisibility(): void {
     this.showPassword.update((visible) => !visible);
-  }
-
-  protected useDevRole(option: DevRoleOption): void {
-    this.form.setValue({ email: option.user.email, password: option.password });
-    this.submit();
   }
 
   protected submit(): void {

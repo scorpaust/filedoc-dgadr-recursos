@@ -63,22 +63,5 @@
         {{ isSubmitting() ? 'A entrar...' : 'Iniciar sessão' }}
       </fdr-button>
     </form>
-
-    <div class="fdr-login-page__dev-tool">
-      <p class="fdr-login-page__dev-tool-label">
-        Ferramenta de desenvolvimento — iniciar sessão como
-      </p>
-      <div class="fdr-login-page__dev-tool-options">
-        @for (option of devRoleOptions; track option.user.id) {
-          <button
-            type="button"
-            class="fdr-login-page__dev-tool-option"
-            (click)="useDevRole(option)"
-          >
-            {{ option.roleLabel }}
-          </button>
-        }
-      </div>
-    </div>
   </div>
 </div>

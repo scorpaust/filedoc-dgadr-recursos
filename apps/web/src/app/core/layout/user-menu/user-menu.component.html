@@ -14,7 +14,9 @@
     <span class="fdr-user-menu__avatar" aria-hidden="true">{{ initials() }}</span>
     <span class="fdr-user-menu__info">
       <span class="fdr-user-menu__name">{{ user().name }}</span>
-      <fdr-pill [label]="user().career" tone="info" />
+      @if (user().career; as career) {
+        <fdr-pill [label]="career" tone="info" />
+      }
     </span>
     <fdr-icon class="fdr-user-menu__chevron" name="chevron-down" size="sm" />
   </button>

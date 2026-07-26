@@ -83,6 +83,19 @@ describe('SupportTicketMockService', () => {
     expect(mine.some((candidate) => candidate.id === ticket.id)).toBe(true);
   });
 
+  it('falls back to the formatted role label as requesterRole when the current user has no career', async () => {
+    loginAs('EMPLOYEE');
+    const current = authService.currentUser();
+    if (!current) {
+      throw new Error('Utilizador atual em falta depois de loginAs.');
+    }
+    authService.currentUser.set({ ...current, career: undefined });
+
+    const ticket = await flush(firstValueFrom(service.createTicket(sampleInput)));
+
+    expect(ticket.requesterRole).toBe('Trabalhador');
+  });
+
   it('adds a public message to an own ticket that is not closed', async () => {
     loginAs('EMPLOYEE');
     const updated = await flush(
