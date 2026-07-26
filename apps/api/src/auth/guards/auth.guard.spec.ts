@@ -9,7 +9,9 @@ import { SESSION_COOKIE_NAME } from '../session-token.util';
 
 const SESSION_SECRET = 'segredo-de-teste-com-32-caracteres!!';
 
-function buildContext(request: Partial<AuthenticatedRequest>): ExecutionContext {
+function buildContext(
+  request: Partial<AuthenticatedRequest>,
+): ExecutionContext {
   return {
     switchToHttp: () => ({ getRequest: () => request }),
   } as unknown as ExecutionContext;
@@ -31,15 +33,21 @@ describe('AuthGuard', () => {
   it('rejeita quando não existe cookie de sessão', async () => {
     const context = buildContext({ cookies: {} });
 
-    await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
     expect(findUnique).not.toHaveBeenCalled();
   });
 
   it('rejeita quando a sessão não existe', async () => {
     findUnique.mockResolvedValue(null);
-    const context = buildContext({ cookies: { [SESSION_COOKIE_NAME]: 'token' } });
+    const context = buildContext({
+      cookies: { [SESSION_COOKIE_NAME]: 'token' },
+    });
 
-    await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('rejeita uma sessão revogada', async () => {
@@ -54,9 +62,13 @@ describe('AuthGuard', () => {
         roles: [],
       },
     });
-    const context = buildContext({ cookies: { [SESSION_COOKIE_NAME]: 'token' } });
+    const context = buildContext({
+      cookies: { [SESSION_COOKIE_NAME]: 'token' },
+    });
 
-    await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('rejeita uma sessão expirada', async () => {
@@ -71,9 +83,13 @@ describe('AuthGuard', () => {
         roles: [],
       },
     });
-    const context = buildContext({ cookies: { [SESSION_COOKIE_NAME]: 'token' } });
+    const context = buildContext({
+      cookies: { [SESSION_COOKIE_NAME]: 'token' },
+    });
 
-    await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('rejeita a sessão de um utilizador entretanto desativado', async () => {
@@ -88,9 +104,13 @@ describe('AuthGuard', () => {
         roles: [],
       },
     });
-    const context = buildContext({ cookies: { [SESSION_COOKIE_NAME]: 'token' } });
+    const context = buildContext({
+      cookies: { [SESSION_COOKIE_NAME]: 'token' },
+    });
 
-    await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('aceita uma sessão válida e anexa o utilizador, com todas as funções, ao pedido', async () => {

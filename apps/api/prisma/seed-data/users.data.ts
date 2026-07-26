@@ -1,6 +1,7 @@
 import { Role, UserStatus } from '@prisma/client';
 
 export interface UserSeedData {
+  readonly id: string;
   readonly key: string;
   readonly name: string;
   readonly email: string;
@@ -18,8 +19,15 @@ export interface UserSeedData {
 // `ana`) e um utilizador inativo (`paulo`).
 export const DEV_PASSWORD = 'Demo123!';
 
+// `id` fixo (em vez do `cuid()` por omissão do esquema) e igual ao usado por
+// `shared/mocks/users.mock.ts` no frontend — os dados de recursos/tickets/dicas aí
+// (ainda não integrados com a API real) associam-se a utilizadores por este `id`
+// literal (`requesterId: 'user-1'`, etc.); sem isto, o `id` real devolvido pelo login
+// nunca corresponderia a essas associações mock. Só se aplica a registos novos —
+// `upsert` não migra o `id` de um utilizador já semeado antes desta alteração.
 export const userSeedData: readonly UserSeedData[] = [
   {
+    id: 'user-1',
     key: 'marta',
     name: 'Marta Silva',
     email: 'marta.silva@dgadr.gov.pt',
@@ -28,6 +36,7 @@ export const userSeedData: readonly UserSeedData[] = [
     password: DEV_PASSWORD,
   },
   {
+    id: 'user-2',
     key: 'carlos',
     name: 'Carlos Vieira',
     email: 'carlos.vieira@dgadr.gov.pt',
@@ -36,6 +45,7 @@ export const userSeedData: readonly UserSeedData[] = [
     password: DEV_PASSWORD,
   },
   {
+    id: 'user-3',
     key: 'joao',
     name: 'João Antunes',
     email: 'joao.antunes@dgadr.gov.pt',
@@ -44,6 +54,7 @@ export const userSeedData: readonly UserSeedData[] = [
     password: DEV_PASSWORD,
   },
   {
+    id: 'user-4',
     key: 'paulo',
     name: 'Paulo Matos',
     email: 'paulo.matos@dgadr.gov.pt',
@@ -52,6 +63,7 @@ export const userSeedData: readonly UserSeedData[] = [
     password: DEV_PASSWORD,
   },
   {
+    id: 'user-5',
     key: 'ana',
     name: 'Ana Ferreira',
     email: 'ana.ferreira@dgadr.gov.pt',
@@ -60,6 +72,7 @@ export const userSeedData: readonly UserSeedData[] = [
     password: DEV_PASSWORD,
   },
   {
+    id: 'user-6',
     key: 'sofia',
     name: 'Sofia Ramos',
     email: 'sofia.ramos@dgadr.gov.pt',

@@ -1,14 +1,18 @@
-import { mockCredentials } from '../../src/app/core/auth/mock-credentials';
 import { users } from '../../src/app/shared/mocks/users.mock';
 
-// Ponte para os utilizadores/credenciais mock reais da aplicação (Fase 2/9), para que os
-// testes E2E nunca dupliquem nem possam divergir dos dados usados pela UI.
+// Ponte para os utilizadores mock reais da aplicação (Fase 2/9), para que os testes E2E
+// nunca dupliquem nem possam divergir dos dados usados pela UI. Desde a Fase 1
+// (Integração), o login é real (API + BD, ver e2e/fixtures/auth.ts) — a palavra-passe
+// aqui tem de corresponder a `DEV_PASSWORD` usada para semear estes mesmos utilizadores
+// (apps/api/prisma/seed-data/users.data.ts), semeados no job `e2e` do CI antes da suite.
+const DEMO_PASSWORD = 'Demo123!';
+
 export interface E2eUser {
   readonly id: string;
   readonly name: string;
   readonly email: string;
-  // Ausente para utilizadores inativos (sem entrada em `mock-credentials.ts`, tal como a
-  // ferramenta de simulação de função do próprio ecrã de login) — nunca usados para `login`.
+  // Ausente para utilizadores inativos, tal como a ferramenta de simulação de função do
+  // próprio ecrã de login — nunca usados para `login`.
   readonly password?: string;
   readonly roles: readonly string[];
 }
@@ -18,12 +22,11 @@ function findUser(email: string): E2eUser {
   if (!user) {
     throw new Error(`Utilizador mock não encontrado para e-mail: ${email}`);
   }
-  const credential = mockCredentials.find((candidate) => candidate.email === email);
   return {
     id: user.id,
     name: user.name,
     email: user.email,
-    password: credential?.password,
+    password: user.status === 'active' ? DEMO_PASSWORD : undefined,
     roles: user.roles,
   };
 }

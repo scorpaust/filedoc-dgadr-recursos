@@ -15,6 +15,7 @@ export async function seedUsers(
       where: { email: user.email },
       update: { name: user.name, passwordHash, status: user.status },
       create: {
+        id: user.id,
         name: user.name,
         email: user.email,
         passwordHash,

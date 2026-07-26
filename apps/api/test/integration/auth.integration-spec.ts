@@ -10,7 +10,20 @@ import { SESSION_COOKIE_NAME } from '../../src/auth/session-token.util';
 
 const DEMO_PASSWORD = 'Demo123!';
 
-function extractSessionCookie(setCookieHeader: readonly string[] | undefined): string {
+interface AuthErrorBody {
+  readonly message: string;
+}
+
+interface AuthenticatedUserBody {
+  readonly id: string;
+  readonly name: string;
+  readonly email: string;
+  readonly roles: readonly string[];
+}
+
+function extractSessionCookie(
+  setCookieHeader: readonly string[] | undefined,
+): string {
   const cookieHeader = (setCookieHeader ?? []).find((cookie) =>
     cookie.startsWith(`${SESSION_COOKIE_NAME}=`),
   );
@@ -33,7 +46,11 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
     app.setGlobalPrefix('api/v1');
     app.use(cookieParser());
     app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
     );
     await app.init();
   });
@@ -54,8 +71,11 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
       name: 'Marta Silva',
       roles: ['EMPLOYEE'],
     });
-    const setCookie = response.headers['set-cookie'] as unknown as string[] | undefined;
-    expect(extractSessionCookie(setCookie)).toContain(`${SESSION_COOKIE_NAME}=`);
+    const setCookie = response.headers['set-cookie'] as unknown as
+      string[] | undefined;
+    expect(extractSessionCookie(setCookie)).toContain(
+      `${SESSION_COOKIE_NAME}=`,
+    );
     expect((setCookie ?? []).join(';')).toContain('HttpOnly');
   });
 
@@ -70,7 +90,9 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
       .send({ email: 'marta.silva@dgadr.gov.pt', password: 'errada' })
       .expect(HttpStatus.UNAUTHORIZED);
 
-    expect(emailInexistente.body.message).toBe(passwordErrada.body.message);
+    expect((emailInexistente.body as AuthErrorBody).message).toBe(
+      (passwordErrada.body as AuthErrorBody).message,
+    );
   });
 
   it('um utilizador de seed desativado não consegue iniciar sessão', async () => {
@@ -85,19 +107,24 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
       .post('/api/v1/auth/login')
       .send({ email: 'joao.antunes@dgadr.gov.pt', password: DEMO_PASSWORD })
       .expect(HttpStatus.OK);
-    const cookie = extractSessionCookie(login.headers['set-cookie'] as unknown as string[]);
+    const cookie = extractSessionCookie(
+      login.headers['set-cookie'] as unknown as string[],
+    );
 
     const me = await request(app.getHttpServer())
       .get('/api/v1/auth/me')
       .set('Cookie', cookie)
       .expect(HttpStatus.OK);
 
-    expect(me.body.email).toBe('joao.antunes@dgadr.gov.pt');
-    expect([...me.body.roles].sort()).toEqual(['ADMIN', 'CONTENT_EDITOR']);
+    const meBody = me.body as AuthenticatedUserBody;
+    expect(meBody.email).toBe('joao.antunes@dgadr.gov.pt');
+    expect([...meBody.roles].sort()).toEqual(['ADMIN', 'CONTENT_EDITOR']);
   });
 
   it('GET /me sem sessão é rejeitado', async () => {
-    await request(app.getHttpServer()).get('/api/v1/auth/me').expect(HttpStatus.UNAUTHORIZED);
+    await request(app.getHttpServer())
+      .get('/api/v1/auth/me')
+      .expect(HttpStatus.UNAUTHORIZED);
   });
 
   it('logout invalida a sessão do lado do servidor — o mesmo cookie deixa de ser aceite a seguir', async () => {
@@ -105,7 +132,9 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
       .post('/api/v1/auth/login')
       .send({ email: 'sofia.ramos@dgadr.gov.pt', password: DEMO_PASSWORD })
       .expect(HttpStatus.OK);
-    const cookie = extractSessionCookie(login.headers['set-cookie'] as unknown as string[]);
+    const cookie = extractSessionCookie(
+      login.headers['set-cookie'] as unknown as string[],
+    );
 
     await request(app.getHttpServer())
       .get('/api/v1/auth/me')
@@ -138,7 +167,9 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
         .post('/api/v1/auth/login')
         .send({ email: 'ana.ferreira@dgadr.gov.pt', password: DEMO_PASSWORD })
         .expect(HttpStatus.OK);
-      const cookie = extractSessionCookie(login.headers['set-cookie'] as unknown as string[]);
+      const cookie = extractSessionCookie(
+        login.headers['set-cookie'] as unknown as string[],
+      );
 
       await request(app.getHttpServer())
         .post('/api/v1/auth/change-password')
@@ -148,7 +179,10 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
 
       await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({ email: 'ana.ferreira@dgadr.gov.pt', password: 'NovaPassword1!' })
+        .send({
+          email: 'ana.ferreira@dgadr.gov.pt',
+          password: 'NovaPassword1!',
+        })
         .expect(HttpStatus.OK);
     });
 
@@ -157,7 +191,9 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
         .post('/api/v1/auth/login')
         .send({ email: 'ana.ferreira@dgadr.gov.pt', password: DEMO_PASSWORD })
         .expect(HttpStatus.OK);
-      const cookie = extractSessionCookie(login.headers['set-cookie'] as unknown as string[]);
+      const cookie = extractSessionCookie(
+        login.headers['set-cookie'] as unknown as string[],
+      );
 
       await request(app.getHttpServer())
         .post('/api/v1/auth/change-password')
@@ -185,13 +221,18 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
   // funcionais acima, que também chamam /auth/login várias vezes.
   it('aplica rate limiting às tentativas repetidas de login', async () => {
     const maxAttempts = 25;
+    const tooManyRequestsStatus: number = HttpStatus.TOO_MANY_REQUESTS;
     let sawTooManyRequests = false;
 
-    for (let attempt = 0; attempt < maxAttempts && !sawTooManyRequests; attempt += 1) {
+    for (
+      let attempt = 0;
+      attempt < maxAttempts && !sawTooManyRequests;
+      attempt += 1
+    ) {
       const response = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
         .send({ email: 'ninguem@dgadr.gov.pt', password: 'errada' });
-      if (response.status === HttpStatus.TOO_MANY_REQUESTS) {
+      if (response.status === tooManyRequestsStatus) {
         sawTooManyRequests = true;
       }
     }

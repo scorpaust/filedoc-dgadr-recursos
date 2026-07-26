@@ -80,6 +80,13 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://filedoc:filedoc@localhost:5432/filedoc?schema=public
+      # Fase 1 (Integração) — Autenticação: a aplicação não arranca sem SESSION_SECRET
+      # (mínimo de 32 carateres, ver env.validation.ts); valor de CI apenas, sem
+      # significado fora deste job. AUTH_LOGIN_RATE_LIMIT elevado pelo mesmo motivo
+      # documentado em apps/api/.env.test.example — a suite de integração faz várias
+      # dezenas de pedidos de login legítimos.
+      SESSION_SECRET: ci-apenas-valor-aleatorio-com-pelo-menos-32-caracteres
+      AUTH_LOGIN_RATE_LIMIT: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -121,9 +128,40 @@ jobs:
   # `ng serve --configuration production` (decisão já tomada na Fase 11, mantida aqui
   # sem alteração — ver `apps/web/playwright.config.ts`), mais fiel ao comportamento
   # real do que uma build de desenvolvimento.
+  #
+  # Desde a Fase 1 (Integração), o login já não é simulado no cliente — a suite exerce o
+  # formulário real contra a API (ver e2e/fixtures/auth.ts e apps/web/playwright.config.ts),
+  # pelo que este job também arranca a API NestJS em localhost:3000 (o valor por omissão de
+  # `AppConfigService.apiUrl` em desenvolvimento) e uma base de dados efémera semeada com os
+  # mesmos 6 utilizadores de demonstração usados pelos testes
+  # (apps/web/e2e/fixtures/users.ts), a par do `ng serve`.
   e2e:
     name: e2e
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: filedoc
+          POSTGRES_PASSWORD: filedoc
+          POSTGRES_DB: filedoc
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U filedoc -d filedoc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://filedoc:filedoc@localhost:5432/filedoc?schema=public
+      # Valor de CI apenas, sem significado fora deste job (ver env.validation.ts).
+      SESSION_SECRET: ci-apenas-valor-aleatorio-com-pelo-menos-32-caracteres
+      CORS_ALLOWED_ORIGINS: http://localhost:4310
+      PORT: 3000
+      # A suite E2E completa faz várias dezenas de logins legítimos (um ou mais por
+      # fluxo) — limite elevado para não colidir com o valor por omissão de produção (5),
+      # mesma lógica documentada em apps/api/.env.test.example.
+      AUTH_LOGIN_RATE_LIMIT: 50
     steps:
       - uses: actions/checkout@v4
 
@@ -145,6 +183,23 @@ jobs:
         run: |
           ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
           npm install --no-save "@rollup/rollup-linux-x64-gnu@$ROLLUP_VERSION"
+
+      - run: npm run prisma:generate --workspace apps/api
+      - run: npm run prisma:migrate:deploy --workspace apps/api
+      - run: npm run prisma:seed --workspace apps/api
+      - run: npm run build --workspace apps/api
+
+      - name: Arrancar a API em segundo plano (login real da suite E2E)
+        run: |
+          npm run start:prod --workspace apps/api &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000/api/v1/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "A API não respondeu em /api/v1/health a tempo." >&2
+          exit 1
 
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e --workspace apps/web

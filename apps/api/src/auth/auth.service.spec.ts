@@ -26,7 +26,8 @@ describe('AuthService', () => {
       session: { create: jest.fn(), updateMany: jest.fn() },
     };
     const configGet = jest.fn((key: string): unknown => {
-      if (key === 'SESSION_SECRET') return 'segredo-de-teste-com-32-caracteres!!';
+      if (key === 'SESSION_SECRET')
+        return 'segredo-de-teste-com-32-caracteres!!';
       if (key === 'SESSION_TTL') return 604800;
       throw new Error(`chave de configuração inesperada: ${key}`);
     });
@@ -49,7 +50,10 @@ describe('AuthService', () => {
       prisma.user.update.mockResolvedValue(undefined);
       prisma.session.create.mockResolvedValue(undefined);
 
-      const result = await service.login('marta.silva@dgadr.gov.pt', 'Demo123!');
+      const result = await service.login(
+        'marta.silva@dgadr.gov.pt',
+        'Demo123!',
+      );
 
       expect(result.user).toEqual({
         id: 'user-1',
@@ -59,7 +63,11 @@ describe('AuthService', () => {
       });
       expect(result.token).toBeTruthy();
       expect(prisma.session.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ userId: 'user-1' }) }),
+        expect.objectContaining({
+          data: expect.objectContaining({ userId: 'user-1' }) as {
+            userId: string;
+          },
+        }),
       );
       expect(prisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: 'user-1' } }),
@@ -73,30 +81,35 @@ describe('AuthService', () => {
       await service.login('  Marta.Silva@DGADR.gov.pt  ', 'Demo123!');
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { email: 'marta.silva@dgadr.gov.pt' } }),
+        expect.objectContaining({
+          where: { email: 'marta.silva@dgadr.gov.pt' },
+        }),
       );
     });
 
     it('rejeita com mensagem genérica quando o e-mail não existe', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login('inexistente@dgadr.gov.pt', 'Demo123!')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.login('inexistente@dgadr.gov.pt', 'Demo123!'),
+      ).rejects.toThrow(UnauthorizedException);
       expect(prisma.session.create).not.toHaveBeenCalled();
     });
 
     it('nunca revela, pela mensagem, se a causa foi o e-mail ou a palavra-passe', async () => {
       const passwordHash = await hashPassword('Demo123!');
       prisma.user.findUnique.mockResolvedValueOnce(null);
-      const emailInexistente: Error = await service
+      const emailInexistente = (await service
         .login('inexistente@dgadr.gov.pt', 'qualquer')
-        .catch((error: Error) => error);
+        .catch((error: unknown) => error)) as UnauthorizedException;
 
-      prisma.user.findUnique.mockResolvedValueOnce({ ...activeUser, passwordHash });
-      const passwordErrada: Error = await service
+      prisma.user.findUnique.mockResolvedValueOnce({
+        ...activeUser,
+        passwordHash,
+      });
+      const passwordErrada = (await service
         .login('marta.silva@dgadr.gov.pt', 'errada')
-        .catch((error: Error) => error);
+        .catch((error: unknown) => error)) as UnauthorizedException;
 
       expect(emailInexistente).toBeInstanceOf(UnauthorizedException);
       expect(passwordErrada).toBeInstanceOf(UnauthorizedException);
@@ -111,9 +124,9 @@ describe('AuthService', () => {
         passwordHash,
       });
 
-      await expect(service.login('paulo.matos@dgadr.gov.pt', 'Demo123!')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.login('paulo.matos@dgadr.gov.pt', 'Demo123!'),
+      ).rejects.toThrow(UnauthorizedException);
       expect(prisma.session.create).not.toHaveBeenCalled();
     });
 
@@ -125,7 +138,10 @@ describe('AuthService', () => {
         passwordHash,
       });
 
-      const result = await service.login('joao.antunes@dgadr.gov.pt', 'Demo123!');
+      const result = await service.login(
+        'joao.antunes@dgadr.gov.pt',
+        'Demo123!',
+      );
 
       expect(result.user.roles).toEqual(['CONTENT_EDITOR', 'ADMIN']);
     });
@@ -139,8 +155,12 @@ describe('AuthService', () => {
 
       expect(prisma.session.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ revokedAt: null }),
-          data: expect.objectContaining({ revokedAt: expect.any(Date) }),
+          where: expect.objectContaining({
+            revokedAt: null,
+          }) as { revokedAt: null },
+          data: expect.objectContaining({
+            revokedAt: expect.any(Date) as Date,
+          }) as { revokedAt: Date },
         }),
       );
     });

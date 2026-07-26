@@ -9,18 +9,29 @@ import { PrismaService } from '../prisma/prisma.service';
 
 describe('AuthController', () => {
   let controller: AuthController;
-  let authService: { login: jest.Mock; logout: jest.Mock; changePassword: jest.Mock };
+  let authService: {
+    login: jest.Mock;
+    logout: jest.Mock;
+    changePassword: jest.Mock;
+  };
   let response: { cookie: jest.Mock; clearCookie: jest.Mock };
 
   beforeEach(async () => {
-    authService = { login: jest.fn(), logout: jest.fn(), changePassword: jest.fn() };
+    authService = {
+      login: jest.fn(),
+      logout: jest.fn(),
+      changePassword: jest.fn(),
+    };
     response = { cookie: jest.fn(), clearCookie: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useValue: authService },
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('development') } },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue('development') },
+        },
         // AuthGuard é instanciado pelo Nest ao compilar o módulo (referenciado por
         // @UseGuards nos métodos protegidos), mesmo que os testes abaixo chamem os
         // métodos do controller diretamente, sem passar pelo pipeline HTTP — só
@@ -71,7 +82,9 @@ describe('AuthController', () => {
     await controller.logout(request, response as unknown as Response);
 
     expect(authService.logout).toHaveBeenCalledWith('token-abc');
-    expect(response.clearCookie).toHaveBeenCalledWith(SESSION_COOKIE_NAME, { path: '/' });
+    expect(response.clearCookie).toHaveBeenCalledWith(SESSION_COOKIE_NAME, {
+      path: '/',
+    });
   });
 
   it('logout não chama o serviço quando não existe cookie, mas continua a limpá-lo', async () => {

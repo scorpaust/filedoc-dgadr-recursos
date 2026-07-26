@@ -6,6 +6,13 @@ import { defineConfig, devices } from '@playwright/test';
 const PORT = 4310;
 const BASE_URL = `http://localhost:${PORT}`;
 
+// Desde a Fase 1 (Integração), o login é real: `apiUrlInterceptor` já prefixa os pedidos
+// com `AppConfigService.apiUrl` (por omissão `http://localhost:3000/api/v1`, ver
+// app-config.service.ts) e envia-os com `withCredentials: true`. A API tem de estar a
+// correr em localhost:3000 antes desta suite (tanto localmente como no job `e2e` do CI),
+// com `CORS_ALLOWED_ORIGINS` a incluir `http://localhost:4310`, para o cookie de sessão
+// HttpOnly cross-origin ser aceite pelo browser.
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
