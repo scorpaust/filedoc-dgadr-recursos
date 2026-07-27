@@ -37,5 +37,46 @@ services:
       timeout: 5s
       retries: 5
 
+  # Armazenamento de objetos de desenvolvimento (Fase 2, Integração — módulo `storage/`),
+  # compatível com S3 (mesmas credenciais/porta já usadas em `docker-compose.prod.yml`,
+  # Fase 3, Deployment, para não divergir de configuração entre ambientes).
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: filedoc
+      MINIO_ROOT_PASSWORD: filedoc123
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Armazenamento de objetos efémero para os testes de integração — isolado do MinIO de
+  # desenvolvimento acima, mesmo princípio já aplicado ao "postgres-test". Sem volume.
+  # Arrancar com: docker compose --profile test up -d minio-test
+  minio-test:
+    image: minio/minio:latest
+    profiles: ['test']
+    environment:
+      MINIO_ROOT_USER: filedoc_test
+      MINIO_ROOT_PASSWORD: filedoc_test123
+    command: server /data --console-address ":9003"
+    ports:
+      - '9002:9000'
+      - '9003:9003'
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres-data:
+  minio-data:

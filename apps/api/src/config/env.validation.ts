@@ -2,6 +2,16 @@ const DEFAULT_SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 dias
 const MIN_SESSION_SECRET_LENGTH = 32;
 const DEFAULT_CORS_ALLOWED_ORIGINS = 'http://localhost:4200';
 
+// Fase 2 (Integração) — Armazenamento de Ficheiros (storage/).
+const DEFAULT_STORAGE_REGION = 'us-east-1'; // ignorado pelo MinIO, exigido pelo SDK
+const DEFAULT_MAX_UPLOAD_SIZE_BYTES = 500 * 1024 * 1024; // 500 MB
+const DEFAULT_MAX_ATTACHMENTS_PER_TICKET = 5;
+const DEFAULT_STORAGE_MULTIPART_THRESHOLD_BYTES = 100 * 1024 * 1024; // 100 MB, ver riscos em aberto de fase-2-integracao-armazenamento.md
+const DEFAULT_STORAGE_MULTIPART_PART_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB, acima do mínimo de 5 MB exigido pelo protocolo S3
+const DEFAULT_STORAGE_UPLOAD_URL_TTL_SECONDS = 15 * 60; // 15 minutos
+const DEFAULT_STORAGE_DOWNLOAD_URL_TTL_SECONDS = 60 * 60; // 1 hora, ver riscos em aberto de fase-2-integracao-armazenamento.md
+const DEFAULT_STORAGE_ORPHAN_GRACE_PERIOD_SECONDS = 24 * 60 * 60; // 24 horas
+
 export interface EnvironmentVariables {
   NODE_ENV: string;
   PORT: number;
@@ -10,6 +20,60 @@ export interface EnvironmentVariables {
   SESSION_TTL: number;
   CORS_ALLOWED_ORIGINS: readonly string[];
   TRUST_PROXY: boolean;
+  STORAGE_ENDPOINT: string;
+  STORAGE_REGION: string;
+  STORAGE_BUCKET: string;
+  STORAGE_ACCESS_KEY: string;
+  STORAGE_SECRET_KEY: string;
+  STORAGE_FORCE_PATH_STYLE: boolean;
+  MAX_UPLOAD_SIZE: number;
+  MAX_ATTACHMENTS_PER_TICKET: number;
+  STORAGE_MULTIPART_THRESHOLD_BYTES: number;
+  STORAGE_MULTIPART_PART_SIZE_BYTES: number;
+  STORAGE_UPLOAD_URL_TTL_SECONDS: number;
+  STORAGE_DOWNLOAD_URL_TTL_SECONDS: number;
+  STORAGE_ORPHAN_GRACE_PERIOD_SECONDS: number;
+}
+
+function requireNonEmptyString(
+  config: Record<string, unknown>,
+  key: string,
+): string {
+  const value = config[key];
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(
+      `${key} não está definida. Configure-a em apps/api/.env (ver apps/api/.env.example) antes de arrancar a aplicação.`,
+    );
+  }
+  return value;
+}
+
+function readPositiveInt(
+  config: Record<string, unknown>,
+  key: string,
+  defaultValue: number,
+): number {
+  const raw = config[key];
+  const value = raw === undefined ? defaultValue : Number(raw);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`${key} tem de ser um número positivo.`);
+  }
+  return value;
+}
+
+/** Como `readPositiveInt`, mas aceita zero — usado por limites onde "0" tem
+ * significado próprio (ex. sem janela de graça para objetos órfãos). */
+function readNonNegativeInt(
+  config: Record<string, unknown>,
+  key: string,
+  defaultValue: number,
+): number {
+  const raw = config[key];
+  const value = raw === undefined ? defaultValue : Number(raw);
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(`${key} tem de ser um número igual ou superior a zero.`);
+  }
+  return value;
 }
 
 export function validate(
@@ -66,6 +130,55 @@ export function validate(
 
   const trustProxy = config['TRUST_PROXY'] === 'true';
 
+  const storageEndpoint = requireNonEmptyString(config, 'STORAGE_ENDPOINT');
+  const storageBucket = requireNonEmptyString(config, 'STORAGE_BUCKET');
+  const storageAccessKey = requireNonEmptyString(config, 'STORAGE_ACCESS_KEY');
+  const storageSecretKey = requireNonEmptyString(config, 'STORAGE_SECRET_KEY');
+  const storageRegion =
+    typeof config['STORAGE_REGION'] === 'string' &&
+    config['STORAGE_REGION'].trim() !== ''
+      ? config['STORAGE_REGION']
+      : DEFAULT_STORAGE_REGION;
+  // Por omissão "true": necessário para MinIO e para qualquer S3 acedido por
+  // endereço IP/hostname direto, não pelo formato de subdomínio por bucket.
+  const storageForcePathStyle = config['STORAGE_FORCE_PATH_STYLE'] !== 'false';
+
+  const maxUploadSize = readPositiveInt(
+    config,
+    'MAX_UPLOAD_SIZE',
+    DEFAULT_MAX_UPLOAD_SIZE_BYTES,
+  );
+  const maxAttachmentsPerTicket = readPositiveInt(
+    config,
+    'MAX_ATTACHMENTS_PER_TICKET',
+    DEFAULT_MAX_ATTACHMENTS_PER_TICKET,
+  );
+  const storageMultipartThresholdBytes = readPositiveInt(
+    config,
+    'STORAGE_MULTIPART_THRESHOLD_BYTES',
+    DEFAULT_STORAGE_MULTIPART_THRESHOLD_BYTES,
+  );
+  const storageMultipartPartSizeBytes = readPositiveInt(
+    config,
+    'STORAGE_MULTIPART_PART_SIZE_BYTES',
+    DEFAULT_STORAGE_MULTIPART_PART_SIZE_BYTES,
+  );
+  const storageUploadUrlTtlSeconds = readPositiveInt(
+    config,
+    'STORAGE_UPLOAD_URL_TTL_SECONDS',
+    DEFAULT_STORAGE_UPLOAD_URL_TTL_SECONDS,
+  );
+  const storageDownloadUrlTtlSeconds = readPositiveInt(
+    config,
+    'STORAGE_DOWNLOAD_URL_TTL_SECONDS',
+    DEFAULT_STORAGE_DOWNLOAD_URL_TTL_SECONDS,
+  );
+  const storageOrphanGracePeriodSeconds = readNonNegativeInt(
+    config,
+    'STORAGE_ORPHAN_GRACE_PERIOD_SECONDS',
+    DEFAULT_STORAGE_ORPHAN_GRACE_PERIOD_SECONDS,
+  );
+
   return {
     NODE_ENV: nodeEnv,
     PORT: port,
@@ -74,5 +187,18 @@ export function validate(
     SESSION_TTL: sessionTtl,
     CORS_ALLOWED_ORIGINS: corsAllowedOrigins,
     TRUST_PROXY: trustProxy,
+    STORAGE_ENDPOINT: storageEndpoint,
+    STORAGE_REGION: storageRegion,
+    STORAGE_BUCKET: storageBucket,
+    STORAGE_ACCESS_KEY: storageAccessKey,
+    STORAGE_SECRET_KEY: storageSecretKey,
+    STORAGE_FORCE_PATH_STYLE: storageForcePathStyle,
+    MAX_UPLOAD_SIZE: maxUploadSize,
+    MAX_ATTACHMENTS_PER_TICKET: maxAttachmentsPerTicket,
+    STORAGE_MULTIPART_THRESHOLD_BYTES: storageMultipartThresholdBytes,
+    STORAGE_MULTIPART_PART_SIZE_BYTES: storageMultipartPartSizeBytes,
+    STORAGE_UPLOAD_URL_TTL_SECONDS: storageUploadUrlTtlSeconds,
+    STORAGE_DOWNLOAD_URL_TTL_SECONDS: storageDownloadUrlTtlSeconds,
+    STORAGE_ORPHAN_GRACE_PERIOD_SECONDS: storageOrphanGracePeriodSeconds,
   };
 }

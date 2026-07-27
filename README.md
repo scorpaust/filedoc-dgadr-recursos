@@ -30,6 +30,20 @@ Arranca um segundo PostgreSQL efémero e isolado (porta `5434`, sem volume persi
 usado exclusivamente pelos testes de integração (`npm run test:integration --workspace
 apps/api`). Ver `apps/api/.env.test.example` para a variável `DATABASE_URL` esperada.
 
+## Armazenamento de objetos (Fase 2, Integração)
+
+```bash
+docker compose up -d                              # sobe também o MinIO de desenvolvimento
+docker compose --profile test up -d minio-test    # MinIO efémero para os testes de integração
+```
+
+Módulo `storage/` reutilizável (`apps/api/src/storage/`), sobre um SDK compatível com
+S3 (MinIO em desenvolvimento e testes, o serviço escolhido na Fase 5 — Deployment em
+homologação/produção) — URLs pré-assinados de upload/download, *multipart upload*,
+validação de extensão/MIME/assinatura real e limpeza de objetos órfãos. Ver
+`docs/armazenamento-ficheiros.md` para os limites configuráveis e `apps/api/.env.
+example` para as variáveis `STORAGE_*`.
+
 ## Instalação
 
 ```bash

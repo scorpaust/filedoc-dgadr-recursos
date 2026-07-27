@@ -27,12 +27,15 @@
     "prisma:validate": "prisma validate",
     "prisma:status": "prisma migrate status",
     "prisma:seed": "ts-node prisma/seed.ts",
-    "test:integration": "jest --config ./test/integration/jest-integration.json --runInBand"
+    "test:integration": "jest --config ./test/integration/jest-integration.json --runInBand",
+    "storage:cleanup-orphans": "ts-node src/storage/scripts/cleanup-orphans.script.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1095.0",
+    "@aws-sdk/s3-request-presigner": "^3.1095.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
@@ -59,6 +62,8 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
     "@types/supertest": "^7.0.0",
+    "aws-sdk-client-mock": "^4.1.0",
+    "aws-sdk-client-mock-jest": "^4.1.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
