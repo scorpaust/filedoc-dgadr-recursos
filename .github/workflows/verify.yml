@@ -87,6 +87,17 @@ jobs:
       # dezenas de pedidos de login legítimos.
       SESSION_SECRET: ci-apenas-valor-aleatorio-com-pelo-menos-32-caracteres
       AUTH_LOGIN_RATE_LIMIT: 20
+      # Fase 2 (Integração) — Armazenamento de Ficheiros: aponta para o serviço "minio"
+      # acima; limiar de multipart baixo de propósito, mesma lógica de
+      # apps/api/.env.test.example (exercitar esse caminho sem precisar de um ficheiro de
+      # teste de 100 MB).
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_BUCKET: filedoc-recursos-test
+      STORAGE_ACCESS_KEY: filedoc_test
+      STORAGE_SECRET_KEY: filedoc_test123
+      STORAGE_MULTIPART_THRESHOLD_BYTES: 5242880
+      STORAGE_MULTIPART_PART_SIZE_BYTES: 5242880
+      STORAGE_ORPHAN_GRACE_PERIOD_SECONDS: 0
     steps:
       - uses: actions/checkout@v4
 
@@ -97,6 +108,29 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - run: npm ci
+
+      # Fase 2 (Integração) — Armazenamento de Ficheiros: `test:integration` inclui
+      # storage.integration-spec.ts, que faz upload/download reais (não mocados) contra
+      # um MinIO real. A imagem oficial "minio/minio" não arranca o servidor sem um
+      # comando explícito ("server /data"), que os serviços do GitHub Actions
+      # (services:) não permitem definir — por isso arranca-se aqui manualmente, mesmo
+      # padrão de "arrancar em segundo plano e aguardar o health-check" já usado para a
+      # própria API no job "e2e". `StorageService.onModuleInit()` cria o bucket
+      # automaticamente assim que a aplicação arrancar (não é preciso criá-lo aqui).
+      - name: Arrancar o MinIO em segundo plano
+        run: |
+          docker run -d --name minio-test -p 9000:9000 \
+            -e MINIO_ROOT_USER=filedoc_test \
+            -e MINIO_ROOT_PASSWORD=filedoc_test123 \
+            minio/minio:latest server /data
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "O MinIO não respondeu a tempo." >&2
+          exit 1
 
       # `npm run --workspace` (em vez de `npx prisma ...` a partir da raiz) — o
       # binário `prisma` não fica hoisted para a raiz do monorepo, só existe em
@@ -162,6 +196,10 @@ jobs:
       # fluxo) — limite elevado para não colidir com o valor por omissão de produção (5),
       # mesma lógica documentada em apps/api/.env.test.example.
       AUTH_LOGIN_RATE_LIMIT: 50
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_BUCKET: filedoc-recursos-e2e
+      STORAGE_ACCESS_KEY: filedoc_e2e
+      STORAGE_SECRET_KEY: filedoc_e2e123
     steps:
       - uses: actions/checkout@v4
 
@@ -172,6 +210,27 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - run: npm ci
+
+      # Fase 2 (Integração) — Armazenamento de Ficheiros: a aplicação não arranca sem as
+      # variáveis STORAGE_* (ver env.validation.ts). Nenhum fluxo E2E desta fase exerce
+      # ainda o armazenamento (sem controller próprio), mas a API precisa de um MinIO
+      # alcançável para o arranque não falhar — mesmo passo do job "db-validation" (ver
+      # o comentário lá sobre a imagem oficial "minio/minio" exigir um comando explícito,
+      # que os serviços do GitHub Actions não permitem definir).
+      - name: Arrancar o MinIO em segundo plano
+        run: |
+          docker run -d --name minio-e2e -p 9000:9000 \
+            -e MINIO_ROOT_USER=filedoc_e2e \
+            -e MINIO_ROOT_PASSWORD=filedoc_e2e123 \
+            minio/minio:latest server /data
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "O MinIO não respondeu a tempo." >&2
+          exit 1
 
       # Workaround para o bug conhecido npm/cli#4828: o `package-lock.json` só tem
       # registada a variante do binário nativo do Rollup para a plataforma onde foi
