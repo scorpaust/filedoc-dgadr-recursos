@@ -8,7 +8,7 @@ Fase 2 (Integração) — Armazenamento de Ficheiros
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso
+Concluída
 
 ## Objetivos
 
@@ -392,4 +392,7 @@ pipeline de CI a validar esse estado de forma repetível.
   - **validação de integração real contra MinIO** (não mocada — `apps/api/test/integration/storage.integration-spec.ts`, com `minio-test` a correr via Docker): upload por URL pré-assinado seguido de `confirmUpload`/`validateUploadedFileSignature`; download com pedido `Range` real a devolver `206 Partial Content` e o `Content-Range` esperado, com o conteúdo devolvido a corresponder exatamente ao intervalo pedido; remoção automática confirmada de um objeto cujo conteúdo real (PNG) não corresponde ao tipo declarado (PDF); *multipart upload* completo (3 partes reais) com verificação de integridade byte a byte do ficheiro descarregado; `abortMultipartUpload` a recuperar de uma interrupção simulada a meio do carregamento (só a primeira parte chega a ser enviada), confirmando que o carregamento deixa de poder ser concluído e que nenhum objeto fica para trás; limpeza de objetos órfãos a remover um objeto sem referência e a nunca remover um objeto referenciado por um recurso arquivado real do seed — os 48 testes de integração (7 suites, incluindo os já existentes das fases anteriores) passam de forma repetível em execuções consecutivas;
   - decisão registada: sem controller nem DTOs HTTP nesta fase — a especificação restringe explicitamente o âmbito ao módulo reutilizável, deixando a exposição por endpoints para as fases seguintes que o vierem a consumir (Catálogo, Suporte, Gestão de conteúdos);
   - decisão registada: `MAX_UPLOAD_SIZE` aplica-se como limite único a todos os contextos (vídeo, PDF, miniatura, anexo de ticket) — `project-spec.md` só prevê essa variável global, sem um tamanho específico adicional para anexos de ticket, tal como o próprio risco em aberto do `fase-2-integracao-armazenamento.md` já previa como possibilidade;
-  - **por confirmar antes de considerar a fase concluída** (riscos já sinalizados pela própria especificação, não resolvidos aqui): o limiar exato de *multipart upload* (100 MB, valor indicativo) e a duração de expiração dos URLs de download (1 hora) só podem ser fixados em definitivo depois de testados com ficheiros de vídeo reais e com o comportamento do leitor de vídeo da via de UI; commit ainda por autorizar.
+  - **por confirmar antes de considerar a fase concluída** (riscos já sinalizados pela própria especificação, não resolvidos aqui): o limiar exato de *multipart upload* (100 MB, valor indicativo) e a duração de expiração dos URLs de download (1 hora) só podem ser fixados em definitivo depois de testados com ficheiros de vídeo reais e com o comportamento do leitor de vídeo da via de UI;
+  - commit efetuado em `feature/fase-2-integracao-armazenamento` ("feat: Fase 2 (Integração) — Armazenamento de Ficheiros"), a pedido do utilizador.
+- branch `feature/fase-2-integracao-armazenamento` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida (só existia localmente).
+- Fase marcada como concluída a pedido explícito do utilizador, apesar de os pontos já registados acima continuarem em aberto (limiar exato de *multipart upload* e duração de expiração dos URLs de download, ambos a confirmar com ficheiros de vídeo reais e com o leitor de vídeo da via de UI) — mesma decisão já tomada, pelo mesmo motivo, no fecho das Fases 4 e 5 (Deployment) e da Fase 1 (Integração).
