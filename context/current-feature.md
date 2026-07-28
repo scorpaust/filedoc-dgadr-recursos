@@ -8,7 +8,7 @@ Fase 4 (Integração) — Dicas & Perguntas Frequentes
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso
+Concluída
 
 ## Objetivos
 
@@ -432,3 +432,5 @@ pipeline de CI a validar esse estado de forma repetível.
 - Suite E2E (Fase 11 — UI) executada contra a API real (Postgres de desenvolvimento + MinIO local, login real desde a Fase 1 — Integração): sem nenhum ficheiro de fluxo dedicado a `/dicas-faq` (a rota já era exercida apenas pelas auditorias genéricas — `routes-axe`, `keyboard-navigation`, `motion-zoom-touch`, `responsive`, `theme-contrast` —, sem asserções sobre o conteúdo específico dos mocks), pelo que nenhuma alteração foi necessária a nenhum ficheiro E2E; suite completa (57 testes) executada: 55 passam, incluindo todas as auditorias que visitam `/dicas-faq` agora com dados reais; as únicas 2 falhas (`03-support-employee.spec.ts`, fluxos 7 e 8) são exatamente a mesma falha pré-existente já documentada no fecho da Fase 3 — Integração (`id` de `marta.silva` desatualizado na base de dados de desenvolvimento face à convenção de `id` fixo), sem qualquer relação com o módulo `content/`;
 - validação automática: `apps/api` — `lint`, `format:check`, `typecheck`, `test` (114/114, incluindo os 6 novos de `content/`), `test:integration` (72/72, incluindo os 6 novos de `content.integration-spec.ts`) e `build`, todos sem erros; `apps/web` — `lint`, `typecheck`, `test` (360/360, incluindo os 2 novos do `TipsFaqService`) e `build` (produção), todos sem erros; `format:check` sem regressões nos ficheiros desta fase (aviso pré-existente por fim de linha `core.autocrlf`, documentado desde a Fase 2 da via de UI, confirmado com `prettier --write` isolado nos ficheiros desta fase).
 - commit efetuado em `feature/fase-4-integracao-dicas-faq` ("feat: Fase 4 (Integração) — Dicas & Perguntas Frequentes"), a pedido do utilizador.
+- branch `feature/fase-4-integracao-dicas-faq` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida (só existia localmente).
+- Fase marcada como concluída a pedido explícito do utilizador; sem pontos em aberto registados durante esta fase — os únicos riscos observados (falha pré-existente em `03-support-employee.spec.ts`, sem relação com o módulo `content/`) já estavam documentados e por resolver desde o fecho da Fase 3 (Integração).
