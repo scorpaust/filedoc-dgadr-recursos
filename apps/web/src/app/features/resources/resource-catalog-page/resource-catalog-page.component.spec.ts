@@ -5,6 +5,8 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { resources } from '../../../shared/mocks/resources.mock';
 import { users } from '../../../shared/mocks/users.mock';
 import { UserRole } from '../../../shared/models';
+import { ResourceMockService } from '../data/resource-mock.service';
+import { ResourceService } from '../data/resource.service';
 import { ResourceCatalogPageComponent } from './resource-catalog-page.component';
 
 function fakeRoute(queryParams: Params = {}): ActivatedRoute {
@@ -22,7 +24,15 @@ describe('ResourceCatalogPageComponent', () => {
   // componente — caso contrário a primeira pesquisa corre sem função atribuída.
   function createFixture(role: UserRole, queryParams: Params = {}) {
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: ActivatedRoute, useValue: fakeRoute(queryParams) }],
+      providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: fakeRoute(queryParams) },
+        // O componente consome `ResourceService` (API real, Fase 3 — Integração); estes
+        // testes continuam a validar o comportamento de pesquisa/filtros/paginação contra
+        // o `ResourceMockService` já existente (mesmo conjunto de dados de demonstração),
+        // que implementa a mesma assinatura pública.
+        { provide: ResourceService, useExisting: ResourceMockService },
+      ],
     });
     const authService = TestBed.inject(AuthService);
     const user = users.find(

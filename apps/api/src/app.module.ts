@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { validate } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ResourcesModule } from './resources/resources.module';
 import { StorageModule } from './storage/storage.module';
 
 const DEFAULT_RATE_LIMIT = 100;
@@ -25,6 +26,7 @@ const DEFAULT_RATE_LIMIT = 100;
     HealthModule,
     AuthModule,
     StorageModule,
+    ResourcesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

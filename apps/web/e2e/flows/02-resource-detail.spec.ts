@@ -11,7 +11,7 @@ test('fluxo 4: abertura de vídeo', async ({ page }) => {
 
   const video = page.locator('video');
   await expect(video).toBeVisible();
-  await expect(video.locator('source')).toHaveAttribute('src', /resource-demo\.mp4/);
+  await expect(video.locator('source')).toHaveAttribute('src', /\/resources\/.+\/file$/);
   await expect(video).not.toHaveAttribute('autoplay', '');
   expect(await video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(true);
   await expect(page.getByRole('button', { name: 'Pedir suporte sobre este tema' })).toBeVisible();

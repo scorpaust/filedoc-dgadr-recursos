@@ -18,7 +18,7 @@ import {
 } from '../../../shared/components/segmented-control/segmented-control.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { Difficulty, WORKFLOWS } from '../../../shared/models';
-import { ResourceMockService } from '../data/resource-mock.service';
+import { ResourceService } from '../data/resource.service';
 import {
   ResourceSearchParams,
   ResourceSearchResult,
@@ -84,7 +84,7 @@ interface CatalogFilters {
 export class ResourceCatalogPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly resourceService = inject(ResourceMockService);
+  private readonly resourceService = inject(ResourceService);
 
   private readonly initialFilters = this.readFiltersFromUrl();
 

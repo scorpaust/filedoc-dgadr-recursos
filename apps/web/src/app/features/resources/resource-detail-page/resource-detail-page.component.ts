@@ -14,6 +14,7 @@ import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.
 import { VideoPlayerComponent } from '../../../shared/components/video-player/video-player.component';
 import { Resource } from '../../../shared/models';
 import { ResourceMockService } from '../data/resource-mock.service';
+import { ResourceService } from '../data/resource.service';
 
 interface ResourceDetail {
   readonly resource: Resource | undefined;
@@ -40,7 +41,11 @@ const EMPTY_DETAIL: ResourceDetail = { resource: undefined, related: [] };
   styleUrl: './resource-detail-page.component.scss',
 })
 export class ResourceDetailPageComponent {
-  private readonly resourceService = inject(ResourceMockService);
+  private readonly resourceService = inject(ResourceService);
+  // Só usado pela pré-visualização de um editor (Fase 8 — UI, fora do âmbito da Fase 3 —
+  // Integração), que ignora o estado editorial — o `ResourceService` real não expõe esse
+  // caso de uso, dado que não integra criação/edição de recursos (Fase 7).
+  private readonly resourceMockService = inject(ResourceMockService);
   private readonly lastViewedResourceService = inject(LastViewedResourceService);
   private readonly router = inject(Router);
 
@@ -60,14 +65,14 @@ export class ResourceDetailPageComponent {
       }),
       switchMap((slug) =>
         this.previewMode()
-          ? this.resourceService.getForPreview(slug)
+          ? this.resourceMockService.getForPreview(slug)
           : this.resourceService.getBySlug(slug),
       ),
       switchMap((resource) =>
         resource
-          ? this.resourceService
-              .getRelated(resource.relatedResourceIds)
-              .pipe(switchMap((related) => of({ resource, related })))
+          ? this.getRelated(resource.relatedResourceIds).pipe(
+              switchMap((related) => of({ resource, related })),
+            )
           : of({ resource: undefined, related: [] as readonly Resource[] }),
       ),
       tap((detail) => {
@@ -96,5 +101,11 @@ export class ResourceDetailPageComponent {
     this.router.navigate(['/suporte/novo'], {
       queryParams: { recurso: resource.slug, assunto: resource.title },
     });
+  }
+
+  private getRelated(ids: readonly string[]) {
+    return this.previewMode()
+      ? this.resourceMockService.getRelated(ids)
+      : this.resourceService.getRelated(ids);
   }
 }

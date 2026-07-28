@@ -5,6 +5,8 @@ import { LastViewedResourceService } from '../../../core/services/last-viewed-re
 import { resources } from '../../../shared/mocks/resources.mock';
 import { users } from '../../../shared/mocks/users.mock';
 import { UserRole } from '../../../shared/models';
+import { ResourceMockService } from '../data/resource-mock.service';
+import { ResourceService } from '../data/resource.service';
 import { ResourceDetailPageComponent } from './resource-detail-page.component';
 
 const VIDEO_WITH_CAPTIONS_SLUG = 'criar-um-novo-processo-de-correspondencia'; // res-1
@@ -14,7 +16,14 @@ const DRAFT_SLUG = 'corrigir-metadados-de-um-oficio'; // res-3, related to res-1
 describe('ResourceDetailPageComponent', () => {
   function createFixture(role: UserRole, slug: string, previewMode = false) {
     TestBed.configureTestingModule({
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        // O componente consome `ResourceService` (API real, Fase 3 — Integração) para o
+        // caminho normal; estes testes continuam a validar o comportamento contra o
+        // `ResourceMockService` já existente (mesmo conjunto de dados de demonstração),
+        // que implementa a mesma assinatura pública.
+        { provide: ResourceService, useExisting: ResourceMockService },
+      ],
     });
     const authService = TestBed.inject(AuthService);
     const user = users.find(
