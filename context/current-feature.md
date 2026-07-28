@@ -8,7 +8,7 @@ Fase 3 (Integração) — Catálogo e Detalhe de Recursos
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso
+Concluída
 
 ## Objetivos
 
@@ -416,3 +416,5 @@ pipeline de CI a validar esse estado de forma repetível.
   - `AUTH_LOGIN_RATE_LIMIT` tem de ser aumentado (`=50`, como já faz o job `e2e` do CI) ao correr a suite completa localmente — o valor por omissão de produção (5 pedidos/60 s) esgota-se a meio de uma suite com dezenas de logins; sem isto, dezenas de fluxos falham por `429` disfarçado de sessão inválida (redireciona sempre para `/login`) — não é uma regressão desta fase, só faltava replicar a variável de ambiente do CI ao correr localmente.
 - validação automática: `apps/api` — `lint`, `format:check`, `typecheck`, `test` (108/108, incluindo os 16 novos de `resources/`), `test:integration` (66/66, incluindo os 18 novos de `resources.integration-spec.ts`), todos sem erros; `apps/web` — `lint`, `typecheck`, `test` (358/358, com as mesmas intermitências não determinísticas por lentidão da máquina em componentes CDK Dialog/Overlay já documentadas desde a Fase 4 da via de UI, confirmadas como não relacionadas por reexecução isolada), todos sem erros; `format:check` sem regressões nos ficheiros desta fase (aviso pré-existente por fim de linha `core.autocrlf`, documentado desde a Fase 2 da via de UI, em ficheiros não tocados por esta fase);
 - commit efetuado em `feature/fase-3-integracao-catalogo` ("feat: Fase 3 (Integração) — Catálogo e Detalhe de Recursos"), a pedido do utilizador.
+- branch `feature/fase-3-integracao-catalogo` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida (só existia localmente).
+- Fase marcada como concluída a pedido explícito do utilizador, apesar de os pontos já registados acima continuarem em aberto: a falha pré-existente em `03-support-employee.spec.ts` (`id` de `marta.silva` desatualizado na base de dados de desenvolvimento face à convenção de `id` fixo, sem relação com o módulo `resources/`) e a decisão de pesquisa de texto por `ILIKE`/`insensitive` em vez de `tsvector` (risco em aberto já sinalizado pela própria especificação, a rever consoante o volume real de recursos) — mesma decisão já tomada, pelo mesmo motivo, no fecho das Fases 1 e 2 (Integração) e das Fases 4 e 5 (Deployment).
