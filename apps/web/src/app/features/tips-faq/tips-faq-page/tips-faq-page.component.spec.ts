@@ -6,11 +6,20 @@ import { tips } from '../../../shared/mocks/tips.mock';
 import { users } from '../../../shared/mocks/users.mock';
 import { UserRole } from '../../../shared/models';
 import { TipsFaqMockService } from '../data/tips-faq-mock.service';
+import { TipsFaqService } from '../data/tips-faq.service';
 import { TipsFaqPageComponent } from './tips-faq-page.component';
 
 describe('TipsFaqPageComponent', () => {
   function createFixture(role: UserRole) {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [
+        // O componente consome `TipsFaqService` (API real, Fase 4 — Integração); estes testes
+        // continuam a validar o comportamento de visibilidade/agrupamento contra o
+        // `TipsFaqMockService` já existente (mesmo conjunto de dados de demonstração), que
+        // implementa a mesma assinatura pública.
+        { provide: TipsFaqService, useExisting: TipsFaqMockService },
+      ],
+    });
     const authService = TestBed.inject(AuthService);
     const user = users.find(
       (candidate) => candidate.roles.includes(role) && candidate.status === 'active',
@@ -113,7 +122,7 @@ describe('TipsFaqPageComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         {
-          provide: TipsFaqMockService,
+          provide: TipsFaqService,
           useValue: { getTips: () => of([]), getFaqs: () => of([]) },
         },
       ],
