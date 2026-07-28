@@ -8,7 +8,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { TipCardComponent } from '../../../shared/components/tip-card/tip-card.component';
 import { Faq, Tip } from '../../../shared/models';
-import { TipsFaqMockService } from '../data/tips-faq-mock.service';
+import { TipsFaqService } from '../data/tips-faq.service';
 
 interface FaqGroup {
   readonly category: string | undefined;
@@ -37,7 +37,7 @@ const TIP_SKELETON_COUNT = 4;
   styleUrl: './tips-faq-page.component.scss',
 })
 export class TipsFaqPageComponent {
-  private readonly tipsFaqService = inject(TipsFaqMockService);
+  private readonly tipsFaqService = inject(TipsFaqService);
 
   protected readonly loading = signal(true);
   protected readonly tipSkeletonPlaceholders = Array.from(

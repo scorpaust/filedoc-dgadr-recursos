@@ -1,20 +1,20 @@
 # Funcionalidade Atual
 
-Fase 3 (Integração) — Catálogo e Detalhe de Recursos
+Fase 4 (Integração) — Dicas & Perguntas Frequentes
 
-<!-- Ver especificação completa em context/features/integracao/fase-3-integracao-catalogo.md -->
+<!-- Ver especificação completa em context/features/integracao/fase-4-integracao-dicas-faq.md -->
 
 ## Estado
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Concluída
+Em progresso
 
 ## Objetivos
 
 <!-- Objetivos e requisitos -->
 
-Ver `context/features/integracao/fase-3-integracao-catalogo.md`.
+Ver `context/features/integracao/fase-4-integracao-dicas-faq.md`.
 
 ## Notas
 
@@ -418,3 +418,17 @@ pipeline de CI a validar esse estado de forma repetível.
 - commit efetuado em `feature/fase-3-integracao-catalogo` ("feat: Fase 3 (Integração) — Catálogo e Detalhe de Recursos"), a pedido do utilizador.
 - branch `feature/fase-3-integracao-catalogo` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida (só existia localmente).
 - Fase marcada como concluída a pedido explícito do utilizador, apesar de os pontos já registados acima continuarem em aberto: a falha pré-existente em `03-support-employee.spec.ts` (`id` de `marta.silva` desatualizado na base de dados de desenvolvimento face à convenção de `id` fixo, sem relação com o módulo `resources/`) e a decisão de pesquisa de texto por `ILIKE`/`insensitive` em vez de `tsvector` (risco em aberto já sinalizado pela própria especificação, a rever consoante o volume real de recursos) — mesma decisão já tomada, pelo mesmo motivo, no fecho das Fases 1 e 2 (Integração) e das Fases 4 e 5 (Deployment).
+- Criação da especificação da Fase 4 (Integração) — Dicas & Perguntas Frequentes (`context/features/integracao/fase-4-integracao-dicas-faq.md`), quarta fase da via de Integração de Funcionalidades: assume como ponto de partida a Fase 3 (Integração) — Catálogo e Detalhe de Recursos, já concluída, cujo padrão de endpoint/visibilidade esta fase reutiliza diretamente; substitui `TipMockService`/`FaqMockService` (Fase 5 da via de UI) por consumo real — módulo `tips`/`faqs` (ou um módulo `content` partilhado, a decidir por conveniência) com `GET /tips` e `GET /faqs`, ordenados por `sortOrder` e com a mesma regra de visibilidade por estado editorial/função já validada nas fases anteriores desta via (`category` incluída na resposta de `/faqs`, para o agrupamento visual do acordeão da via de UI); cobre também a ligação da página `/dicas-faq` da via de UI aos endpoints reais e a suite E2E relevante (Fase 11 — via de UI) a correr contra a API real; fora de âmbito: criação/edição/reordenação (Fase 7 — Gestão de Conteúdos); implementação ainda não iniciada.
+- Início da implementação da Fase 4 (Integração) — Dicas & Perguntas Frequentes, na branch `feature/fase-4-integracao-dicas-faq`.
+- Implementação do módulo `content/` na API (`apps/api/src/content/`), único módulo a servir dicas e perguntas frequentes — decisão registada (risco em aberto da especificação, "módulo `tips`/`faqs` separado ou `content` partilhado, a decidir por conveniência"): módulo único, por os dois endpoints serem apenas leitura, sem detalhe, e partilharem exatamente a mesma regra de visibilidade e o mesmo `ContentStatus` do Prisma — duplicar dois serviços quase idênticos não trazia benefício:
+  - `ContentController` (sem prefixo de rota — `@Get('tips')`/`@Get('faqs')`, os únicos dois endpoints top-level exigidos por `project-spec.md`, secção "Dicas e perguntas frequentes"), atrás de `AuthGuard` (mesmo padrão do `ResourcesController`, Fase 3 — Integração: a visibilidade por estado editorial é decidida no serviço, nunca por função fixa da rota);
+  - `ContentService`: `listTips`/`listFaqs`, `PUBLISHED` sempre visível, `DRAFT` só a `CONTENT_EDITOR`/`ADMIN`, `ARCHIVED` nunca — mesma regra já validada pelo `ResourcesService`; ordenação por `sortOrder` (`asc`) em ambos; mapeamento de resposta: `Tip.content` (BD) → `text` (só campo que o modelo `Tip` do frontend expõe — `title` é interno, só usado pela gestão editorial da Fase 8 — UI, fora de âmbito aqui); `Faq.category` (`null` na BD) → `undefined` na resposta, alinhado com o modelo `Faq` do frontend;
+  - `ContentModule` registado em `AppModule`, a importar `PrismaModule` e `AuthModule`;
+  - testes unitários (`content.controller.spec.ts`, `content.service.spec.ts`, 6 testes): delegação do controller, visibilidade por função, mapeamento `content`→`text` e `null`→`undefined` da categoria;
+  - `content.integration-spec.ts` novo (12 testes, HTTP real via `supertest`, autenticando com `marta.silva`/`joao.antunes` do seed): `401` sem sessão em ambos os endpoints; `GET /tips` devolve as 5 dicas publicadas a `EMPLOYEE` (nunca a 6.ª, em rascunho), ordenadas por `sortOrder`, e as 6 a `CONTENT_EDITOR`; `GET /faqs` devolve as 6 perguntas publicadas a `EMPLOYEE` com a categoria incluída (`undefined` para a única sem categoria) e as 7 a `CONTENT_EDITOR`.
+- Ligação da via de UI: `TipsFaqService` novo (`features/tips-faq/data/tips-faq.service.ts`), com a mesma assinatura pública `getTips`/`getFaqs` do `TipsFaqMockService` (Fase 5 — UI), consumindo `/tips`/`/faqs` via `HttpClient` (caminhos relativos, prefixados pelo `apiUrlInterceptor` já existente desde a Fase 1 — Integração); a resposta da API já corresponde 1:1 aos modelos `Tip`/`Faq` do frontend, sem necessidade de nenhum mapeamento no cliente (ao contrário do `ResourceService` da Fase 3, que tinha de construir URLs de ficheiro/miniatura);
+  - `TipsFaqPageComponent`: `inject(TipsFaqMockService)` → `inject(TipsFaqService)`; `TipsFaqManagementComponent` (gestão editorial, Fase 8 — UI, fora de âmbito) continua a injetar `TipsFaqMockService` diretamente, sem alterações;
+  - testes: `tips-faq.service.spec.ts` novo (`HttpTestingController`, 2 testes — `GET /tips`/`GET /faqs`, resposta devolvida tal como recebida); os testes existentes de `TipsFaqPageComponent` (11 testes) mantidos sem alterar uma única asserção — só acrescentado `{ provide: TipsFaqService, useExisting: TipsFaqMockService }` aos `providers` de teste, mesma técnica já usada na Fase 3 para o `ResourceService`.
+- Suite E2E (Fase 11 — UI) executada contra a API real (Postgres de desenvolvimento + MinIO local, login real desde a Fase 1 — Integração): sem nenhum ficheiro de fluxo dedicado a `/dicas-faq` (a rota já era exercida apenas pelas auditorias genéricas — `routes-axe`, `keyboard-navigation`, `motion-zoom-touch`, `responsive`, `theme-contrast` —, sem asserções sobre o conteúdo específico dos mocks), pelo que nenhuma alteração foi necessária a nenhum ficheiro E2E; suite completa (57 testes) executada: 55 passam, incluindo todas as auditorias que visitam `/dicas-faq` agora com dados reais; as únicas 2 falhas (`03-support-employee.spec.ts`, fluxos 7 e 8) são exatamente a mesma falha pré-existente já documentada no fecho da Fase 3 — Integração (`id` de `marta.silva` desatualizado na base de dados de desenvolvimento face à convenção de `id` fixo), sem qualquer relação com o módulo `content/`;
+- validação automática: `apps/api` — `lint`, `format:check`, `typecheck`, `test` (114/114, incluindo os 6 novos de `content/`), `test:integration` (72/72, incluindo os 6 novos de `content.integration-spec.ts`) e `build`, todos sem erros; `apps/web` — `lint`, `typecheck`, `test` (360/360, incluindo os 2 novos do `TipsFaqService`) e `build` (produção), todos sem erros; `format:check` sem regressões nos ficheiros desta fase (aviso pré-existente por fim de linha `core.autocrlf`, documentado desde a Fase 2 da via de UI, confirmado com `prettier --write` isolado nos ficheiros desta fase).
+- commit efetuado em `feature/fase-4-integracao-dicas-faq` ("feat: Fase 4 (Integração) — Dicas & Perguntas Frequentes"), a pedido do utilizador.
