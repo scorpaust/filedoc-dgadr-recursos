@@ -19,7 +19,7 @@ import {
   TicketPriority,
   TicketStatus,
 } from '../../../shared/models';
-import { SupportTicketMockService } from '../data/support-ticket-mock.service';
+import { TicketService } from '../data/ticket.service';
 import { TICKET_PRIORITY_TONES, TICKET_STATUS_TONES } from '../ticket-tone.util';
 
 type StatusFilter = TicketStatus | 'all';
@@ -52,7 +52,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('pt-PT', { dateStyle: 'short' });
   styleUrl: './my-tickets-page.component.scss',
 })
 export class MyTicketsPageComponent {
-  private readonly ticketService = inject(SupportTicketMockService);
+  private readonly ticketService = inject(TicketService);
   private readonly router = inject(Router);
 
   protected readonly statusOptions = STATUS_OPTIONS;

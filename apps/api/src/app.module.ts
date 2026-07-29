@@ -11,6 +11,7 @@ import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ResourcesModule } from './resources/resources.module';
 import { StorageModule } from './storage/storage.module';
+import { TicketsModule } from './tickets/tickets.module';
 
 const DEFAULT_RATE_LIMIT = 100;
 
@@ -29,6 +30,7 @@ const DEFAULT_RATE_LIMIT = 100;
     StorageModule,
     ResourcesModule,
     ContentModule,
+    TicketsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
