@@ -3,11 +3,18 @@ import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
 import { UserRole } from '../../../shared/models';
+import { SupportTicketMockService } from '../data/support-ticket-mock.service';
+import { TicketService } from '../data/ticket.service';
 import { MyTicketsPageComponent } from './my-tickets-page.component';
 
 describe('MyTicketsPageComponent', () => {
   function createFixture(role: UserRole) {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: TicketService, useExisting: SupportTicketMockService },
+      ],
+    });
     const authService = TestBed.inject(AuthService);
     const user = users.find(
       (candidate) => candidate.roles.includes(role) && candidate.status === 'active',

@@ -30,10 +30,7 @@ import {
   TicketPriority,
   TicketStatus,
 } from '../../../shared/models';
-import {
-  MAX_ATTACHMENTS_PER_MESSAGE,
-  SupportTicketMockService,
-} from '../data/support-ticket-mock.service';
+import { MAX_ATTACHMENTS_PER_MESSAGE, TicketService } from '../data/ticket.service';
 import { TICKET_PRIORITY_TONES, TICKET_STATUS_TONES } from '../ticket-tone.util';
 
 @Component({
@@ -53,7 +50,7 @@ import { TICKET_PRIORITY_TONES, TICKET_STATUS_TONES } from '../ticket-tone.util'
   styleUrl: './ticket-detail-page.component.scss',
 })
 export class TicketDetailPageComponent {
-  private readonly ticketService = inject(SupportTicketMockService);
+  private readonly ticketService = inject(TicketService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
@@ -104,7 +101,7 @@ export class TicketDetailPageComponent {
   protected readonly canConfirmResolution = computed(() => this.ticket()?.status === 'RESOLVED');
 
   protected readonly isSubmittingReply = signal(false);
-  protected readonly pendingAttachments = signal<readonly string[]>([]);
+  protected readonly pendingAttachments = signal<readonly File[]>([]);
 
   protected readonly replyForm = this.formBuilder.nonNullable.group({
     content: ['', Validators.required],
@@ -133,7 +130,7 @@ export class TicketDetailPageComponent {
     if (!file || this.pendingAttachments().length >= this.maxAttachments) {
       return;
     }
-    this.pendingAttachments.update((files) => [...files, file.name]);
+    this.pendingAttachments.update((files) => [...files, file]);
   }
 
   protected removePendingAttachment(index: number): void {

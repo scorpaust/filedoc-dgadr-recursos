@@ -53,13 +53,13 @@
 
         @if (pendingAttachments().length > 0) {
           <ul class="fdr-ticket-detail-page__pending-attachments">
-            @for (fileName of pendingAttachments(); track fileName; let index = $index) {
+            @for (file of pendingAttachments(); track file; let index = $index) {
               <li>
                 <fdr-icon name="paperclip" size="sm" />
-                <span>{{ fileName }}</span>
+                <span>{{ file.name }}</span>
                 <button
                   type="button"
-                  aria-label="Remover anexo {{ fileName }}"
+                  aria-label="Remover anexo {{ file.name }}"
                   (click)="removePendingAttachment(index)"
                 >
                   <fdr-icon name="close" size="sm" />

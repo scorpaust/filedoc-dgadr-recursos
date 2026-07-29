@@ -21,7 +21,7 @@ import {
 } from '../../../shared/models';
 import { ResourceMockService } from '../../resources/data/resource-mock.service';
 import { CreateTicketInput } from '../data/create-ticket-input.model';
-import { SupportTicketMockService } from '../data/support-ticket-mock.service';
+import { TicketService } from '../data/ticket.service';
 
 const PRIORITIES: readonly TicketPriority[] = ['baixa', 'normal', 'alta', 'bloqueante'];
 
@@ -36,7 +36,7 @@ export class NewTicketPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly resourceService = inject(ResourceMockService);
-  private readonly ticketService = inject(SupportTicketMockService);
+  private readonly ticketService = inject(TicketService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 

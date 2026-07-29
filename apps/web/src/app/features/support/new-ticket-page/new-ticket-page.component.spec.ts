@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
 import { UserRole } from '../../../shared/models';
+import { SupportTicketMockService } from '../data/support-ticket-mock.service';
+import { TicketService } from '../data/ticket.service';
 import { NewTicketPageComponent } from './new-ticket-page.component';
 
 const PUBLISHED_RESOURCE_SLUG = 'criar-um-novo-processo-de-correspondencia'; // res-1
@@ -16,7 +18,11 @@ function fakeRoute(queryParams: Params = {}): ActivatedRoute {
 describe('NewTicketPageComponent', () => {
   function createFixture(role: UserRole, queryParams: Params = {}) {
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: ActivatedRoute, useValue: fakeRoute(queryParams) }],
+      providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: fakeRoute(queryParams) },
+        { provide: TicketService, useExisting: SupportTicketMockService },
+      ],
     });
     const authService = TestBed.inject(AuthService);
     const user = users.find(
