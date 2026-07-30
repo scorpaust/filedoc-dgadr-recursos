@@ -4,6 +4,7 @@ import {
   Role,
   TicketCategory,
   TicketPriority,
+  TicketStatus,
 } from '@prisma/client';
 import { CreateUploadUrlResult } from '../storage/storage.types';
 
@@ -70,6 +71,17 @@ export const PRIORITY_TO_LABEL: Record<TicketPriority, TicketPriorityLabel> = {
   NORMAL: 'normal',
   HIGH: 'alta',
   BLOCKING: 'bloqueante',
+};
+
+/** Rótulos usados apenas na descrição textual das entradas automáticas de histórico
+ * (`TicketsService.buildHistoryEntries`) — o campo `status` da resposta continua a
+ * expor o valor bruto do enum, tal como já acontecia antes desta fase. */
+export const STATUS_TO_LABEL: Record<TicketStatus, string> = {
+  OPEN: 'Aberto',
+  IN_PROGRESS: 'Em tratamento',
+  WAITING_FOR_USER: 'A aguardar resposta do utilizador',
+  RESOLVED: 'Resolvido',
+  CLOSED: 'Encerrado',
 };
 
 /** Mesmos rótulos de `USER_ROLE_LABELS` (frontend, `shared/models/app-user.model.ts`). */
@@ -148,3 +160,58 @@ export interface TicketResponse {
  * anexo já associado à mensagem). */
 export type CreateAttachmentResult =
   CreateUploadUrlResult | TicketAttachmentResponse;
+
+// ---------------------------------------------------------------------------
+// Vista de agente (fase-6-integracao-gestao-suporte.md) — endpoints e mapeamento de
+// resposta sempre separados dos usados pelo trabalhador (`TICKET_INCLUDE`/`toResponse`),
+// nunca partilhados nem condicionais: aqui as mensagens incluem sempre `INTERNAL`,
+// nunca filtradas por `visibility` como em `TICKET_INCLUDE`.
+// ---------------------------------------------------------------------------
+
+export const SUPPORT_TICKET_INCLUDE = {
+  requester: { include: { roles: true } },
+  messages: {
+    orderBy: { createdAt: 'asc' },
+    include: {
+      author: { include: { roles: true } },
+      attachments: true,
+    },
+  },
+} satisfies Prisma.SupportTicketInclude;
+
+export type SupportTicketWithRelations = Prisma.SupportTicketGetPayload<{
+  include: typeof SUPPORT_TICKET_INCLUDE;
+}>;
+
+/** Igual a `TicketMessageResponse`, exceto `internal`, que aqui reflete o valor real de
+ * `visibility` (pode ser `true`) — nunca devolvida a um trabalhador. */
+export interface SupportTicketMessageResponse {
+  readonly id: string;
+  readonly author: string;
+  readonly authorRole?: string;
+  readonly createdAt: string;
+  readonly content: string;
+  readonly internal: boolean;
+  readonly attachments?: readonly TicketAttachmentResponse[];
+}
+
+/** Igual a `TicketResponse`, exceto `messages`, que aqui pode incluir notas internas. */
+export interface SupportTicketResponse {
+  readonly id: string;
+  readonly reference: string;
+  readonly subject: string;
+  readonly description: string;
+  readonly category: TicketCategoryLabel;
+  readonly priority: TicketPriorityLabel;
+  readonly status: string;
+  readonly requesterId: string;
+  readonly requester: string;
+  readonly requesterRole: string;
+  readonly assigneeId?: string;
+  readonly relatedResourceId?: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly resolvedAt?: string;
+  readonly closedAt?: string;
+  readonly messages: readonly SupportTicketMessageResponse[];
+}
