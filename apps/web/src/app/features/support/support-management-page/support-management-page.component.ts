@@ -38,7 +38,7 @@ import {
 } from '../../../shared/models';
 import { ResourceMockService } from '../../resources/data/resource-mock.service';
 import { SUPPORT_AGENTS, agentName } from '../agent.util';
-import { SupportTicketMockService } from '../data/support-ticket-mock.service';
+import { SupportTicketService } from '../data/support-ticket.service';
 import { ResourcePickerDialogComponent } from '../resource-picker-dialog/resource-picker-dialog.component';
 import { TICKET_PRIORITY_TONES, TICKET_STATUS_TONES } from '../ticket-tone.util';
 
@@ -76,7 +76,7 @@ const SEARCH_DEBOUNCE_MS = 250;
   styleUrl: './support-management-page.component.scss',
 })
 export class SupportManagementPageComponent {
-  private readonly ticketService = inject(SupportTicketMockService);
+  private readonly ticketService = inject(SupportTicketService);
   private readonly resourceService = inject(ResourceMockService);
   private readonly dialogService = inject(DialogService);
   private readonly toastService = inject(ToastService);

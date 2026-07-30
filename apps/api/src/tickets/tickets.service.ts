@@ -5,20 +5,35 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MessageVisibility, Prisma, TicketStatus } from '@prisma/client';
+import {
+  MessageVisibility,
+  Prisma,
+  Role,
+  TicketStatus,
+  UserStatus,
+} from '@prisma/client';
+import type { CurrentUserPayload } from '../auth/auth.types';
 import { EnvironmentVariables } from '../config/env.validation';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { generateTicketReference } from '../support/ticket-reference.util';
+import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { CreateAttachmentDto } from './dto/create-attachment.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { ListSupportTicketsQueryDto } from './dto/list-support-tickets-query.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 import {
   CATEGORY_LABEL_TO_PRISMA,
   CATEGORY_TO_LABEL,
   CreateAttachmentResult,
   PRIORITY_LABEL_TO_PRISMA,
   PRIORITY_TO_LABEL,
+  STATUS_TO_LABEL,
+  SUPPORT_TICKET_INCLUDE,
+  SupportTicketMessageResponse,
+  SupportTicketResponse,
+  SupportTicketWithRelations,
   TICKET_INCLUDE,
   TicketAttachmentResponse,
   TicketMessageResponse,
@@ -171,6 +186,333 @@ export class TicketsService {
       include: TICKET_INCLUDE,
     });
     return this.toResponse(updated);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Vista de agente (fase-6-integracao-gestao-suporte.md) — nunca reutiliza
+  // `findOwnedTicket`/`TICKET_INCLUDE`/`toResponse`/`toMessageResponse`: a autorização de
+  // acesso a estes métodos é garantida a montante pelo `RolesGuard` (`SupportTicketsController`),
+  // e a resposta usa sempre `SUPPORT_TICKET_INCLUDE`, que nunca filtra por `visibility`.
+  // ---------------------------------------------------------------------------
+
+  async listForAgents(
+    query: ListSupportTicketsQueryDto,
+  ): Promise<readonly SupportTicketResponse[]> {
+    const search = query.q?.trim();
+    const tickets = await this.prisma.supportTicket.findMany({
+      where: {
+        status: query.status,
+        category: query.category
+          ? CATEGORY_LABEL_TO_PRISMA[query.category]
+          : undefined,
+        priority: query.priority
+          ? PRIORITY_LABEL_TO_PRISMA[query.priority]
+          : undefined,
+        ...(search
+          ? {
+              OR: [
+                { reference: { contains: search, mode: 'insensitive' } },
+                { subject: { contains: search, mode: 'insensitive' } },
+                {
+                  requester: {
+                    name: { contains: search, mode: 'insensitive' },
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
+      include: SUPPORT_TICKET_INCLUDE,
+      orderBy: { updatedAt: 'desc' },
+    });
+    return tickets.map((ticket) => this.toSupportResponse(ticket));
+  }
+
+  async getForAgent(id: string): Promise<SupportTicketResponse> {
+    const ticket = await this.findAnyTicket(id);
+    return this.toSupportResponse(ticket);
+  }
+
+  async update(
+    id: string,
+    dto: UpdateTicketDto,
+    actor: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    const ticket = await this.findAnyTicket(id);
+    const data: Prisma.SupportTicketUpdateInput = {};
+    const historyMessages: {
+      authorId: string;
+      content: string;
+      visibility: MessageVisibility;
+    }[] = [];
+
+    if (dto.category !== undefined) {
+      const category = CATEGORY_LABEL_TO_PRISMA[dto.category];
+      if (category !== ticket.category) {
+        data.category = category;
+        historyMessages.push(
+          this.buildHistoryMessage(
+            actor,
+            `alterou a categoria para "${dto.category}".`,
+          ),
+        );
+      }
+    }
+    if (dto.priority !== undefined) {
+      const priority = PRIORITY_LABEL_TO_PRISMA[dto.priority];
+      if (priority !== ticket.priority) {
+        data.priority = priority;
+        historyMessages.push(
+          this.buildHistoryMessage(
+            actor,
+            `alterou a prioridade para ${dto.priority}.`,
+          ),
+        );
+      }
+    }
+    if (dto.status !== undefined && dto.status !== ticket.status) {
+      data.status = dto.status;
+      if (dto.status === TicketStatus.RESOLVED) {
+        data.resolvedAt = new Date();
+      }
+      if (dto.status === TicketStatus.CLOSED) {
+        data.closedAt = new Date();
+      }
+      historyMessages.push(
+        this.buildHistoryMessage(
+          actor,
+          `alterou o estado para ${STATUS_TO_LABEL[dto.status]}.`,
+        ),
+      );
+    }
+    if (
+      dto.relatedResourceId !== undefined &&
+      dto.relatedResourceId !== ticket.relatedResourceId
+    ) {
+      data.relatedResource = { connect: { id: dto.relatedResourceId } };
+      historyMessages.push(
+        this.buildHistoryMessage(
+          actor,
+          'associou um recurso formativo a este pedido.',
+        ),
+      );
+    }
+
+    if (Object.keys(data).length === 0) {
+      return this.toSupportResponse(ticket);
+    }
+
+    const updated = await this.prisma.supportTicket.update({
+      where: { id: ticket.id },
+      data: { ...data, messages: { create: historyMessages } },
+      include: SUPPORT_TICKET_INCLUDE,
+    });
+    return this.toSupportResponse(updated);
+  }
+
+  async assign(
+    id: string,
+    dto: AssignTicketDto,
+    actor: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    const ticket = await this.findAnyTicket(id);
+    const agent = await this.prisma.user.findFirst({
+      where: {
+        id: dto.agentId,
+        status: UserStatus.ACTIVE,
+        roles: { some: { role: { in: [Role.SUPPORT_AGENT, Role.ADMIN] } } },
+      },
+    });
+    if (!agent) {
+      throw new BadRequestException(
+        'O utilizador indicado não é um agente de suporte válido.',
+      );
+    }
+
+    const updated = await this.prisma.supportTicket.update({
+      where: { id: ticket.id },
+      data: {
+        assigneeId: agent.id,
+        messages: {
+          create: this.buildHistoryMessage(
+            actor,
+            `atribuiu o pedido a ${agent.name}.`,
+          ),
+        },
+      },
+      include: SUPPORT_TICKET_INCLUDE,
+    });
+    return this.toSupportResponse(updated);
+  }
+
+  async addAgentMessage(
+    id: string,
+    actor: CurrentUserPayload,
+    dto: CreateMessageDto,
+  ): Promise<SupportTicketMessageResponse> {
+    const ticket = await this.findAnyTicket(id);
+    if (ticket.status === TicketStatus.CLOSED) {
+      throw new ConflictException('Não é possível responder a este pedido.');
+    }
+    const message = await this.prisma.ticketMessage.create({
+      data: {
+        ticketId: ticket.id,
+        authorId: actor.id,
+        content: dto.content,
+        visibility: MessageVisibility.PUBLIC,
+      },
+      include: { author: { include: { roles: true } }, attachments: true },
+    });
+    return this.toSupportMessageResponse(message, ticket.requesterId);
+  }
+
+  async addInternalNote(
+    id: string,
+    actor: CurrentUserPayload,
+    dto: CreateMessageDto,
+  ): Promise<SupportTicketMessageResponse> {
+    const ticket = await this.findAnyTicket(id);
+    const message = await this.prisma.ticketMessage.create({
+      data: {
+        ticketId: ticket.id,
+        authorId: actor.id,
+        content: dto.content,
+        visibility: MessageVisibility.INTERNAL,
+      },
+      include: { author: { include: { roles: true } }, attachments: true },
+    });
+    return this.toSupportMessageResponse(message, ticket.requesterId);
+  }
+
+  async resolveForAgent(
+    id: string,
+    actor: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    const ticket = await this.findAnyTicket(id);
+    if (
+      ticket.status === TicketStatus.RESOLVED ||
+      ticket.status === TicketStatus.CLOSED
+    ) {
+      throw new ConflictException(
+        'Este pedido não pode ser marcado como resolvido neste momento.',
+      );
+    }
+    const updated = await this.prisma.supportTicket.update({
+      where: { id: ticket.id },
+      data: {
+        status: TicketStatus.RESOLVED,
+        resolvedAt: new Date(),
+        messages: {
+          create: this.buildHistoryMessage(
+            actor,
+            `alterou o estado para ${STATUS_TO_LABEL[TicketStatus.RESOLVED]}.`,
+          ),
+        },
+      },
+      include: SUPPORT_TICKET_INCLUDE,
+    });
+    return this.toSupportResponse(updated);
+  }
+
+  async closeForAgent(
+    id: string,
+    actor: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    const ticket = await this.findAnyTicket(id);
+    if (ticket.status === TicketStatus.CLOSED) {
+      throw new ConflictException('Este pedido já está encerrado.');
+    }
+    const updated = await this.prisma.supportTicket.update({
+      where: { id: ticket.id },
+      data: {
+        status: TicketStatus.CLOSED,
+        closedAt: new Date(),
+        messages: {
+          create: this.buildHistoryMessage(
+            actor,
+            `alterou o estado para ${STATUS_TO_LABEL[TicketStatus.CLOSED]}.`,
+          ),
+        },
+      },
+      include: SUPPORT_TICKET_INCLUDE,
+    });
+    return this.toSupportResponse(updated);
+  }
+
+  private async findAnyTicket(id: string): Promise<SupportTicketWithRelations> {
+    const ticket = await this.prisma.supportTicket.findUnique({
+      where: { id },
+      include: SUPPORT_TICKET_INCLUDE,
+    });
+    if (!ticket) {
+      throw new NotFoundException(TICKET_NOT_FOUND_MESSAGE);
+    }
+    return ticket;
+  }
+
+  private buildHistoryMessage(
+    actor: CurrentUserPayload,
+    text: string,
+  ): { authorId: string; content: string; visibility: MessageVisibility } {
+    return {
+      authorId: actor.id,
+      content: `${actor.name} ${text}`,
+      visibility: MessageVisibility.PUBLIC,
+    };
+  }
+
+  private toSupportResponse(
+    ticket: SupportTicketWithRelations,
+  ): SupportTicketResponse {
+    return {
+      id: ticket.id,
+      reference: ticket.reference,
+      subject: ticket.subject,
+      description: ticket.description,
+      category: CATEGORY_TO_LABEL[ticket.category],
+      priority: PRIORITY_TO_LABEL[ticket.priority],
+      status: ticket.status,
+      requesterId: ticket.requesterId,
+      requester: ticket.requester.name,
+      requesterRole: formatRoleLabels(
+        ticket.requester.roles.map((userRole) => userRole.role),
+      ),
+      assigneeId: ticket.assigneeId ?? undefined,
+      relatedResourceId: ticket.relatedResourceId ?? undefined,
+      createdAt: ticket.createdAt.toISOString(),
+      updatedAt: ticket.updatedAt.toISOString(),
+      resolvedAt: ticket.resolvedAt?.toISOString(),
+      closedAt: ticket.closedAt?.toISOString(),
+      messages: ticket.messages.map((message) =>
+        this.toSupportMessageResponse(message, ticket.requesterId),
+      ),
+    };
+  }
+
+  private toSupportMessageResponse(
+    message: SupportTicketWithRelations['messages'][number],
+    requesterId: string,
+  ): SupportTicketMessageResponse {
+    return {
+      id: message.id,
+      author: message.author.name,
+      authorRole:
+        message.authorId === requesterId
+          ? undefined
+          : formatRoleLabels(
+              message.author.roles.map((userRole) => userRole.role),
+            ),
+      createdAt: message.createdAt.toISOString(),
+      content: message.content,
+      internal: message.visibility === MessageVisibility.INTERNAL,
+      attachments:
+        message.attachments.length > 0
+          ? message.attachments.map((attachment) => ({
+              id: attachment.id,
+              fileName: attachment.originalName,
+            }))
+          : undefined,
+    };
   }
 
   private async confirmAttachment(

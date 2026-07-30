@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
+import { SupportTicketMockService } from '../data/support-ticket-mock.service';
+import { SupportTicketService } from '../data/support-ticket.service';
 import { SupportManagementPageComponent } from './support-management-page.component';
 
 describe('SupportManagementPageComponent', () => {
@@ -8,7 +10,9 @@ describe('SupportManagementPageComponent', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [{ provide: SupportTicketService, useExisting: SupportTicketMockService }],
+    });
     authService = TestBed.inject(AuthService);
     const agent = users.find((user) => user.id === 'user-2');
     authService.currentUser.set(agent ?? null);

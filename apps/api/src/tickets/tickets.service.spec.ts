@@ -74,10 +74,12 @@ describe('TicketsService', () => {
       create: jest.Mock;
       findMany: jest.Mock;
       findFirst: jest.Mock;
+      findUnique: jest.Mock;
       update: jest.Mock;
     };
     ticketMessage: { create: jest.Mock; findFirst: jest.Mock };
     ticketAttachment: { count: jest.Mock; create: jest.Mock };
+    user: { findFirst: jest.Mock };
   };
   let storageService: {
     createUploadUrl: jest.Mock;
@@ -92,10 +94,12 @@ describe('TicketsService', () => {
         create: jest.fn(),
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        findUnique: jest.fn(),
         update: jest.fn(),
       },
       ticketMessage: { create: jest.fn(), findFirst: jest.fn() },
       ticketAttachment: { count: jest.fn(), create: jest.fn() },
+      user: { findFirst: jest.fn() },
     };
     storageService = {
       createUploadUrl: jest.fn(),
@@ -432,6 +436,329 @@ describe('TicketsService', () => {
           data: expect.objectContaining({ status: 'CLOSED' }) as {
             status: string;
           },
+        }),
+      );
+      expect(result.status).toBe('CLOSED');
+    });
+  });
+
+  const agent = {
+    id: 'agent-1',
+    name: 'Carlos Nunes',
+    email: 'carlos.nunes@dgadr.gov.pt',
+    roles: [Role.SUPPORT_AGENT],
+  };
+
+  describe('listForAgents', () => {
+    it('filtra por estado/categoria/prioridade e pesquisa por referência/assunto/solicitante', async () => {
+      prisma.supportTicket.findMany.mockResolvedValue([makeTicket()]);
+
+      await service.listForAgents({
+        status: 'OPEN',
+        category: 'Acesso ou permissões',
+        priority: 'alta',
+        q: 'Filedoc',
+      });
+
+      expect(prisma.supportTicket.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            status: 'OPEN',
+            category: 'ACCESS_PERMISSIONS',
+            priority: 'HIGH',
+          }) as { status: string; category: string; priority: string },
+        }),
+      );
+    });
+  });
+
+  describe('getForAgent', () => {
+    it('devolve 404 quando o pedido não existe', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(null);
+
+      await expect(service.getForAgent('ticket-x')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('devolve o pedido, incluindo notas internas, sem restrição por solicitante', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({
+          messages: [
+            {
+              id: 'msg-1',
+              authorId: 'user-1',
+              content: 'Descrição do pedido.',
+              visibility: 'PUBLIC',
+              createdAt: new Date('2026-07-08T09:14:00.000Z'),
+              author: {
+                id: 'user-1',
+                name: 'Marta Silva',
+                roles: [{ role: Role.EMPLOYEE }],
+              },
+              attachments: [],
+            },
+            {
+              id: 'msg-2',
+              authorId: 'agent-1',
+              content: 'Nota interna sobre o caso.',
+              visibility: 'INTERNAL',
+              createdAt: new Date('2026-07-08T10:00:00.000Z'),
+              author: {
+                id: 'agent-1',
+                name: 'Carlos Nunes',
+                roles: [{ role: Role.SUPPORT_AGENT }],
+              },
+              attachments: [],
+            },
+          ],
+        }),
+      );
+
+      const result = await service.getForAgent('ticket-1');
+
+      expect(result.messages).toHaveLength(2);
+      expect(result.messages[1].internal).toBe(true);
+    });
+  });
+
+  describe('update', () => {
+    it('não altera nada e não escreve histórico quando nenhum campo muda', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(makeTicket());
+
+      const result = await service.update('ticket-1', {}, agent);
+
+      expect(prisma.supportTicket.update).not.toHaveBeenCalled();
+      expect(result.id).toBe('ticket-1');
+    });
+
+    it('altera a categoria e regista uma mensagem pública de histórico', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(makeTicket());
+      prisma.supportTicket.update.mockResolvedValue(
+        makeTicket({ category: 'ROUTING' }),
+      );
+
+      await service.update('ticket-1', { category: 'Tramitação' }, agent);
+
+      expect(prisma.supportTicket.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            category: 'ROUTING',
+            messages: {
+              create: [
+                expect.objectContaining({
+                  authorId: 'agent-1',
+                  visibility: 'PUBLIC',
+                  content: expect.stringContaining('Tramitação') as string,
+                }),
+              ],
+            },
+          }) as { category: string },
+        }),
+      );
+    });
+
+    it('altera o estado para RESOLVED e define resolvedAt', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(makeTicket());
+      prisma.supportTicket.update.mockResolvedValue(
+        makeTicket({ status: 'RESOLVED' }),
+      );
+
+      await service.update('ticket-1', { status: 'RESOLVED' }, agent);
+
+      expect(prisma.supportTicket.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'RESOLVED',
+            resolvedAt: expect.any(Date) as Date,
+          }) as { status: string },
+        }),
+      );
+    });
+  });
+
+  describe('assign', () => {
+    it('rejeita quando o utilizador indicado não é um agente ativo', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(makeTicket());
+      prisma.user.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.assign('ticket-1', { agentId: 'user-1' }, agent),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.supportTicket.update).not.toHaveBeenCalled();
+    });
+
+    it('atribui o pedido e regista uma mensagem pública de histórico', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(makeTicket());
+      prisma.user.findFirst.mockResolvedValue({
+        id: 'agent-2',
+        name: 'Sofia Ramos',
+      });
+      prisma.supportTicket.update.mockResolvedValue(
+        makeTicket({ assigneeId: 'agent-2' }),
+      );
+
+      const result = await service.assign(
+        'ticket-1',
+        { agentId: 'agent-2' },
+        agent,
+      );
+
+      expect(prisma.supportTicket.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            assigneeId: 'agent-2',
+            messages: {
+              create: expect.objectContaining({
+                content: expect.stringContaining('Sofia Ramos') as string,
+              }) as unknown,
+            },
+          }) as { assigneeId: string },
+        }),
+      );
+      expect(result.assigneeId).toBe('agent-2');
+    });
+  });
+
+  describe('addAgentMessage', () => {
+    it('rejeita uma resposta quando o pedido está encerrado', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ status: 'CLOSED' }),
+      );
+
+      await expect(
+        service.addAgentMessage('ticket-1', agent, { content: 'Olá' }),
+      ).rejects.toThrow(ConflictException);
+      expect(prisma.ticketMessage.create).not.toHaveBeenCalled();
+    });
+
+    it('cria uma mensagem pública (nunca interna)', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(makeTicket());
+      prisma.ticketMessage.create.mockResolvedValue({
+        id: 'msg-2',
+        authorId: 'agent-1',
+        content: 'A analisar o seu pedido.',
+        visibility: 'PUBLIC',
+        createdAt: new Date('2026-07-08T10:00:00.000Z'),
+        author: {
+          id: 'agent-1',
+          name: 'Carlos Nunes',
+          roles: [{ role: Role.SUPPORT_AGENT }],
+        },
+        attachments: [],
+      });
+
+      const result = await service.addAgentMessage('ticket-1', agent, {
+        content: 'A analisar o seu pedido.',
+      });
+
+      expect(prisma.ticketMessage.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ visibility: 'PUBLIC' }) as {
+            visibility: string;
+          },
+        }),
+      );
+      expect(result.internal).toBe(false);
+    });
+  });
+
+  describe('addInternalNote', () => {
+    it('cria uma nota interna mesmo com o pedido encerrado', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ status: 'CLOSED' }),
+      );
+      prisma.ticketMessage.create.mockResolvedValue({
+        id: 'msg-2',
+        authorId: 'agent-1',
+        content: 'Nota interna.',
+        visibility: 'INTERNAL',
+        createdAt: new Date('2026-07-08T10:00:00.000Z'),
+        author: {
+          id: 'agent-1',
+          name: 'Carlos Nunes',
+          roles: [{ role: Role.SUPPORT_AGENT }],
+        },
+        attachments: [],
+      });
+
+      const result = await service.addInternalNote('ticket-1', agent, {
+        content: 'Nota interna.',
+      });
+
+      expect(prisma.ticketMessage.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ visibility: 'INTERNAL' }) as {
+            visibility: string;
+          },
+        }),
+      );
+      expect(result.internal).toBe(true);
+    });
+  });
+
+  describe('resolveForAgent', () => {
+    it('rejeita quando o pedido já está resolvido ou encerrado', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ status: 'CLOSED' }),
+      );
+
+      await expect(service.resolveForAgent('ticket-1', agent)).rejects.toThrow(
+        ConflictException,
+      );
+      expect(prisma.supportTicket.update).not.toHaveBeenCalled();
+    });
+
+    it('marca como resolvido e define resolvedAt', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ status: 'OPEN' }),
+      );
+      prisma.supportTicket.update.mockResolvedValue(
+        makeTicket({ status: 'RESOLVED' }),
+      );
+
+      const result = await service.resolveForAgent('ticket-1', agent);
+
+      expect(prisma.supportTicket.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'RESOLVED',
+            resolvedAt: expect.any(Date) as Date,
+          }) as { status: string },
+        }),
+      );
+      expect(result.status).toBe('RESOLVED');
+    });
+  });
+
+  describe('closeForAgent', () => {
+    it('rejeita quando o pedido já está encerrado', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ status: 'CLOSED' }),
+      );
+
+      await expect(service.closeForAgent('ticket-1', agent)).rejects.toThrow(
+        ConflictException,
+      );
+      expect(prisma.supportTicket.update).not.toHaveBeenCalled();
+    });
+
+    it('encerra e define closedAt a partir de qualquer outro estado', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ status: 'RESOLVED' }),
+      );
+      prisma.supportTicket.update.mockResolvedValue(
+        makeTicket({ status: 'CLOSED' }),
+      );
+
+      const result = await service.closeForAgent('ticket-1', agent);
+
+      expect(prisma.supportTicket.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'CLOSED',
+            closedAt: expect.any(Date) as Date,
+          }) as { status: string },
         }),
       );
       expect(result.status).toBe('CLOSED');

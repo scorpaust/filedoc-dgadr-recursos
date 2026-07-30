@@ -1,0 +1,100 @@
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { Role } from '@prisma/client';
+import { AuthGuard } from '../auth/guards/auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../auth/auth.types';
+import { AssignTicketDto } from './dto/assign-ticket.dto';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { ListSupportTicketsQueryDto } from './dto/list-support-tickets-query.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { TicketsService } from './tickets.service';
+import {
+  SupportTicketMessageResponse,
+  SupportTicketResponse,
+} from './tickets.types';
+
+// Vista de agente (fase-6-integracao-gestao-suporte.md) — endpoints distintos dos de
+// `TicketsController` (`/tickets/mine/*`), nunca partilhados nem condicionais: um
+// trabalhador que manipule diretamente o pedido HTTP é sempre rejeitado pelo `RolesGuard`,
+// antes de qualquer lógica do serviço correr.
+@Controller('support/tickets')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(Role.SUPPORT_AGENT, Role.ADMIN)
+export class SupportTicketsController {
+  constructor(private readonly ticketsService: TicketsService) {}
+
+  @Get()
+  list(
+    @Query() query: ListSupportTicketsQueryDto,
+  ): Promise<readonly SupportTicketResponse[]> {
+    return this.ticketsService.listForAgents(query);
+  }
+
+  @Get(':id')
+  getById(@Param('id') id: string): Promise<SupportTicketResponse> {
+    return this.ticketsService.getForAgent(id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateTicketDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    return this.ticketsService.update(id, dto, user);
+  }
+
+  @Post(':id/messages')
+  addMessage(
+    @Param('id') id: string,
+    @Body() dto: CreateMessageDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<SupportTicketMessageResponse> {
+    return this.ticketsService.addAgentMessage(id, user, dto);
+  }
+
+  @Post(':id/internal-notes')
+  addInternalNote(
+    @Param('id') id: string,
+    @Body() dto: CreateMessageDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<SupportTicketMessageResponse> {
+    return this.ticketsService.addInternalNote(id, user, dto);
+  }
+
+  @Post(':id/assign')
+  assign(
+    @Param('id') id: string,
+    @Body() dto: AssignTicketDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    return this.ticketsService.assign(id, dto, user);
+  }
+
+  @Post(':id/resolve')
+  resolve(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    return this.ticketsService.resolveForAgent(id, user);
+  }
+
+  @Post(':id/close')
+  close(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    return this.ticketsService.closeForAgent(id, user);
+  }
+}
