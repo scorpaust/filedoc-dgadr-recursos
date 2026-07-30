@@ -8,7 +8,7 @@ Fase 6 (Integração) — Gestão de Suporte (Vista de Agente)
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso
+Concluída
 
 ## Objetivos
 
@@ -487,4 +487,6 @@ pipeline de CI a validar esse estado de forma repetível.
   - validação automática (`apps/web`): `lint`, `typecheck` e `format:check` (nos ficheiros desta fase) sem erros; `test` — 374/378 (as 4 falhas, em `taxonomy-management`/`content-management-page`/`create-user-dialog`/`edit-roles-dialog`, são a mesma intermitência não determinística por lentidão da máquina em componentes CDK Dialog/Overlay já documentada desde a Fase 4 da via de UI, sem nenhuma relação com o módulo `support/`; todos os testes de `support/` passaram nas duas execuções completas realizadas);
   - **suite E2E (Fase 11 — UI, fluxos 9-11 sobre `04-support-agent.spec.ts`) executada com sucesso** contra a API real em modo de desenvolvimento (`nest start --watch`, `CORS_ALLOWED_ORIGINS=http://localhost:4310`/`AUTH_LOGIN_RATE_LIMIT=50` só para esta execução, sem alterar o `.env` local) e o Postgres/MinIO de desenvolvimento já em execução: os 3 fluxos (resposta do agente, nota interna, resolução) passam integralmente contra dados reais — resposta pública e nota interna visíveis com o estilo esperado (`.fdr-tag--tone-warning`), e a transição para `RESOLVED` refletida no `select` e a fazer desaparecer o botão "Marcar resolvido";
   - reexecutado também `03-support-employee.spec.ts` (Fase 5, não tocado por esta fase) como verificação de regressão: fluxos 6/7 passam; fluxo 8 falha por `strict mode violation` (texto da resposta encontrado 2×) — confirmado, por inspeção, como poluição de dados de uma execução anterior desta mesma suite contra a base de dados de desenvolvimento persistente (que não é recriada entre execuções manuais, ao contrário dos contentores efémeros de `test:integration`), sem qualquer relação com o módulo `support/tickets` desta fase.
-- Commit ainda por autorizar.
+- commit efetuado em `feature/fase-6-integracao-gestao-suporte` ("feat: Fase 6 (Integração) — Gestão de Suporte (Vista de Agente)"), a pedido do utilizador.
+- branch `feature/fase-6-integracao-gestao-suporte` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida (só existia localmente); `lint`, `typecheck` e `test` (`apps/api` 159/159; `apps/web` sem regressões) revalidados em `main` após o merge, todos a passar sem erros.
+- Fase marcada como concluída a pedido explícito do utilizador; sem pontos em aberto registados durante esta fase — as únicas diferenças assumidas por decisão de âmbito (entradas de histórico sem o estilo visual "status-change" do protótipo mock, por não haver coluna persistida para isso; PATCH estendido com `relatedResourceId` para cobrir a associação de recurso) já ficaram documentadas acima.
