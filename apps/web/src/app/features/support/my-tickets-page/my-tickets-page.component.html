@@ -33,43 +33,47 @@
       (actionClicked)="onClearFilter()"
     />
   } @else {
-    <table class="fdr-my-tickets__table">
-      <caption class="fdr-visually-hidden">
-        Lista dos meus pedidos de suporte
-      </caption>
-      <thead>
-        <tr>
-          <th scope="col">Referência</th>
-          <th scope="col">Assunto</th>
-          <th scope="col">Categoria</th>
-          <th scope="col">Prioridade</th>
-          <th scope="col">Estado</th>
-          <th scope="col">Atualizado em</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (ticket of filteredTickets(); track ticket.id) {
-          <tr class="fdr-my-tickets__row">
-            <td data-label="Referência"><fdr-ticket-reference [reference]="ticket.reference" /></td>
-            <td data-label="Assunto">
-              <a class="fdr-my-tickets__subject-link" [routerLink]="['/suporte', ticket.id]">{{
-                ticket.subject
-              }}</a>
-            </td>
-            <td data-label="Categoria">{{ ticket.category }}</td>
-            <td data-label="Prioridade">
-              <fdr-tag
-                [label]="priorityLabel(ticket.priority)"
-                [tone]="priorityTone(ticket.priority)"
-              />
-            </td>
-            <td data-label="Estado">
-              <fdr-tag [label]="statusLabel(ticket.status)" [tone]="statusTone(ticket.status)" />
-            </td>
-            <td data-label="Atualizado em">{{ formatDate(ticket.updatedAt) }}</td>
+    <div class="fdr-my-tickets__table-wrapper">
+      <table class="fdr-my-tickets__table">
+        <caption class="fdr-visually-hidden">
+          Lista dos meus pedidos de suporte
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Referência</th>
+            <th scope="col">Assunto</th>
+            <th scope="col">Categoria</th>
+            <th scope="col">Prioridade</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Atualizado em</th>
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (ticket of filteredTickets(); track ticket.id) {
+            <tr class="fdr-my-tickets__row">
+              <td data-label="Referência">
+                <fdr-ticket-reference [reference]="ticket.reference" />
+              </td>
+              <td data-label="Assunto">
+                <a class="fdr-my-tickets__subject-link" [routerLink]="['/suporte', ticket.id]">{{
+                  ticket.subject
+                }}</a>
+              </td>
+              <td data-label="Categoria">{{ ticket.category }}</td>
+              <td data-label="Prioridade">
+                <fdr-tag
+                  [label]="priorityLabel(ticket.priority)"
+                  [tone]="priorityTone(ticket.priority)"
+                />
+              </td>
+              <td data-label="Estado">
+                <fdr-tag [label]="statusLabel(ticket.status)" [tone]="statusTone(ticket.status)" />
+              </td>
+              <td data-label="Atualizado em">{{ formatDate(ticket.updatedAt) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </section>
