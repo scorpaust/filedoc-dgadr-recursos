@@ -1,4 +1,4 @@
-import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaClient } from '@prisma/client';
 import cookieParser from 'cookie-parser';
@@ -6,6 +6,7 @@ import request from 'supertest';
 import type { App } from 'supertest/types';
 import { AppModule } from '../../src/app.module';
 import { hashPassword } from '../../src/auth/password.util';
+import { createValidationPipe } from '../../src/common/validation-pipe.factory';
 import { SESSION_COOKIE_NAME } from '../../src/auth/session-token.util';
 
 const DEMO_PASSWORD = 'Demo123!';
@@ -45,13 +46,7 @@ describe('auth — fluxo real via HTTP (login, /me, logout, alteração de palav
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
     app.use(cookieParser());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+    app.useGlobalPipes(createValidationPipe());
     await app.init();
   });
 

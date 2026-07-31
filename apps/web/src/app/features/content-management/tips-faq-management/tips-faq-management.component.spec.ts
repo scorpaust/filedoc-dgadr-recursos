@@ -1,12 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
+import { TipsFaqMockService } from '../../tips-faq/data/tips-faq-mock.service';
+import { TipsFaqEditorialService } from '../data/tips-faq-editorial.service';
 import { TipsFaqManagementComponent } from './tips-faq-management.component';
 
 describe('TipsFaqManagementComponent', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    TestBed.configureTestingModule({});
+    // O componente injeta `TipsFaqEditorialService` (Fase 7 — Integração); nos testes,
+    // resolvido para `TipsFaqMockService` (Fase 5/8 — UI), mesma técnica já usada na Fase 6.
+    TestBed.configureTestingModule({
+      providers: [{ provide: TipsFaqEditorialService, useExisting: TipsFaqMockService }],
+    });
     const authService = TestBed.inject(AuthService);
     const editor = users.find(
       (user) => user.roles.includes('CONTENT_EDITOR') && user.status === 'active',

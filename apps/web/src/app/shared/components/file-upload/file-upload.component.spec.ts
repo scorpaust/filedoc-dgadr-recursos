@@ -37,6 +37,7 @@ describe('FileUploadComponent', () => {
 
     expect(emitted?.fileName).toBe('guia.pdf');
     expect(emitted?.objectUrl).toBe('blob:mock-url');
+    expect(emitted?.file).toBe(file);
     expect(fixture.nativeElement.textContent).toContain('guia.pdf');
   });
 
@@ -70,7 +71,12 @@ describe('FileUploadComponent', () => {
 
   it('clears the selection and emits undefined', () => {
     const fixture = setup('pdf');
-    let emitted: FileUploadSelection | undefined = { fileName: 'x', sizeBytes: 1, objectUrl: 'x' };
+    let emitted: FileUploadSelection | undefined = {
+      fileName: 'x',
+      sizeBytes: 1,
+      objectUrl: 'x',
+      file: new File(['x'], 'x'),
+    };
     fixture.componentInstance.selectionChange.subscribe((value) => (emitted = value));
 
     const file = new File(['conteudo'], 'guia.pdf', { type: 'application/pdf' });

@@ -18,13 +18,14 @@ import { DialogService } from '../../../shared/components/dialog/dialog.service'
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { TAXONOMY_KIND_LABELS, Taxonomy, TaxonomyKind } from '../../../shared/models';
-import { TaxonomyMockService } from '../data/taxonomy-mock.service';
+import { TaxonomyService } from '../data/taxonomy.service';
 
 const KINDS: readonly TaxonomyKind[] = ['workflow', 'documentType', 'tag'];
 
 type NewTaxonomyForm = FormGroup<{ label: FormControl<string> }>;
 
-// Gestão de taxonomias (fluxos, tipos de documento, etiquetas) — Fase 8 — UI, tarefa F.
+// Gestão de taxonomias (fluxos, tipos de documento, etiquetas) — Fase 8 — UI, tarefa F, a
+// consumir o `TaxonomyService` real (Fase 7 — Integração).
 @Component({
   selector: 'fdr-taxonomy-management',
   imports: [ReactiveFormsModule, ButtonComponent, IconComponent],
@@ -33,7 +34,7 @@ type NewTaxonomyForm = FormGroup<{ label: FormControl<string> }>;
   styleUrl: './taxonomy-management.component.scss',
 })
 export class TaxonomyManagementComponent {
-  private readonly taxonomyService = inject(TaxonomyMockService);
+  private readonly taxonomyService = inject(TaxonomyService);
   private readonly dialogService = inject(DialogService);
   private readonly toastService = inject(ToastService);
   private readonly formBuilder = inject(FormBuilder);

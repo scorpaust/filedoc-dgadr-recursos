@@ -17,4 +17,10 @@ export interface ResourceFormInput {
   readonly pdfUrl?: string;
   readonly thumbnailUrl?: string;
   readonly thumbnailAlt?: string;
+  /** Ficheiro principal selecionado (vídeo ou PDF), para o carregamento real (Fase 7 —
+   * Integração) — ignorado pelo `ResourceMockService`. */
+  readonly mainFile?: File;
+  /** Miniatura selecionada, para o carregamento real (Fase 7 — Integração) — ignorado pelo
+   * `ResourceMockService`. */
+  readonly thumbnailFile?: File;
 }

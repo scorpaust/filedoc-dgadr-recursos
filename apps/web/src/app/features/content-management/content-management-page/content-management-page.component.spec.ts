@@ -2,12 +2,30 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
+import { ResourceMockService } from '../../resources/data/resource-mock.service';
+import { TipsFaqMockService } from '../../tips-faq/data/tips-faq-mock.service';
+import { ResourceEditorialService } from '../data/resource-editorial.service';
+import { TaxonomyMockService } from '../data/taxonomy-mock.service';
+import { TaxonomyService } from '../data/taxonomy.service';
+import { TipsFaqEditorialService } from '../data/tips-faq-editorial.service';
 import { ContentManagementPageComponent } from './content-management-page.component';
+
+// Os três separadores (`ResourceTableComponent`/`TaxonomyManagementComponent`/
+// `TipsFaqManagementComponent`) injetam agora os serviços reais (Fase 7 — Integração);
+// resolvidos aqui para os respetivos mocks, mesma técnica já usada na Fase 6 — sem isto, os
+// componentes tentariam pedidos HTTP reais durante o teste.
+const EDITORIAL_SERVICE_PROVIDERS = [
+  { provide: ResourceEditorialService, useExisting: ResourceMockService },
+  { provide: TaxonomyService, useExisting: TaxonomyMockService },
+  { provide: TipsFaqEditorialService, useExisting: TipsFaqMockService },
+];
 
 describe('ContentManagementPageComponent', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), ...EDITORIAL_SERVICE_PROVIDERS],
+    });
     const authService = TestBed.inject(AuthService);
     const editor = users.find(
       (user) => user.roles.includes('CONTENT_EDITOR') && user.status === 'active',
@@ -73,6 +91,7 @@ describe('ContentManagementPageComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
+        ...EDITORIAL_SERVICE_PROVIDERS,
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { queryParamMap: convertToParamMap({ tab: 'taxonomies' }) } },

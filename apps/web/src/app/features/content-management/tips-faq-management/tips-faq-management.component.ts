@@ -8,7 +8,8 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TagComponent, TagTone } from '../../../shared/components/tag/tag.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { EDITORIAL_STATUS_LABELS, EditorialStatus, Faq, Tip } from '../../../shared/models';
-import { FaqInput, TipsFaqMockService } from '../../tips-faq/data/tips-faq-mock.service';
+import { FaqInput } from '../../tips-faq/data/tips-faq-mock.service';
+import { TipsFaqEditorialService } from '../data/tips-faq-editorial.service';
 import { EDITORIAL_STATUS_TONES } from '../editorial-status-tone.util';
 
 interface FaqFormValue {
@@ -17,8 +18,8 @@ interface FaqFormValue {
   readonly category: string;
 }
 
-// Gestão de Dicas e Perguntas frequentes (Fase 8 — UI, tarefa E), reaproveitando o
-// `TipsFaqMockService` da Fase 5, agora estendido com operações de escrita.
+// Gestão de Dicas e Perguntas frequentes (Fase 8 — UI, tarefa E), a consumir o
+// `TipsFaqEditorialService` real (Fase 7 — Integração).
 @Component({
   selector: 'fdr-tips-faq-management',
   imports: [ReactiveFormsModule, ButtonComponent, IconComponent, TagComponent],
@@ -27,7 +28,7 @@ interface FaqFormValue {
   styleUrl: './tips-faq-management.component.scss',
 })
 export class TipsFaqManagementComponent {
-  private readonly tipsFaqService = inject(TipsFaqMockService);
+  private readonly tipsFaqService = inject(TipsFaqEditorialService);
   private readonly toastService = inject(ToastService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);

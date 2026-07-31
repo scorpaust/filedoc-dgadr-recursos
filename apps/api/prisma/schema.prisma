@@ -129,10 +129,14 @@ model Tag {
   id        String   @id @default(cuid())
   name      String
   slug      String   @unique
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   resources ResourceTag[]
+
+  @@index([isActive])
 }
 
 model Resource {
@@ -151,6 +155,7 @@ model Resource {
   pageCount          Int?
   fileObjectKey      String?
   thumbnailObjectKey String?
+  thumbnailAlt       String?
   captionObjectKey   String?
   publishedAt        DateTime?      @db.Timestamptz(3)
   createdById        String
