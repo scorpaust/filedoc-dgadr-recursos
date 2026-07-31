@@ -7,9 +7,12 @@ export type FileUploadKind = 'video' | 'pdf' | 'image';
 export interface FileUploadSelection {
   readonly fileName: string;
   readonly sizeBytes: number;
-  // URL local (via `URL.createObjectURL`) — válido apenas nesta sessão do browser. Nunca é
-  // enviado para nenhum servidor; simula a seleção, não o carregamento real do ficheiro.
+  // URL local (via `URL.createObjectURL`), só para pré-visualização imediata no próprio
+  // formulário — nunca enviado a um servidor.
   readonly objectUrl: string;
+  // Ficheiro real selecionado (Fase 7 — Integração), usado para o carregamento direto ao
+  // armazenamento (`StorageService`), nunca embutido diretamente num pedido à API.
+  readonly file: File;
 }
 
 const ACCEPT_BY_KIND: Record<FileUploadKind, readonly string[]> = {
@@ -108,6 +111,7 @@ export class FileUploadComponent {
       fileName: file.name,
       sizeBytes: file.size,
       objectUrl: URL.createObjectURL(file),
+      file,
     };
     this.selection.set(next);
     this.selectionChange.emit(next);

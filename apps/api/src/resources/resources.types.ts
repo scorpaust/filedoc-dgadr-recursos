@@ -32,6 +32,7 @@ export interface ResourceResponse {
   readonly author: string;
   readonly hasFile: boolean;
   readonly hasThumbnail: boolean;
+  readonly thumbnailAlt?: string;
 }
 
 export interface ResourceSearchResponse {

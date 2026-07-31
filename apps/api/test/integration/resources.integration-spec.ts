@@ -1,10 +1,11 @@
-import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 import { AppModule } from '../../src/app.module';
 import { SESSION_COOKIE_NAME } from '../../src/auth/session-token.util';
+import { createValidationPipe } from '../../src/common/validation-pipe.factory';
 
 const DEMO_PASSWORD = 'Demo123!';
 const EMPLOYEE_EMAIL = 'marta.silva@dgadr.gov.pt';
@@ -56,13 +57,7 @@ describe('catálogo/detalhe de recursos — fluxo real via HTTP', () => {
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
     app.use(cookieParser());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+    app.useGlobalPipes(createValidationPipe());
     await app.init();
 
     const employeeLogin = await request(app.getHttpServer())

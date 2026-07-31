@@ -26,6 +26,7 @@ interface ResourceApiItem {
   readonly author: string;
   readonly hasFile: boolean;
   readonly hasThumbnail: boolean;
+  readonly thumbnailAlt?: string;
 }
 
 interface ResourceSearchApiResponse {
@@ -141,6 +142,7 @@ export class ResourceService {
       videoUrl: item.type === 'video' && item.hasFile ? this.fileUrl(item.id) : undefined,
       pdfUrl: item.type === 'guide' && item.hasFile ? this.fileUrl(item.id) : undefined,
       thumbnailUrl: item.hasThumbnail ? this.thumbnailUrl(item.id) : undefined,
+      thumbnailAlt: item.thumbnailAlt,
     };
   }
 

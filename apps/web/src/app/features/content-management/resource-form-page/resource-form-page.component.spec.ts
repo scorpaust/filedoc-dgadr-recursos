@@ -3,6 +3,10 @@ import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
 import { resources } from '../../../shared/mocks/resources.mock';
+import { ResourceMockService } from '../../resources/data/resource-mock.service';
+import { ResourceEditorialService } from '../data/resource-editorial.service';
+import { TaxonomyMockService } from '../data/taxonomy-mock.service';
+import { TaxonomyService } from '../data/taxonomy.service';
 import { ResourceFormPageComponent } from './resource-form-page.component';
 
 describe('ResourceFormPageComponent', () => {
@@ -11,7 +15,16 @@ describe('ResourceFormPageComponent', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     URL.createObjectURL = vi.fn(() => 'blob:mock-url');
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    // O componente injeta `ResourceEditorialService`/`TaxonomyService` (Fase 7 —
+    // Integração); nos testes, resolvidos para os respetivos mocks (Fase 3/8 — UI), mesma
+    // técnica já usada na Fase 6 para `SupportTicketService`/`SupportTicketMockService`.
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: ResourceEditorialService, useExisting: ResourceMockService },
+        { provide: TaxonomyService, useExisting: TaxonomyMockService },
+      ],
+    });
     const authService = TestBed.inject(AuthService);
     const editor = users.find(
       (user) => user.roles.includes('CONTENT_EDITOR') && user.status === 'active',

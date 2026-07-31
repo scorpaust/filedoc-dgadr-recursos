@@ -18,9 +18,9 @@ import {
   FileUploadSelection,
 } from '../../../shared/components/file-upload/file-upload.component';
 import { Difficulty, Resource, ResourceType, Taxonomy } from '../../../shared/models';
-import { ResourceMockService } from '../../resources/data/resource-mock.service';
+import { ResourceEditorialService } from '../data/resource-editorial.service';
 import { ResourceFormInput } from '../data/resource-form-input.model';
-import { TaxonomyMockService } from '../data/taxonomy-mock.service';
+import { TaxonomyService } from '../data/taxonomy.service';
 import { slugify } from '../slugify.util';
 
 const DIFFICULTY_LABELS: Record<Difficulty, string> = {
@@ -47,8 +47,8 @@ function basename(url: string | undefined): string | undefined {
   styleUrl: './resource-form-page.component.scss',
 })
 export class ResourceFormPageComponent {
-  private readonly resourceService = inject(ResourceMockService);
-  private readonly taxonomyService = inject(TaxonomyMockService);
+  private readonly resourceService = inject(ResourceEditorialService);
+  private readonly taxonomyService = inject(TaxonomyService);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
@@ -273,6 +273,9 @@ export class ResourceFormPageComponent {
       tags,
       duration: raw.type === 'video' ? raw.duration || undefined : undefined,
       pages: raw.type === 'guide' ? raw.pages : undefined,
+      // `videoUrl`/`pdfUrl`/`thumbnailUrl` continuam a ser preenchidos a partir do `objectUrl`
+      // local — só usados pelo `ResourceMockService` (nunca enviados à API real, que ignora
+      // estes campos e usa antes `mainFile`/`thumbnailFile` para o carregamento real).
       videoUrl:
         raw.type === 'video'
           ? (this.mainFileSelection()?.objectUrl ?? existing?.videoUrl)
@@ -284,6 +287,8 @@ export class ResourceFormPageComponent {
           : undefined,
       thumbnailUrl: this.thumbnailSelection()?.objectUrl ?? existing?.thumbnailUrl,
       thumbnailAlt: raw.thumbnailAlt || undefined,
+      mainFile: this.mainFileSelection()?.file,
+      thumbnailFile: this.thumbnailSelection()?.file,
     };
   }
 

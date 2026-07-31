@@ -1,4 +1,4 @@
-/** Forma devolvida ao cliente — alinhada 1:1 com `Tip` do frontend (`shared/models/tip.model.ts`); `title` (só usado pela gestão editorial, Fase 7) não é exposto por este endpoint de leitura pública. */
+/** Forma devolvida ao cliente — alinhada 1:1 com `Tip` do frontend (`shared/models/tip.model.ts`); `title` nunca é exposto (Fase 7 — Integração: derivado automaticamente de `content` no servidor, a UI de gestão de conteúdos nunca o recolhe nem o mostra). */
 export interface TipResponse {
   readonly id: string;
   readonly text: string;

@@ -27,7 +27,7 @@ import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.
 import { TagComponent, TagTone } from '../../../shared/components/tag/tag.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { EDITORIAL_STATUS_LABELS, EditorialStatus, Resource } from '../../../shared/models';
-import { ResourceMockService } from '../../resources/data/resource-mock.service';
+import { ResourceEditorialService } from '../data/resource-editorial.service';
 import { EDITORIAL_STATUS_TONES } from '../editorial-status-tone.util';
 
 type StatusFilter = EditorialStatus | 'all';
@@ -42,8 +42,8 @@ const STATUS_OPTIONS: readonly SegmentedControlOption<StatusFilter>[] = [
 const SEARCH_DEBOUNCE_MS = 250;
 const DATE_FORMATTER = new Intl.DateTimeFormat('pt-PT', { dateStyle: 'short' });
 
-// Tabela de gestão de recursos (Fase 8 — UI, tarefa B), reaproveitando o `ResourceMockService`
-// da Fase 3, agora estendido com operações de escrita.
+// Tabela de gestão de recursos (Fase 8 — UI, tarefa B), a consumir o `ResourceEditorialService`
+// real (Fase 7 — Integração).
 @Component({
   selector: 'fdr-resource-table',
   imports: [
@@ -61,7 +61,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('pt-PT', { dateStyle: 'short' });
   styleUrl: './resource-table.component.scss',
 })
 export class ResourceTableComponent {
-  private readonly resourceService = inject(ResourceMockService);
+  private readonly resourceService = inject(ResourceEditorialService);
   private readonly dialogService = inject(DialogService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);

@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
 import { ToastService } from '../../../shared/components/toast/toast.service';
+import { ResourceMockService } from '../../resources/data/resource-mock.service';
+import { ResourceEditorialService } from '../data/resource-editorial.service';
 import { ResourceTableComponent } from './resource-table.component';
 
 describe('ResourceTableComponent', () => {
@@ -10,7 +12,15 @@ describe('ResourceTableComponent', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    // O componente injeta `ResourceEditorialService` (Fase 7 — Integração); nos testes,
+    // resolvido para `ResourceMockService` (Fase 3 — UI), mesma técnica já usada na Fase 6
+    // para `SupportTicketService`/`SupportTicketMockService`.
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: ResourceEditorialService, useExisting: ResourceMockService },
+      ],
+    });
     const authService = TestBed.inject(AuthService);
     toastService = TestBed.inject(ToastService);
     const editor = users.find(

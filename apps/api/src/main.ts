@@ -1,10 +1,10 @@
 import 'dotenv/config';
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { createValidationPipe } from './common/validation-pipe.factory';
 import { EnvironmentVariables } from './config/env.validation';
 
 async function bootstrap() {
@@ -25,13 +25,7 @@ async function bootstrap() {
     origin: [...configService.get('CORS_ALLOWED_ORIGINS', { infer: true })],
     credentials: true,
   });
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+  app.useGlobalPipes(createValidationPipe());
 
   await app.listen(configService.get('PORT', { infer: true }));
 }

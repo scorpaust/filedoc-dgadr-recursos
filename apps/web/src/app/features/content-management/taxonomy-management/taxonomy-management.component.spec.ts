@@ -1,12 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
+import { TaxonomyMockService } from '../data/taxonomy-mock.service';
+import { TaxonomyService } from '../data/taxonomy.service';
 import { TaxonomyManagementComponent } from './taxonomy-management.component';
 
 describe('TaxonomyManagementComponent', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    TestBed.configureTestingModule({});
+    // O componente injeta `TaxonomyService` (Fase 7 — Integração); nos testes, resolvido
+    // para `TaxonomyMockService` (Fase 8 — UI), mesma técnica já usada na Fase 6.
+    TestBed.configureTestingModule({
+      providers: [{ provide: TaxonomyService, useExisting: TaxonomyMockService }],
+    });
     const authService = TestBed.inject(AuthService);
     const editor = users.find(
       (user) => user.roles.includes('CONTENT_EDITOR') && user.status === 'active',
