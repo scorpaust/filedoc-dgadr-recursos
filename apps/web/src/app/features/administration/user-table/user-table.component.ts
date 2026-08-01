@@ -10,7 +10,8 @@ import {
 } from '@angular/core';
 import { Observable, combineLatest } from 'rxjs';
 import { debounceTime, switchMap, tap } from 'rxjs/operators';
-import { UserListFilters, UserMockService } from '../../../core/auth/user-mock.service';
+import type { UserListFilters } from '../../../core/auth/user-mock.service';
+import { UserService } from '../data/user.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import {
   ConfirmDialogComponent,
@@ -50,9 +51,10 @@ const ROLE_OPTIONS: readonly DropdownFilterOption[] = (
 const SEARCH_DEBOUNCE_MS = 250;
 const DATE_FORMATTER = new Intl.DateTimeFormat('pt-PT', { dateStyle: 'short' });
 
-// Tabela de gestão de utilizadores mock (Fase 9 — UI, tarefa B), reaproveitando o padrão
-// "pesquisa + dropdown de função + segmentado de estado + tabela de ações" já validado no
-// catálogo de recursos (Fase 3) e na gestão de conteúdos (Fase 8).
+// Tabela de gestão de utilizadores (Fase 9 — UI, tarefa B; ligada à API real na Fase 8 —
+// Integração), reaproveitando o padrão "pesquisa + dropdown de função + segmentado de estado
+// + tabela de ações" já validado no catálogo de recursos (Fase 3) e na gestão de conteúdos
+// (Fase 8 — UI).
 @Component({
   selector: 'fdr-user-table',
   imports: [
@@ -70,7 +72,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('pt-PT', { dateStyle: 'short' });
   styleUrl: './user-table.component.scss',
 })
 export class UserTableComponent {
-  private readonly userMockService = inject(UserMockService);
+  private readonly userService = inject(UserService);
   private readonly dialogService = inject(DialogService);
   private readonly toastService = inject(ToastService);
   private readonly formBuilder = inject(FormBuilder);
@@ -106,7 +108,7 @@ export class UserTableComponent {
           roles: roles as readonly UserRole[],
           query,
         };
-        return this.userMockService.list(filters);
+        return this.userService.list(filters);
       }),
       tap(() => this.loading.set(false)),
     ),
@@ -159,11 +161,11 @@ export class UserTableComponent {
   }
 
   protected activate(user: AppUser): void {
-    this.mutate(this.userMockService.activate(user.id), `Conta de "${user.name}" ativada.`);
+    this.mutate(this.userService.activate(user.id), `Conta de "${user.name}" ativada.`);
   }
 
   protected confirmDeactivate(user: AppUser): void {
-    if (user.roles.includes('ADMIN') && this.userMockService.isLastAdminHolder(user.id)) {
+    if (user.roles.includes('ADMIN') && this.userService.isLastAdminHolder(user.id)) {
       this.toastService.error(
         'Não é possível desativar o último utilizador com a função de administrador.',
       );
@@ -182,12 +184,12 @@ export class UserTableComponent {
       if (!confirmed) {
         return;
       }
-      this.mutate(this.userMockService.deactivate(user.id), `Conta de "${user.name}" desativada.`);
+      this.mutate(this.userService.deactivate(user.id), `Conta de "${user.name}" desativada.`);
     });
   }
 
   protected invalidateSessions(user: AppUser): void {
-    this.userMockService
+    this.userService
       .invalidateSessions(user.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

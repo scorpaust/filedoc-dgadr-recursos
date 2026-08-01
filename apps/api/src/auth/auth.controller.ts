@@ -12,6 +12,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Throttle, seconds } from '@nestjs/throttler';
 import type { Response } from 'express';
+import { Audit } from '../audit/audit.decorator';
 import { EnvironmentVariables } from '../config/env.validation';
 import { AuthService, AuthenticatedUser } from './auth.service';
 import type { AuthenticatedRequest, CurrentUserPayload } from './auth.types';
@@ -43,6 +44,7 @@ export class AuthController {
   @Throttle({
     default: { limit: LOGIN_RATE_LIMIT, ttl: seconds(LOGIN_RATE_TTL_SECONDS) },
   })
+  @Audit('auth.login', 'user')
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() dto: LoginDto,
@@ -55,6 +57,7 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(AuthGuard)
+  @Audit('auth.logout', 'user')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
     @Req() request: AuthenticatedRequest,

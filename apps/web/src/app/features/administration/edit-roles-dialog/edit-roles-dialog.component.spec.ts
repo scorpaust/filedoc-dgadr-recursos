@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import { UserMockService } from '../../../core/auth/user-mock.service';
 import { AppUser } from '../../../shared/models';
+import { UserService } from '../data/user.service';
 import { EditRolesDialogComponent } from './edit-roles-dialog.component';
 
 const editorAdmin: AppUser = {
@@ -25,6 +26,7 @@ describe('EditRolesDialogComponent', () => {
       providers: [
         { provide: DialogRef, useValue: { close: closeSpy } },
         { provide: DIALOG_DATA, useValue: { user: editorAdmin } },
+        { provide: UserService, useExisting: UserMockService },
       ],
     });
   });

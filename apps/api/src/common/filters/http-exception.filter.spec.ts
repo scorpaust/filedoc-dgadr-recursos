@@ -15,10 +15,14 @@ type ResponseMock = {
   json: jest.Mock<void, [JsonBody]>;
 };
 
-function makeHost(response: ResponseMock): ArgumentsHost {
+function makeHost(
+  response: ResponseMock,
+  request: { correlationId?: string } = {},
+): ArgumentsHost {
   return {
     switchToHttp: () => ({
       getResponse: () => response,
+      getRequest: () => request,
     }),
   } as unknown as ArgumentsHost;
 }
@@ -96,6 +100,17 @@ describe('HttpExceptionFilter', () => {
 
     expect(response.json.mock.calls[0][0]).toMatchObject({
       message: 'Pedido inválido.',
+    });
+  });
+
+  it('reaproveita o correlationId já atribuído ao pedido por correlationIdMiddleware', () => {
+    filter.catch(
+      new NotFoundException('Recurso não encontrado.'),
+      makeHost(response, { correlationId: 'corr-123' }),
+    );
+
+    expect(response.json.mock.calls[0][0]).toMatchObject({
+      correlationId: 'corr-123',
     });
   });
 

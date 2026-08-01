@@ -1,15 +1,15 @@
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { AuditLogMockService } from '../data/audit-log-mock.service';
 import { AuditLogEntry } from '../../../shared/models';
+import { AuditLogService } from '../data/audit-log.service';
 
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat('pt-PT', {
   dateStyle: 'short',
   timeStyle: 'short',
 });
 
-// Lista de auditoria, apenas leitura (Fase 9 — UI, tarefa E). As entradas são ilustrativas
-// — nunca deve ser confundida com um histórico real de atividade (ver `AuditLogMockService`).
+// Lista de auditoria, apenas leitura (Fase 9 — UI, tarefa E; ligada ao endpoint real na Fase
+// 8 — Integração). As entradas refletem agora ações reais praticadas na aplicação.
 @Component({
   selector: 'fdr-audit-log-list',
   imports: [],
@@ -18,9 +18,9 @@ const DATE_TIME_FORMATTER = new Intl.DateTimeFormat('pt-PT', {
   styleUrl: './audit-log-list.component.scss',
 })
 export class AuditLogListComponent {
-  private readonly auditLogMockService = inject(AuditLogMockService);
+  private readonly auditLogService = inject(AuditLogService);
 
-  protected readonly entries = toSignal(this.auditLogMockService.list(), {
+  protected readonly entries = toSignal(this.auditLogService.list(), {
     initialValue: [] as readonly AuditLogEntry[],
   });
 

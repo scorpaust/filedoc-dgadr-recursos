@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { DialogService } from '../../../shared/components/dialog/dialog.service';
 import { UserMockService } from '../../../core/auth/user-mock.service';
+import { UserService } from '../data/user.service';
 import { UserTableComponent } from './user-table.component';
 
 describe('UserTableComponent', () => {
@@ -9,7 +10,9 @@ describe('UserTableComponent', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [{ provide: UserService, useExisting: UserMockService }],
+    });
     toastService = TestBed.inject(ToastService);
   });
 
