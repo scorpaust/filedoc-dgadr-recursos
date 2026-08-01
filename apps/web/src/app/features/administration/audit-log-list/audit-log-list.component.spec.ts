@@ -1,17 +1,21 @@
 import { TestBed } from '@angular/core/testing';
+import { AuditLogMockService } from '../data/audit-log-mock.service';
+import { AuditLogService } from '../data/audit-log.service';
 import { AuditLogListComponent } from './audit-log-list.component';
 
 describe('AuditLogListComponent', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [{ provide: AuditLogService, useExisting: AuditLogMockService }],
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it('renders the illustrative mock entries with actor, action and date/time', async () => {
+  it('renders the seeded entries with actor, action and date/time', async () => {
     const fixture = TestBed.createComponent(AuditLogListComponent);
     fixture.detectChanges();
     await vi.advanceTimersByTimeAsync(300);
@@ -22,12 +26,14 @@ describe('AuditLogListComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Ana Ferreira');
   });
 
-  it('clearly discloses that the entries are illustrative, not a real activity history', async () => {
+  it('discloses that the entries are the real record of recent administrative actions', async () => {
     const fixture = TestBed.createComponent(AuditLogListComponent);
     fixture.detectChanges();
     await vi.advanceTimersByTimeAsync(300);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Entradas ilustrativas');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Registo real das ações administrativas mais recentes',
+    );
   });
 });

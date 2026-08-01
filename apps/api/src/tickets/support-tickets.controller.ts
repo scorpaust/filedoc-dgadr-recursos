@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
+import { Audit } from '../audit/audit.decorator';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -47,6 +48,9 @@ export class SupportTicketsController {
   }
 
   @Patch(':id')
+  @Audit('ticket.update', 'ticket', {
+    metadataKeys: ['category', 'priority', 'status', 'relatedResourceId'],
+  })
   update(
     @Param('id') id: string,
     @Body() dto: UpdateTicketDto,
@@ -74,6 +78,7 @@ export class SupportTicketsController {
   }
 
   @Post(':id/assign')
+  @Audit('ticket.assign', 'ticket', { metadataKeys: ['agentId'] })
   assign(
     @Param('id') id: string,
     @Body() dto: AssignTicketDto,
@@ -83,6 +88,7 @@ export class SupportTicketsController {
   }
 
   @Post(':id/resolve')
+  @Audit('ticket.resolve', 'ticket')
   resolve(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -91,6 +97,7 @@ export class SupportTicketsController {
   }
 
   @Post(':id/close')
+  @Audit('ticket.close', 'ticket')
   close(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,

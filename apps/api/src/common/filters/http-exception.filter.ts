@@ -7,6 +7,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import type { RequestWithCorrelationId } from '../correlation-id.middleware';
 
 const CODE_BY_STATUS: Readonly<Record<number, string>> = {
   [HttpStatus.BAD_REQUEST]: 'VALIDATION_ERROR',
@@ -34,6 +35,7 @@ interface ApiErrorResponse {
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
+    const request = host.switchToHttp().getRequest<RequestWithCorrelationId>();
     const status = exception.getStatus();
     const body = exception.getResponse();
 
@@ -43,7 +45,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       code: CODE_BY_STATUS[status] ?? 'ERROR',
       message,
       ...(fieldErrors ? { fieldErrors } : {}),
-      correlationId: randomUUID(),
+      correlationId: request.correlationId ?? randomUUID(),
       timestamp: new Date().toISOString(),
     };
 

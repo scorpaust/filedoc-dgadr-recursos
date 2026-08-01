@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import type { Response } from 'express';
+import { Audit } from '../audit/audit.decorator';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -102,6 +103,7 @@ export class ResourcesController {
   @Post(':id/publish')
   @UseGuards(RolesGuard)
   @Roles(...EDITOR_ROLES)
+  @Audit('resource.publish', 'resource')
   publish(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -112,6 +114,7 @@ export class ResourcesController {
   @Post(':id/unpublish')
   @UseGuards(RolesGuard)
   @Roles(...EDITOR_ROLES)
+  @Audit('resource.unpublish', 'resource')
   unpublish(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -122,6 +125,7 @@ export class ResourcesController {
   @Post(':id/archive')
   @UseGuards(RolesGuard)
   @Roles(...EDITOR_ROLES)
+  @Audit('resource.archive', 'resource')
   archive(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -132,6 +136,7 @@ export class ResourcesController {
   @Post(':id/restore')
   @UseGuards(RolesGuard)
   @Roles(...EDITOR_ROLES)
+  @Audit('resource.restore', 'resource')
   restore(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,

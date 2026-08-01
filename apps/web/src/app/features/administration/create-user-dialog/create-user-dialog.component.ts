@@ -2,16 +2,17 @@ import { DialogRef } from '@angular/cdk/dialog';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { UserMockService } from '../../../core/auth/user-mock.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { DialogComponent } from '../../../shared/components/dialog/dialog.component';
 import { AppUser, USER_ROLE_LABELS, UserRole } from '../../../shared/models';
+import { UserService } from '../data/user.service';
 
 const ALL_ROLES: readonly UserRole[] = ['EMPLOYEE', 'CONTENT_EDITOR', 'SUPPORT_AGENT', 'ADMIN'];
 
-// Diálogo de criação de conta mock (Fase 9 — UI, tarefa B). Nunca pede palavra-passe: a
-// atribuição de credenciais reais é responsabilidade do backend (fase-9-ui-administracao.md,
-// riscos em aberto) — a conta criada aqui é apenas ilustrativa, tal como as restantes desta fase.
+// Diálogo de criação de conta (Fase 9 — UI, tarefa B; ligado à API real na Fase 8 —
+// Integração). Nunca pede palavra-passe: a API gera uma palavra-passe temporária, nunca
+// devolvida ao cliente — sem fluxo de entrega/reposição nesta fase (ver `UserService`), a
+// conta só fica utilizável depois de uma fase futura que resolva essa entrega.
 @Component({
   selector: 'fdr-create-user-dialog',
   imports: [ReactiveFormsModule, DialogComponent, ButtonComponent],
@@ -21,7 +22,7 @@ const ALL_ROLES: readonly UserRole[] = ['EMPLOYEE', 'CONTENT_EDITOR', 'SUPPORT_A
 })
 export class CreateUserDialogComponent {
   private readonly dialogRef = inject(DialogRef<AppUser | undefined, CreateUserDialogComponent>);
-  private readonly userMockService = inject(UserMockService);
+  private readonly userService = inject(UserService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -70,7 +71,7 @@ export class CreateUserDialogComponent {
     this.isSubmitting.set(true);
     const { name, email, career } = this.form.getRawValue();
 
-    this.userMockService
+    this.userService
       .create({ name, email, career, roles: this.selectedRoles() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

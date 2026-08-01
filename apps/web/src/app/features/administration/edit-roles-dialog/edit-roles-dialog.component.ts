@@ -1,10 +1,10 @@
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { UserMockService } from '../../../core/auth/user-mock.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { DialogComponent } from '../../../shared/components/dialog/dialog.component';
 import { AppUser, USER_ROLE_LABELS, UserRole } from '../../../shared/models';
+import { UserService } from '../data/user.service';
 
 const ALL_ROLES: readonly UserRole[] = ['EMPLOYEE', 'CONTENT_EDITOR', 'SUPPORT_AGENT', 'ADMIN'];
 
@@ -12,10 +12,10 @@ export interface EditRolesDialogData {
   readonly user: AppUser;
 }
 
-// Diálogo de edição de funções (Fase 9 — UI, tarefa B), com seleção múltipla por checkboxes,
-// nunca um único `select` (fase-9-ui-administracao.md). A submissão chama diretamente o
-// `UserMockService`, para poder mostrar aqui a mensagem de bloqueio do último `ADMIN` sem
-// fechar o diálogo, tal como a exigida em `assignRoles`.
+// Diálogo de edição de funções (Fase 9 — UI, tarefa B; ligado à API real na Fase 8 —
+// Integração), com seleção múltipla por checkboxes, nunca um único `select`. A submissão
+// chama diretamente o `UserService`, para poder mostrar aqui a mensagem de bloqueio do
+// último `ADMIN` (devolvida pela API) sem fechar o diálogo.
 @Component({
   selector: 'fdr-edit-roles-dialog',
   imports: [DialogComponent, ButtonComponent],
@@ -26,7 +26,7 @@ export interface EditRolesDialogData {
 export class EditRolesDialogComponent {
   private readonly data = inject<EditRolesDialogData>(DIALOG_DATA);
   private readonly dialogRef = inject(DialogRef<AppUser | undefined, EditRolesDialogComponent>);
-  private readonly userMockService = inject(UserMockService);
+  private readonly userService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly user = this.data.user;
@@ -62,7 +62,7 @@ export class EditRolesDialogComponent {
     this.errorMessage.set(null);
     this.isSubmitting.set(true);
 
-    this.userMockService
+    this.userService
       .assignRoles(this.user.id, this.selectedRoles())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

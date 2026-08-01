@@ -1,5 +1,7 @@
 import { DialogRef } from '@angular/cdk/dialog';
 import { TestBed } from '@angular/core/testing';
+import { UserMockService } from '../../../core/auth/user-mock.service';
+import { UserService } from '../data/user.service';
 import { CreateUserDialogComponent } from './create-user-dialog.component';
 
 describe('CreateUserDialogComponent', () => {
@@ -9,7 +11,10 @@ describe('CreateUserDialogComponent', () => {
     vi.useFakeTimers();
     closeSpy = vi.fn();
     TestBed.configureTestingModule({
-      providers: [{ provide: DialogRef, useValue: { close: closeSpy } }],
+      providers: [
+        { provide: DialogRef, useValue: { close: closeSpy } },
+        { provide: UserService, useExisting: UserMockService },
+      ],
     });
   });
 
