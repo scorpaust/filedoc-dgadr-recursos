@@ -8,7 +8,7 @@ Fase 8 (Integração) — Administração e Auditoria
 
 <!-- Não iniciada|Em progresso|Concluída -->
 
-Em progresso
+Concluída
 
 ## Objetivos
 
@@ -542,3 +542,6 @@ pipeline de CI a validar esse estado de forma repetível.
   - `lint` (`ng lint`), `typecheck` e `build` (produção) sem erros; `test` — 417/418 (a única falha, em `content-management-page.component.spec.ts`, é a mesma intermitência não determinística por lentidão da máquina em componentes CDK Dialog/Overlay já documentada desde a Fase 4/6/7, sem nenhuma relação com esta fase — os 31 testes de `administration/` passaram 100% quando corridos isoladamente, três vezes); `format:check` — aviso pré-existente por fim de linha `core.autocrlf` neste ambiente Windows, confirmado a replicar-se em ~240 ficheiros do repositório inteiro (incluindo ficheiros nunca tocados por nenhuma fase recente, ex. `app.config.ts`), não confinado aos ficheiros desta fase — mesma limitação ambiental já documentada desde a Fase 2, não uma regressão introduzida aqui.
 - Validação automática (`apps/api`): `lint`, `format:check`, `typecheck` sem erros; `test` (272/272) e `test:integration` (139/139, contentores de teste recriados de raiz) a passar.
 - Estado no final desta sessão: implementação completa das tarefas A/B/C da especificação, todos os critérios de aceitação verificados por teste automático (incl. o de concorrência). Ainda por fazer antes de marcar a fase como concluída: validação manual no browser do fluxo completo de administração (criação/edição/desativação de utilizador, consulta de auditoria) — não tentada nesta sessão; autorização do utilizador para commit.
+- commit efetuado em `feature/fase-8-integracao-administracao` ("feat: Fase 8 (Integração) — Administração e Auditoria"), a pedido do utilizador.
+- branch `feature/fase-8-integracao-administracao` integrada em `main` por pedido do utilizador (merge de integração, sem squash) e apagada de seguida (só existia localmente); `lint`/`typecheck` (`apps/api`/`apps/web`) e `test` (`apps/api` 272/272; `apps/web` 415/418 — as 3 falhas, em `content-management-page`/`resource-table`/`taxonomy-management`, são a mesma intermitência não determinística por lentidão da máquina em componentes CDK Dialog/Overlay já documentada desde a Fase 4, nunca em `administration/`) revalidados em `main` após o merge, todos a passar sem erros.
+- Fase marcada como concluída a pedido explícito do utilizador. Ponto em aberto registado (já assinalado acima): a validação manual da interface no browser não foi tentada nesta sessão — os critérios de aceitação ficam confirmados pelos testes automáticos (unitários e de integração, incl. o cenário de concorrência do último `ADMIN`), mas o fluxo completo de administração (criação/edição/desativação de utilizador, consulta de auditoria) só fica visualmente confirmado numa fase futura com acesso a uma ferramenta de automação de browser.
