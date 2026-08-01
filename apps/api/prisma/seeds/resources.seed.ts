@@ -49,6 +49,10 @@ export async function seedResources(
       pageCount: isVideo ? null : 3,
       fileObjectKey: `${objectKeyBase}/main.${isVideo ? 'mp4' : 'pdf'}`,
       thumbnailObjectKey: `${objectKeyBase}/thumbnail.jpg`,
+      // Exigido em conjunto com a miniatura para publicar (Fase 7 — Integração,
+      // `ResourcesService.publish`) — nenhum dado de seed anterior a essa fase tinha este
+      // campo, pelo que é derivado aqui, tal como as restantes referências simbólicas.
+      thumbnailAlt: `Miniatura do recurso "${resource.title}".`,
       captionObjectKey: isVideo ? `${objectKeyBase}/captions.vtt` : null,
       publishedAt,
     };

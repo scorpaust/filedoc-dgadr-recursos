@@ -309,7 +309,9 @@ describe('gestão de conteúdos (recursos/taxonomias/dicas/FAQ) — fluxo real v
         .query({ q: 'Recurso completo de teste' })
         .set('Cookie', employeeCookie)
         .expect(HttpStatus.OK);
-      const publicBody = publicSearch.body as { items: readonly ResourceBody[] };
+      const publicBody = publicSearch.body as {
+        items: readonly ResourceBody[];
+      };
       expect(publicBody.items.some((item) => item.id === resource.id)).toBe(
         false,
       );
@@ -321,9 +323,7 @@ describe('gestão de conteúdos (recursos/taxonomias/dicas/FAQ) — fluxo real v
         .set('Cookie', contentEditorCookie)
         .expect(HttpStatus.OK);
       const managementBody = managementSearch.body as readonly ResourceBody[];
-      expect(managementBody.some((item) => item.id === resource.id)).toBe(
-        true,
-      );
+      expect(managementBody.some((item) => item.id === resource.id)).toBe(true);
     }, 30000);
   });
 
