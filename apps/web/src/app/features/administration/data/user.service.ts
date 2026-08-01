@@ -114,9 +114,11 @@ export class UserService {
   }
 
   invalidateSessions(userId: string): Observable<void> {
-    return this.http.post<void>(`/admin/users/${userId}/invalidate-sessions`, {}).pipe(
-      catchError((error: unknown) => throwError(() => new Error(extractErrorMessage(error)))),
-    );
+    return this.http
+      .post<void>(`/admin/users/${userId}/invalidate-sessions`, {})
+      .pipe(
+        catchError((error: unknown) => throwError(() => new Error(extractErrorMessage(error)))),
+      );
   }
 
   isLastAdminHolder(userId: string): boolean {

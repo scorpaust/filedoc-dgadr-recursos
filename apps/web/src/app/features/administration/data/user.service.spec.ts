@@ -13,7 +13,9 @@ const API_USER = {
 };
 
 function flushInitialAdminRoster(httpMock: HttpTestingController): void {
-  httpMock.expectOne((req) => req.url === '/admin/users' && req.params.get('roles') === 'ADMIN').flush([]);
+  httpMock
+    .expectOne((req) => req.url === '/admin/users' && req.params.get('roles') === 'ADMIN')
+    .flush([]);
 }
 
 describe('UserService', () => {
@@ -36,7 +38,9 @@ describe('UserService', () => {
 
   it('list envia os filtros como query params e mapeia para AppUser', () => {
     const next = vi.fn();
-    service.list({ status: 'active', roles: ['EMPLOYEE', 'ADMIN'], query: 'marta' }).subscribe(next);
+    service
+      .list({ status: 'active', roles: ['EMPLOYEE', 'ADMIN'], query: 'marta' })
+      .subscribe(next);
 
     const req = httpMock.expectOne(
       (r) =>
@@ -71,7 +75,12 @@ describe('UserService', () => {
   it('create envia POST sem o campo career (não modelado na API)', () => {
     const next = vi.fn();
     service
-      .create({ name: 'Marta Silva', email: 'marta.silva@dgadr.gov.pt', career: 'Técnico', roles: ['EMPLOYEE'] })
+      .create({
+        name: 'Marta Silva',
+        email: 'marta.silva@dgadr.gov.pt',
+        career: 'Técnico',
+        roles: ['EMPLOYEE'],
+      })
       .subscribe(next);
 
     const req = httpMock.expectOne('/admin/users');
@@ -135,16 +144,18 @@ describe('UserService', () => {
     const onError = vi.fn();
     service.assignRoles('user-1', ['EMPLOYEE']).subscribe({ error: onError });
 
-    httpMock
-      .expectOne('/admin/users/user-1/roles')
-      .flush(
-        { message: 'Não é possível remover a função de administrador do último utilizador que a possui.' },
-        { status: 400, statusText: 'Bad Request' },
-      );
+    httpMock.expectOne('/admin/users/user-1/roles').flush(
+      {
+        message:
+          'Não é possível remover a função de administrador do último utilizador que a possui.',
+      },
+      { status: 400, statusText: 'Bad Request' },
+    );
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Não é possível remover a função de administrador do último utilizador que a possui.',
+        message:
+          'Não é possível remover a função de administrador do último utilizador que a possui.',
       }),
     );
   });
@@ -156,7 +167,9 @@ describe('UserService', () => {
 
     it('passa a refletir o roster devolvido pela API após uma atualização', () => {
       service.assignRoles('user-2', ['ADMIN']).subscribe();
-      httpMock.expectOne('/admin/users/user-2/roles').flush({ ...API_USER, id: 'user-2', roles: ['ADMIN'] });
+      httpMock
+        .expectOne('/admin/users/user-2/roles')
+        .flush({ ...API_USER, id: 'user-2', roles: ['ADMIN'] });
       httpMock
         .expectOne((r) => r.url === '/admin/users' && r.params.get('roles') === 'ADMIN')
         .flush([{ ...API_USER, id: 'user-2', roles: ['ADMIN'] }]);
