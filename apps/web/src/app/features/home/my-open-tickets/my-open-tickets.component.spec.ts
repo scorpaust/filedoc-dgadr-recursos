@@ -5,11 +5,20 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
 import { UserRole } from '../../../shared/models';
 import { SupportTicketMockService } from '../../support/data/support-ticket-mock.service';
+import { TicketService } from '../../support/data/ticket.service';
 import { MyOpenTicketsComponent } from './my-open-tickets.component';
 
 describe('MyOpenTicketsComponent', () => {
   function createFixture(role: UserRole) {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      // O componente consome `TicketService` (API real, Fase 5 — Integração); estes testes
+      // continuam a exercitar as regras de visibilidade/estado através do mesmo mock de dados
+      // (Fase 6 — UI), só trocando qual serviço a injeção resolve.
+      providers: [
+        provideRouter([]),
+        { provide: TicketService, useExisting: SupportTicketMockService },
+      ],
+    });
     const authService = TestBed.inject(AuthService);
     const user = users.find(
       (candidate) => candidate.roles.includes(role) && candidate.status === 'active',
@@ -66,7 +75,7 @@ describe('MyOpenTicketsComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        { provide: SupportTicketMockService, useValue: { listMine: () => of([]) } },
+        { provide: TicketService, useValue: { listMine: () => of([]) } },
       ],
     });
     const authService = TestBed.inject(AuthService);

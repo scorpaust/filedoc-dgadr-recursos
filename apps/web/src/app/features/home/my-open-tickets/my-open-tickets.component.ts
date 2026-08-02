@@ -6,14 +6,15 @@ import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.
 import { TagComponent, TagTone } from '../../../shared/components/tag/tag.component';
 import { TicketReferenceComponent } from '../../../shared/components/ticket-reference/ticket-reference.component';
 import { TICKET_STATUS_LABELS, TicketStatus } from '../../../shared/models';
-import { SupportTicketMockService } from '../../support/data/support-ticket-mock.service';
+import { TicketService } from '../../support/data/ticket.service';
 import { TICKET_STATUS_TONES } from '../../support/ticket-tone.util';
 
 export const MY_OPEN_TICKETS_LIMIT = 4;
 
-// "Os meus pedidos" (Fase 10 — UI, tarefa E): reaproveita `SupportTicketMockService.listMine`,
-// mostrando apenas os pedidos que não estejam "Encerrado". Carrega de forma independente das
-// restantes secções da página inicial.
+// "Os meus pedidos" (Fase 10 — UI, tarefa E): reaproveita `TicketService.listMine` (Fase 5 —
+// Integração), mostrando apenas os pedidos que não estejam "Encerrado". Carrega de forma
+// independente das restantes secções da página inicial. Ligado à API real (Fase 9 —
+// Integração): `GET /tickets/mine`, sem endpoint novo.
 @Component({
   selector: 'fdr-my-open-tickets',
   imports: [
@@ -28,7 +29,7 @@ export const MY_OPEN_TICKETS_LIMIT = 4;
   styleUrl: './my-open-tickets.component.scss',
 })
 export class MyOpenTicketsComponent {
-  private readonly ticketService = inject(SupportTicketMockService);
+  private readonly ticketService = inject(TicketService);
 
   protected readonly skeletonPlaceholders = Array.from(
     { length: MY_OPEN_TICKETS_LIMIT },

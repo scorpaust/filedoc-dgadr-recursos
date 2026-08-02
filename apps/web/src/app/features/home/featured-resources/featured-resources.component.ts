@@ -1,15 +1,19 @@
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { map } from 'rxjs';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { ResourceCardComponent } from '../../../shared/components/resource-card/resource-card.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
-import { ResourceMockService } from '../../resources/data/resource-mock.service';
+import { ResourceService } from '../../resources/data/resource.service';
 
 export const FEATURED_RESOURCES_LIMIT = 4;
 
 // "Recursos em destaque" (Fase 10 — UI). Carrega de forma independente das restantes
 // secções da página inicial: a sua demora simulada nunca bloqueia "Recursos recentes"
-// nem "Os meus pedidos".
+// nem "Os meus pedidos". Ligado à API real (Fase 9 — Integração): sem campo explícito
+// `isFeatured` no schema, o destaque usa `sort: 'recent'` (`publishedAt` desc), decisão já
+// registada na Fase 10 — UI e confirmada como suportada pelo endpoint `GET /resources`
+// (Fase 3 — Integração) sem necessidade de migração.
 @Component({
   selector: 'fdr-featured-resources',
   imports: [ResourceCardComponent, SkeletonComponent, EmptyStateComponent],
@@ -18,7 +22,7 @@ export const FEATURED_RESOURCES_LIMIT = 4;
   styleUrl: './featured-resources.component.scss',
 })
 export class FeaturedResourcesComponent {
-  private readonly resourceService = inject(ResourceMockService);
+  private readonly resourceService = inject(ResourceService);
 
   protected readonly skeletonPlaceholders = Array.from(
     { length: FEATURED_RESOURCES_LIMIT },
@@ -26,7 +30,17 @@ export class FeaturedResourcesComponent {
   );
 
   private readonly resources = toSignal(
-    this.resourceService.listFeatured(FEATURED_RESOURCES_LIMIT),
+    this.resourceService
+      .search({
+        query: '',
+        type: 'all',
+        workflows: [],
+        difficulties: [],
+        sort: 'recent',
+        page: 1,
+        pageSize: FEATURED_RESOURCES_LIMIT,
+      })
+      .pipe(map((result) => result.items)),
     { initialValue: undefined },
   );
 

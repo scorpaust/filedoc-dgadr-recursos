@@ -1,5 +1,17 @@
 # Interfaces dos serviços mock (UI)
 
+> **Documento histórico/descontinuado** (Fase 9 — Integração, `fase-9-integracao-pagina-inicial.md`,
+> critério de aceitação): a partir da Fase 9 (Integração) — Página Inicial, a via de
+> Integração de Funcionalidades fecha, funcionalmente, todas as áreas visíveis ao
+> trabalhador comum, já sem dependência de serviços mock. Este documento deixou de
+> descrever o comportamento atual da aplicação — é mantido apenas como registo do contrato
+> de assinatura pública usado durante a via de UI (Fases 1 a 10), que guiou cada fase de
+> integração a trocar apenas o serviço injetado nos componentes, nunca os próprios
+> componentes. Alguns dos serviços mock aqui descritos continuam em uso pontual em
+> operações de gestão fora do âmbito desta fase (ex.: pré-visualização de editor,
+> `TaxonomyMockService` em `TaxonomySummaryComponent`), tal como já registado em
+> `context/current-feature.md`.
+
 > Produzido na Fase 11 (UI) — Acessibilidade, Responsividade e Testes E2E de UI
 > (`context/features/fase-11-ui-acessibilidade-e2e.md`, tarefa G).
 
