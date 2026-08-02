@@ -274,9 +274,14 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-  # Análise básica de dependências (`npm audit`) — reporta vulnerabilidades sem
-  # bloquear o pipeline, conforme o âmbito explícito da Fase 4 (não é um check
-  # obrigatório de proteção de branch).
+  # Análise de dependências (`npm audit`) — Fase 4 (Deployment) deixava o
+  # pipeline sempre verde independentemente da severidade; Fase 10
+  # (Hardening) reavaliou os findings existentes (nenhum crítico, ver
+  # docs/auditoria-seguranca-fase-10.md) e passou a bloquear especificamente
+  # em `critical`, o único limiar exigido por project-spec.md ("sem findings
+  # críticos por resolver") — sem tornar o pipeline instável por findings de
+  # severidade inferior sem correção disponível sem alterações estruturais
+  # (ex. dependências de desenvolvimento do próprio Angular CLI).
   dependency-audit:
     name: dependency-audit
     runs-on: ubuntu-latest
@@ -292,3 +297,4 @@ jobs:
       - run: npm ci
       - run: npm audit
         continue-on-error: true
+      - run: npm audit --audit-level=critical

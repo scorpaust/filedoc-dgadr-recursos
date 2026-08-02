@@ -190,13 +190,16 @@ Quatro *jobs*, paralelizados sempre que não têm dependências entre si:
 - **`e2e`** — suite Playwright completa (Fase 11) contra `ng serve --configuration
   production`; relatório e capturas de falha publicados sempre como artefacto do
   workflow;
-- **`dependency-audit`** — `npm audit`, informativo (`continue-on-error`), não bloqueia
-  o *merge*.
+- **`dependency-audit`** — `npm audit` completo, sempre informativo
+  (`continue-on-error`), seguido de `npm audit --audit-level=critical`, que bloqueia o
+  *job* apenas em vulnerabilidades críticas (Fase 10, Hardening — ver
+  `docs/auditoria-seguranca-fase-10.md`).
 
 A branch principal deve exigir os *checks* `quality (web)`, `quality (api)`,
-`db-validation` e `e2e` (não `dependency-audit`, apenas informativo) antes de permitir
-*merge* — configuração de proteção de branch feita diretamente no GitHub (fora do
-âmbito de ficheiros do repositório), ainda por aplicar.
+`db-validation`, `e2e` e `dependency-audit` (desde a Fase 10, já bloqueia em
+vulnerabilidades críticas) antes de permitir *merge* — configuração de proteção de
+branch feita diretamente no GitHub (fora do âmbito de ficheiros do repositório), ainda
+por aplicar.
 
 ### `publish-images.yml` — build & publicação de imagens (só ao integrar em `main`)
 
@@ -244,3 +247,17 @@ docker compose -f docker-compose.homolog.yml --env-file .env.homolog up -d
 Este ambiente nunca deve conter dados reais de trabalhadores da DGADR —
 apenas o seed de demonstração idempotente já usado em desenvolvimento
 (`npm run prisma:seed --workspace apps/api`).
+
+## Segurança, privacidade e produção (Fase 10, Integração — Hardening)
+
+Última fase do projeto: audita e fecha lacunas de segurança/RGPD encontradas
+nas fases anteriores, sem introduzir funcionalidades novas. Ver:
+
+- `docs/auditoria-seguranca-fase-10.md` — checklist de segurança de
+  `context/project-spec.md`, item a item, com evidência;
+- `docs/privacidade-rgpd.md` — dados guardados, finalidade, retenção,
+  tratamento de ficheiros/logs, exigido por `project-spec.md`;
+- `docs/preparacao-producao-aws.md` — preparação técnica de um ambiente de
+  produção (serviço ECS distinto de homologação, base de dados, alarmes,
+  backup), com as dependências institucionais ainda pendentes explicitadas
+  (nenhuma infraestrutura AWS foi provisionada por esta fase).

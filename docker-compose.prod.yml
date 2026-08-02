@@ -60,6 +60,19 @@ services:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://filedoc:filedoc@postgres:5432/filedoc?schema=public
+      # Valores locais fixos, ao mesmo nível de "segurança" das credenciais do
+      # Postgres/MinIO já hardcoded acima — esta stack é uma pilha de
+      # referência local, nunca um ambiente real. STORAGE_ENDPOINT usa o nome
+      # do serviço Docker ("minio"), não "localhost": o contentor da API
+      # precisa de o resolver na rede interna do Compose para as chamadas
+      # diretas ao SDK S3 (Head/Delete/ListObjects), ao contrário do browser,
+      # que acede ao MinIO pela porta publicada no anfitrião.
+      SESSION_SECRET: 'pilha-de-referencia-local-nao-usar-fora-de-docker-compose-prod'
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_BUCKET: filedoc-recursos
+      STORAGE_ACCESS_KEY: filedoc
+      STORAGE_SECRET_KEY: filedoc123
+      CORS_ALLOWED_ORIGINS: http://localhost:8080
     ports:
       - '3000:3000'
     depends_on:
@@ -79,6 +92,9 @@ services:
       # interna do Docker) — lido em tempo de arranque do contentor, não de
       # build (ver apps/web/docker/generate-env-config.sh).
       API_URL: http://localhost:3000/api/v1
+      # Idem, para a diretiva Content-Security-Policy (Fase 10, Hardening) —
+      # ver apps/web/docker/generate-security-headers.sh.
+      STORAGE_PUBLIC_ORIGIN: http://localhost:9000
     ports:
       - '8080:8080'
     depends_on:
