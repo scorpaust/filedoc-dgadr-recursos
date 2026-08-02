@@ -188,7 +188,7 @@ describe('ResourcesService', () => {
       ]);
     });
 
-    it('ordena por título quando sort="alphabetical", por publishedAt desc por omissão', async () => {
+    it('ordena por título quando sort="alphabetical", por publishedAt desc por omissão, por updatedAt desc quando sort="updated"', async () => {
       prisma.resource.findMany.mockResolvedValue([]);
       prisma.resource.count.mockResolvedValue(0);
 
@@ -202,6 +202,11 @@ describe('ResourcesService', () => {
       await service.search(baseQuery(), [Role.EMPLOYEE]);
       expect(prisma.resource.findMany.mock.calls[1][0].orderBy).toEqual({
         publishedAt: 'desc',
+      });
+
+      await service.search(baseQuery({ sort: 'updated' }), [Role.EMPLOYEE]);
+      expect(prisma.resource.findMany.mock.calls[2][0].orderBy).toEqual({
+        updatedAt: 'desc',
       });
     });
   });

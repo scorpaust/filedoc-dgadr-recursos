@@ -14,9 +14,11 @@ import {
   TicketStatus,
   formatRoleLabels,
 } from '../../../shared/models';
+import { resources } from '../../../shared/mocks/resources.mock';
 import { supportTickets } from '../../../shared/mocks/support-tickets.mock';
-import { agentName } from '../agent.util';
+import { SUPPORT_AGENTS, agentName } from '../agent.util';
 import { CreateTicketInput } from './create-ticket-input.model';
+import type { SupportAgent } from './support-ticket.service';
 
 const SIMULATED_DELAY_MS = 400;
 const REFERENCE_CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -160,6 +162,12 @@ export class SupportTicketMockService {
     return of(sorted).pipe(delay(SIMULATED_DELAY_MS));
   }
 
+  listAgents(): Observable<readonly SupportAgent[]> {
+    return of(SUPPORT_AGENTS.map((agent) => ({ id: agent.id, name: agent.name }))).pipe(
+      delay(SIMULATED_DELAY_MS),
+    );
+  }
+
   assign(ticketId: string, agentId: string): Observable<SupportTicket> {
     const targetName = agentName(agentId) ?? 'outro agente';
     return this.mutateAsAgent(
@@ -200,9 +208,15 @@ export class SupportTicketMockService {
   }
 
   associateResource(ticketId: string, resourceId: string): Observable<SupportTicket> {
+    const resource = resources.find((candidate) => candidate.id === resourceId);
     return this.mutateAsAgent(
       ticketId,
-      { relatedResourceId: resourceId },
+      {
+        relatedResourceId: resourceId,
+        relatedResource: resource
+          ? { id: resource.id, slug: resource.slug, title: resource.title }
+          : undefined,
+      },
       (user) => `${user.name} associou um recurso formativo a este pedido.`,
     );
   }

@@ -11,6 +11,7 @@ const DEMO_PASSWORD = 'Demo123!';
 const EMPLOYEE_EMAIL = 'marta.silva@dgadr.gov.pt'; // user-1, requerente de seed-ticket-1/6(não)/8
 const SUPPORT_AGENT_EMAIL = 'carlos.vieira@dgadr.gov.pt'; // user-2, SUPPORT_AGENT
 const ADMIN_EMAIL = 'ana.ferreira@dgadr.gov.pt'; // user-5, só ADMIN
+const FIRST_AGENT_ID = 'user-2'; // carlos.vieira, SUPPORT_AGENT (agentCookie)
 const SECOND_AGENT_ID = 'user-6'; // sofia.ramos, SUPPORT_AGENT
 
 // `SupportTicket.id` é um cuid gerado pela BD — o seed (`support-tickets.seed.ts`) faz
@@ -90,9 +91,12 @@ describe('gestão de suporte (vista de agente) — fluxo real via HTTP', () => {
     agentCookie = await loginAs(SUPPORT_AGENT_EMAIL);
     adminCookie = await loginAs(ADMIN_EMAIL);
 
+    // `adminCookie`, não `agentCookie`: a regra de visibilidade do agente (tarefa desta
+    // fase) esconderia de Carlos os pedidos já atribuídos a outro agente (seed-ticket-8,
+    // sofia), impedindo `idFor` de os resolver para os restantes testes deste ficheiro.
     const list = await request(app.getHttpServer())
       .get('/api/v1/support/tickets')
-      .set('Cookie', agentCookie)
+      .set('Cookie', adminCookie)
       .expect(HttpStatus.OK);
     idByReference = new Map(
       (list.body as readonly TicketBody[]).map((ticket) => [
@@ -149,9 +153,12 @@ describe('gestão de suporte (vista de agente) — fluxo real via HTTP', () => {
     });
 
     it('GET /support/tickets/:id inclui notas internas (seed-ticket-8)', async () => {
+      // Atribuído a sofia.ramos (assigneeKey: 'sofia') — usa `adminCookie`, não `agentCookie`
+      // (Carlos Vieira), já que a nova regra de visibilidade do agente (tarefa desta fase)
+      // esconde de um SUPPORT_AGENT os pedidos atribuídos a outro agente.
       const response = await request(app.getHttpServer())
         .get(`/api/v1/support/tickets/${idFor(REFERENCE.ticket8)}`)
-        .set('Cookie', agentCookie)
+        .set('Cookie', adminCookie)
         .expect(HttpStatus.OK);
 
       const body = response.body as TicketBody;
@@ -225,6 +232,83 @@ describe('gestão de suporte (vista de agente) — fluxo real via HTTP', () => {
       expect(
         body.some((ticket) => ticket.reference === REFERENCE.ticket1),
       ).toBe(true);
+    });
+  });
+
+  // project-spec.md, secção "Agente de suporte": "consultar os tickets que lhe estão
+  // atribuídos ou disponíveis" — um SUPPORT_AGENT nunca vê pedidos já atribuídos a outro
+  // agente; o ADMIN mantém supervisão transversal.
+  describe('visibilidade do agente por atribuição', () => {
+    it('esconde de um SUPPORT_AGENT um pedido atribuído a outro agente (seed-ticket-8, sofia)', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/support/tickets')
+        .set('Cookie', agentCookie)
+        .expect(HttpStatus.OK);
+
+      const body = response.body as readonly TicketBody[];
+      expect(
+        body.some((ticket) => ticket.reference === REFERENCE.ticket8),
+      ).toBe(false);
+      // continua a ver os seus próprios (ticket3, assigneeKey: carlos) e os disponíveis
+      // (ticket1, sem assigneeKey).
+      expect(
+        body.some((ticket) => ticket.reference === REFERENCE.ticket3),
+      ).toBe(true);
+      expect(
+        body.some((ticket) => ticket.reference === REFERENCE.ticket1),
+      ).toBe(true);
+    });
+
+    it('não esconde do ADMIN nenhum pedido, independentemente do agente atribuído', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/support/tickets')
+        .set('Cookie', adminCookie)
+        .expect(HttpStatus.OK);
+
+      const body = response.body as readonly TicketBody[];
+      expect(
+        body.some((ticket) => ticket.reference === REFERENCE.ticket8),
+      ).toBe(true);
+    });
+
+    it('devolve 404 (não 403) a um SUPPORT_AGENT que tente aceder diretamente por id a um pedido de outro agente', async () => {
+      await request(app.getHttpServer())
+        .get(`/api/v1/support/tickets/${idFor(REFERENCE.ticket8)}`)
+        .set('Cookie', agentCookie)
+        .expect(HttpStatus.NOT_FOUND);
+    });
+
+    it('reatribuir move o pedido para a fila do novo agente e retira-o da do anterior', async () => {
+      const ticketId = idFor(REFERENCE.ticket2); // assigneeKey: carlos, isolado dos restantes testes
+
+      await request(app.getHttpServer())
+        .post(`/api/v1/support/tickets/${ticketId}/assign`)
+        .set('Cookie', agentCookie)
+        .send({ agentId: SECOND_AGENT_ID })
+        .expect(HttpStatus.CREATED);
+
+      // Carlos (agentCookie) deixa de ver o pedido, tanto na lista como por id direto.
+      const carlosList = await request(app.getHttpServer())
+        .get('/api/v1/support/tickets')
+        .set('Cookie', agentCookie)
+        .expect(HttpStatus.OK);
+      expect(
+        (carlosList.body as readonly TicketBody[]).some(
+          (ticket) => ticket.reference === REFERENCE.ticket2,
+        ),
+      ).toBe(false);
+      await request(app.getHttpServer())
+        .get(`/api/v1/support/tickets/${ticketId}`)
+        .set('Cookie', agentCookie)
+        .expect(HttpStatus.NOT_FOUND);
+
+      // reposto no estado original (assigneeKey: carlos) para não afetar outros testes
+      // deste ficheiro que reutilizam `ticket2`.
+      await request(app.getHttpServer())
+        .post(`/api/v1/support/tickets/${ticketId}/assign`)
+        .set('Cookie', adminCookie)
+        .send({ agentId: FIRST_AGENT_ID })
+        .expect(HttpStatus.CREATED);
     });
   });
 
@@ -315,6 +399,32 @@ describe('gestão de suporte (vista de agente) — fluxo real via HTTP', () => {
     });
   });
 
+  describe('GET /support/tickets/agents', () => {
+    it('lista só utilizadores ativos com função SUPPORT_AGENT/ADMIN, com id/nome reais', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/support/tickets/agents')
+        .set('Cookie', agentCookie)
+        .expect(HttpStatus.OK);
+
+      const body = response.body as readonly { id: string; name: string }[];
+      expect(body.length).toBeGreaterThan(0);
+      expect(body.map((a) => a.name)).toContain('Carlos Vieira');
+      expect(body.map((a) => a.name)).toContain('Sofia Ramos');
+      // marta.silva (EMPLOYEE) nunca é um agente atribuível.
+      expect(body.map((a) => a.name)).not.toContain('Marta Silva');
+      // os ids devolvidos têm de ser diretamente utilizáveis em POST .../assign.
+      const agent = body.find((a) => a.name === 'Sofia Ramos')!;
+      expect(agent.id).toBe(SECOND_AGENT_ID);
+    });
+
+    it('rejeita um EMPLOYEE', async () => {
+      await request(app.getHttpServer())
+        .get('/api/v1/support/tickets/agents')
+        .set('Cookie', employeeCookie)
+        .expect(HttpStatus.FORBIDDEN);
+    });
+  });
+
   describe('POST /support/tickets/:id/assign', () => {
     it('rejeita um agentId que não corresponde a um agente/admin ativo', async () => {
       await request(app.getHttpServer())
@@ -325,8 +435,9 @@ describe('gestão de suporte (vista de agente) — fluxo real via HTTP', () => {
     });
 
     it('atribui o pedido a outro agente e regista o histórico', async () => {
+      const ticketId = idFor(REFERENCE.ticket7);
       const response = await request(app.getHttpServer())
-        .post(`/api/v1/support/tickets/${idFor(REFERENCE.ticket7)}/assign`)
+        .post(`/api/v1/support/tickets/${ticketId}/assign`)
         .set('Cookie', agentCookie)
         .send({ agentId: SECOND_AGENT_ID })
         .expect(HttpStatus.CREATED);
@@ -334,6 +445,16 @@ describe('gestão de suporte (vista de agente) — fluxo real via HTTP', () => {
       const body = response.body as TicketBody;
       expect(body.assigneeId).toBe(SECOND_AGENT_ID);
       expect(body.messages.at(-1)?.content).toContain('Sofia Ramos');
+
+      // Reatribuído de volta a Carlos (via adminCookie, já que a nova regra de visibilidade
+      // do agente esconderia agora este pedido de `agentCookie`) — `ticket7` é reutilizado
+      // pelos testes de `resolve`/`close` mais abaixo neste mesmo ficheiro, que assumem
+      // `agentCookie` como o atribuído.
+      await request(app.getHttpServer())
+        .post(`/api/v1/support/tickets/${ticketId}/assign`)
+        .set('Cookie', adminCookie)
+        .send({ agentId: FIRST_AGENT_ID })
+        .expect(HttpStatus.CREATED);
     });
   });
 

@@ -652,7 +652,13 @@ export class ResourcesService {
   private buildOrderBy(
     sort: ListResourcesQueryDto['sort'],
   ): Prisma.ResourceOrderByWithRelationInput {
-    return sort === 'alphabetical' ? { title: 'asc' } : { publishedAt: 'desc' };
+    if (sort === 'alphabetical') {
+      return { title: 'asc' };
+    }
+    if (sort === 'updated') {
+      return { updatedAt: 'desc' };
+    }
+    return { publishedAt: 'desc' };
   }
 
   private visibleStatuses(roles: readonly Role[]): ResourceStatus[] {

@@ -1,9 +1,15 @@
 import { IconName } from '../../../shared/components/icon/icon.component';
+import { UserRole } from '../../../shared/models';
 
 export interface NavItem {
   readonly label: string;
   readonly route: string;
   readonly icon: IconName;
+  // Sem `roles`, o item é visível a qualquer utilizador autenticado. Quando definido, tem de
+  // corresponder exatamente às funções de `data: { roles: [...] }` da rota em `app.routes.ts`
+  // (mesma regra de interseção não vazia do `roleGuard`) — a navegação nunca deve mostrar um
+  // link que o `roleGuard` depois bloqueia.
+  readonly roles?: readonly UserRole[];
 }
 
 export interface NavGroup {
@@ -11,9 +17,6 @@ export interface NavGroup {
   readonly items: readonly NavItem[];
 }
 
-// Os itens do grupo "Gestão" ficam visíveis para todos os utilizadores nesta fase.
-// A autorização real por função é aplicada numa fase posterior, tanto no frontend
-// como, sobretudo, no backend — a interface nunca é, por si só, uma fronteira de segurança.
 export const navGroups: readonly NavGroup[] = [
   {
     heading: 'Portal',
@@ -30,9 +33,19 @@ export const navGroups: readonly NavGroup[] = [
   {
     heading: 'Gestão',
     items: [
-      { label: 'Gestão de suporte', route: '/suporte/gestao', icon: 'clipboard' },
-      { label: 'Conteúdos', route: '/conteudos', icon: 'folder' },
-      { label: 'Administração', route: '/administracao', icon: 'shield' },
+      {
+        label: 'Gestão de suporte',
+        route: '/suporte/gestao',
+        icon: 'clipboard',
+        roles: ['SUPPORT_AGENT', 'ADMIN'],
+      },
+      {
+        label: 'Conteúdos',
+        route: '/conteudos',
+        icon: 'folder',
+        roles: ['CONTENT_EDITOR', 'ADMIN'],
+      },
+      { label: 'Administração', route: '/administracao', icon: 'shield', roles: ['ADMIN'] },
     ],
   },
 ];

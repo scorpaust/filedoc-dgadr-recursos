@@ -2,6 +2,8 @@ import { DialogRef } from '@angular/cdk/dialog';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
+import { ResourceMockService } from '../../resources/data/resource-mock.service';
+import { ResourceService } from '../../resources/data/resource.service';
 import { ResourcePickerDialogComponent } from './resource-picker-dialog.component';
 
 describe('ResourcePickerDialogComponent', () => {
@@ -11,7 +13,13 @@ describe('ResourcePickerDialogComponent', () => {
     vi.useFakeTimers();
     closeSpy = vi.fn();
     TestBed.configureTestingModule({
-      providers: [{ provide: DialogRef, useValue: { close: closeSpy } }],
+      // O componente consome `ResourceService` (API real, Fase 3 — Integração); este teste
+      // continua a exercitar a pesquisa através do mesmo mock de dados (Fase 3 — UI), só
+      // trocando qual serviço a injeção resolve (mesma técnica das Fases 6/7/8).
+      providers: [
+        { provide: DialogRef, useValue: { close: closeSpy } },
+        { provide: ResourceService, useExisting: ResourceMockService },
+      ],
     });
     const authService = TestBed.inject(AuthService);
     const employee = users.find(

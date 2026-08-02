@@ -79,7 +79,8 @@ describe('TicketsService', () => {
     };
     ticketMessage: { create: jest.Mock; findFirst: jest.Mock };
     ticketAttachment: { count: jest.Mock; create: jest.Mock };
-    user: { findFirst: jest.Mock };
+    user: { findFirst: jest.Mock; findMany: jest.Mock };
+    resource: { findUnique: jest.Mock };
   };
   let storageService: {
     createUploadUrl: jest.Mock;
@@ -99,7 +100,8 @@ describe('TicketsService', () => {
       },
       ticketMessage: { create: jest.fn(), findFirst: jest.fn() },
       ticketAttachment: { count: jest.fn(), create: jest.fn() },
-      user: { findFirst: jest.fn() },
+      user: { findFirst: jest.fn(), findMany: jest.fn() },
+      resource: { findUnique: jest.fn() },
     };
     storageService = {
       createUploadUrl: jest.fn(),
@@ -449,24 +451,72 @@ describe('TicketsService', () => {
     roles: [Role.SUPPORT_AGENT],
   };
 
+  const admin = {
+    id: 'admin-1',
+    name: 'Ana Ferreira',
+    email: 'ana.ferreira@dgadr.gov.pt',
+    roles: [Role.ADMIN],
+  };
+
   describe('listForAgents', () => {
     it('filtra por estado/categoria/prioridade e pesquisa por referência/assunto/solicitante', async () => {
       prisma.supportTicket.findMany.mockResolvedValue([makeTicket()]);
 
-      await service.listForAgents({
-        status: 'OPEN',
-        category: 'Acesso ou permissões',
-        priority: 'alta',
-        q: 'Filedoc',
-      });
+      await service.listForAgents(
+        {
+          status: 'OPEN',
+          category: 'Acesso ou permissões',
+          priority: 'alta',
+          q: 'Filedoc',
+        },
+        agent,
+      );
 
       expect(prisma.supportTicket.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            status: 'OPEN',
-            category: 'ACCESS_PERMISSIONS',
-            priority: 'HIGH',
-          }) as { status: string; category: string; priority: string },
+            AND: [
+              expect.anything(),
+              expect.objectContaining({
+                status: 'OPEN',
+                category: 'ACCESS_PERMISSIONS',
+                priority: 'HIGH',
+              }) as { status: string; category: string; priority: string },
+            ],
+          }) as { AND: unknown[] },
+        }),
+      );
+    });
+
+    // project-spec.md, secção "Agente de suporte": "consultar os tickets que lhe estão
+    // atribuídos ou disponíveis" — nunca os já atribuídos a outro agente.
+    it('restringe um SUPPORT_AGENT a pedidos sem atribuição ou atribuídos a si próprio', async () => {
+      prisma.supportTicket.findMany.mockResolvedValue([]);
+
+      await service.listForAgents({}, agent);
+
+      expect(prisma.supportTicket.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            AND: [
+              { OR: [{ assigneeId: null }, { assigneeId: agent.id }] },
+              expect.anything(),
+            ],
+          }) as { AND: unknown[] },
+        }),
+      );
+    });
+
+    it('não restringe um ADMIN — supervisão transversal', async () => {
+      prisma.supportTicket.findMany.mockResolvedValue([]);
+
+      await service.listForAgents({}, admin);
+
+      expect(prisma.supportTicket.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            AND: [{}, expect.anything()],
+          }) as { AND: unknown[] },
         }),
       );
     });
@@ -476,7 +526,7 @@ describe('TicketsService', () => {
     it('devolve 404 quando o pedido não existe', async () => {
       prisma.supportTicket.findUnique.mockResolvedValue(null);
 
-      await expect(service.getForAgent('ticket-x')).rejects.toThrow(
+      await expect(service.getForAgent('ticket-x', agent)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -515,10 +565,30 @@ describe('TicketsService', () => {
         }),
       );
 
-      const result = await service.getForAgent('ticket-1');
+      const result = await service.getForAgent('ticket-1', agent);
 
       expect(result.messages).toHaveLength(2);
       expect(result.messages[1].internal).toBe(true);
+    });
+
+    it('devolve 404 para um SUPPORT_AGENT quando o pedido está atribuído a outro agente', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ assigneeId: 'other-agent' }),
+      );
+
+      await expect(service.getForAgent('ticket-1', agent)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('devolve o pedido a um ADMIN mesmo atribuído a outro agente', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ assigneeId: 'other-agent' }),
+      );
+
+      const result = await service.getForAgent('ticket-1', admin);
+
+      expect(result.id).toBe('ticket-1');
     });
   });
 
@@ -575,6 +645,54 @@ describe('TicketsService', () => {
         }),
       );
     });
+
+    // Bug corrigido: o seletor "Associar recurso" (SupportManagementPageComponent) usava
+    // antes o roster estático de recursos mock da via de UI (ResourceMockService, ids como
+    // 'res-3'), nunca migrado quando a Fase 3 (Integração) ligou o catálogo real — qualquer
+    // associação falhava sempre com um erro cru do Prisma (`connect` de um id inexistente).
+    it('rejeita quando o recurso indicado não existe', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(makeTicket());
+      prisma.resource.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.update('ticket-1', { relatedResourceId: 'res-3' }, agent),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.supportTicket.update).not.toHaveBeenCalled();
+    });
+
+    it('associa o recurso e regista uma mensagem pública de histórico quando o recurso existe', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(makeTicket());
+      prisma.resource.findUnique.mockResolvedValue({ id: 'resource-1' });
+      prisma.supportTicket.update.mockResolvedValue(
+        makeTicket({
+          relatedResourceId: 'resource-1',
+          relatedResource: {
+            id: 'resource-1',
+            slug: 'assinar-um-documento',
+            title: 'Assinar um documento',
+          },
+        }),
+      );
+
+      const result = await service.update(
+        'ticket-1',
+        { relatedResourceId: 'resource-1' },
+        agent,
+      );
+
+      expect(prisma.supportTicket.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            relatedResource: { connect: { id: 'resource-1' } },
+          }) as { relatedResource: unknown },
+        }),
+      );
+      expect(result.relatedResource).toEqual({
+        id: 'resource-1',
+        slug: 'assinar-um-documento',
+        title: 'Assinar um documento',
+      });
+    });
   });
 
   describe('assign', () => {
@@ -617,6 +735,62 @@ describe('TicketsService', () => {
         }),
       );
       expect(result.assigneeId).toBe('agent-2');
+    });
+
+    it('permite ao atual atribuído reatribuir a outro agente (deixa de lhe estar atribuído)', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ assigneeId: agent.id }),
+      );
+      prisma.user.findFirst.mockResolvedValue({
+        id: 'agent-2',
+        name: 'Sofia Ramos',
+      });
+      prisma.supportTicket.update.mockResolvedValue(
+        makeTicket({ assigneeId: 'agent-2' }),
+      );
+
+      const result = await service.assign(
+        'ticket-1',
+        { agentId: 'agent-2' },
+        agent,
+      );
+
+      expect(result.assigneeId).toBe('agent-2');
+    });
+
+    it('rejeita (404) um SUPPORT_AGENT diferente a tentar reatribuir um pedido já atribuído a outro agente', async () => {
+      prisma.supportTicket.findUnique.mockResolvedValue(
+        makeTicket({ assigneeId: 'other-agent' }),
+      );
+
+      await expect(
+        service.assign('ticket-1', { agentId: agent.id }, agent),
+      ).rejects.toThrow(NotFoundException);
+      expect(prisma.supportTicket.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('listAssignableAgents', () => {
+    it('lista utilizadores ativos com função SUPPORT_AGENT/ADMIN, com os mesmos critérios de assign', async () => {
+      prisma.user.findMany.mockResolvedValue([
+        { id: 'agent-2', name: 'Sofia Ramos' },
+        { id: 'agent-3', name: 'Carlos Vieira' },
+      ]);
+
+      const result = await service.listAssignableAgents();
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            status: 'ACTIVE',
+            roles: { some: { role: { in: ['SUPPORT_AGENT', 'ADMIN'] } } },
+          },
+        }),
+      );
+      expect(result).toEqual([
+        { id: 'agent-2', name: 'Sofia Ramos' },
+        { id: 'agent-3', name: 'Carlos Vieira' },
+      ]);
     });
   });
 

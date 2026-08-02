@@ -7,7 +7,7 @@ export const DIFFICULTY_FILTER_VALUES = [
   'intermedia',
   'avancada',
 ] as const;
-export const SORT_VALUES = ['recent', 'alphabetical'] as const;
+export const SORT_VALUES = ['recent', 'alphabetical', 'updated'] as const;
 
 export type ResourceTypeFilter = (typeof RESOURCE_TYPE_FILTER_VALUES)[number];
 export type DifficultyFilter = (typeof DIFFICULTY_FILTER_VALUES)[number];
@@ -62,6 +62,10 @@ export class ListResourcesQueryDto {
   @Max(MAX_PAGE_SIZE)
   pageSize: number = DEFAULT_PAGE_SIZE;
 
+  // 'updated' não é uma opção do dropdown do Catálogo (Fase 3 — UI, só 'recent'/
+  // 'alphabetical') — usada apenas pela secção "Recursos recentes" da Página Inicial
+  // (fase-9-integracao-pagina-inicial.md), distinta de 'recent' (ordenado por
+  // `publishedAt`, usado também para "Recursos em destaque").
   @IsOptional()
   @IsIn(SORT_VALUES)
   sort: SortOption = 'recent';

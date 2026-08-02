@@ -1,7 +1,11 @@
 import { Difficulty, Resource, ResourceType } from '../../../shared/models';
 
 export type ResourceTypeFilter = ResourceType | 'all';
-export type ResourceSortOption = 'recent' | 'alphabetical';
+// 'updated' não é uma opção do dropdown do Catálogo (Fase 3 — UI, só 'recent'/
+// 'alphabetical') — usada apenas pela secção "Recursos recentes" da Página Inicial
+// (Fase 9 — Integração), distinta de 'recent' (`publishedAt`, usado também por
+// "Recursos em destaque").
+export type ResourceSortOption = 'recent' | 'alphabetical' | 'updated';
 
 export interface ResourceSearchParams {
   readonly query: string;

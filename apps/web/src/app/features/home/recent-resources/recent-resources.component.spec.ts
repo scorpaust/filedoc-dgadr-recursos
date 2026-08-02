@@ -6,11 +6,20 @@ import { resources } from '../../../shared/mocks/resources.mock';
 import { users } from '../../../shared/mocks/users.mock';
 import { UserRole } from '../../../shared/models';
 import { ResourceMockService } from '../../resources/data/resource-mock.service';
+import { ResourceService } from '../../resources/data/resource.service';
 import { RECENT_RESOURCES_LIMIT, RecentResourcesComponent } from './recent-resources.component';
 
 describe('RecentResourcesComponent', () => {
   function createFixture(role: UserRole) {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      // O componente consome `ResourceService` (API real, Fase 3 — Integração); estes testes
+      // continuam a exercitar as regras de visibilidade/ordenação através do mesmo mock de
+      // dados (Fase 3 — UI), só trocando qual serviço a injeção resolve.
+      providers: [
+        provideRouter([]),
+        { provide: ResourceService, useExisting: ResourceMockService },
+      ],
+    });
     const authService = TestBed.inject(AuthService);
     const user = users.find(
       (candidate) => candidate.roles.includes(role) && candidate.status === 'active',
@@ -63,7 +72,7 @@ describe('RecentResourcesComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        { provide: ResourceMockService, useValue: { listRecent: () => of([]) } },
+        { provide: ResourceService, useValue: { search: () => of({ items: [], total: 0 }) } },
       ],
     });
     const authService = TestBed.inject(AuthService);

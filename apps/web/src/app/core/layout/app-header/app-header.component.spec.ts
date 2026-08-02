@@ -1,4 +1,4 @@
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { AppHeaderComponent } from './app-header.component';
 import { AuthService } from '../../auth/auth.service';
@@ -56,5 +56,43 @@ describe('AppHeaderComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(navDrawerService.isOpen()).toBe(true);
+  });
+
+  // Bug corrigido: este campo nunca esteve ligado a nada desde a Fase 1 — UI (input puramente
+  // decorativo, sem `(ngSubmit)`/serviço nenhum). Mesmo comportamento de navegação já testado
+  // em `home-page.component.spec.ts` para a pesquisa rápida da Página Inicial.
+  it('submits the persistent header search by navigating to /recursos with the typed term', async () => {
+    const fixture = TestBed.createComponent(AppHeaderComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate');
+
+    const input = fixture.nativeElement.querySelector(
+      '.fdr-app-header__search-input',
+    ) as HTMLInputElement;
+    input.value = 'assinatura digital';
+    input.dispatchEvent(new Event('input'));
+    fixture.nativeElement
+      .querySelector('form.fdr-app-header__search')
+      .dispatchEvent(new Event('submit'));
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/recursos'], {
+      queryParams: { q: 'assinatura digital' },
+    });
+  });
+
+  it('submits with no query filter when the search term is empty', async () => {
+    const fixture = TestBed.createComponent(AppHeaderComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate');
+
+    fixture.nativeElement
+      .querySelector('form.fdr-app-header__search')
+      .dispatchEvent(new Event('submit'));
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/recursos'], { queryParams: { q: null } });
   });
 });
