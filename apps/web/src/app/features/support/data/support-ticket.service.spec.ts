@@ -84,6 +84,41 @@ describe('SupportTicketService', () => {
     });
   });
 
+  describe('listAgents', () => {
+    it('pede GET /support/tickets/agents e devolve o roster real (id/nome)', () => {
+      const next = vi.fn();
+      service.listAgents().subscribe(next);
+
+      const req = httpMock.expectOne('/support/tickets/agents');
+      expect(req.request.method).toBe('GET');
+      req.flush([
+        { id: 'agent-2', name: 'Sofia Ramos' },
+        { id: 'agent-3', name: 'Carlos Vieira' },
+      ]);
+
+      expect(next).toHaveBeenCalledWith([
+        { id: 'agent-2', name: 'Sofia Ramos' },
+        { id: 'agent-3', name: 'Carlos Vieira' },
+      ]);
+    });
+
+    it('propaga uma mensagem de erro genérica quando o pedido falha', () => {
+      const next = vi.fn();
+      const error = vi.fn();
+      service.listAgents().subscribe({ next, error });
+
+      const req = httpMock.expectOne('/support/tickets/agents');
+      req.flush('erro', { status: 500, statusText: 'Internal Server Error' });
+
+      expect(next).not.toHaveBeenCalled();
+      expect(error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Não foi possível concluir o pedido. Tente novamente.',
+        }),
+      );
+    });
+  });
+
   describe('updateCategory / updatePriority / updateStatus / associateResource', () => {
     it('envia apenas o campo alterado via PATCH /support/tickets/:id', () => {
       service.updateCategory('ticket-1', 'Erro técnico').subscribe();

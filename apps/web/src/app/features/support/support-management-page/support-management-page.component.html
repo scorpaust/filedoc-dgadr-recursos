@@ -100,7 +100,7 @@
               (change)="onAssigneeChange($event)"
             >
               <option value="" disabled>Não atribuído</option>
-              @for (agent of agents; track agent.id) {
+              @for (agent of agents(); track agent.id) {
                 <option [value]="agent.id">{{ agent.name }}</option>
               }
             </select>

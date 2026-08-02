@@ -15,15 +15,19 @@
     </a>
   </div>
 
-  <div class="fdr-app-header__search">
-    <fdr-icon name="search" />
+  <form class="fdr-app-header__search" [formGroup]="searchForm" (ngSubmit)="onSearchSubmit()">
+    <button type="submit" class="fdr-app-header__search-submit">
+      <fdr-icon name="search" />
+      <span class="fdr-visually-hidden">Pesquisar</span>
+    </button>
     <input
       type="search"
       class="fdr-app-header__search-input"
       placeholder="Pesquisar vídeos, guias, dicas..."
       aria-label="Pesquisar vídeos, guias, dicas"
+      formControlName="query"
     />
-  </div>
+  </form>
 
   <div class="fdr-app-header__actions">
     <button

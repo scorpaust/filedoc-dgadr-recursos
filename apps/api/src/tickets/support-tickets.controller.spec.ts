@@ -18,6 +18,7 @@ describe('SupportTicketsController', () => {
   let controller: SupportTicketsController;
   let service: {
     listForAgents: jest.Mock;
+    listAssignableAgents: jest.Mock;
     getForAgent: jest.Mock;
     update: jest.Mock;
     addAgentMessage: jest.Mock;
@@ -30,6 +31,7 @@ describe('SupportTicketsController', () => {
   beforeEach(() => {
     service = {
       listForAgents: jest.fn(),
+      listAssignableAgents: jest.fn(),
       getForAgent: jest.fn(),
       update: jest.fn(),
       addAgentMessage: jest.fn(),
@@ -43,21 +45,32 @@ describe('SupportTicketsController', () => {
     );
   });
 
-  it('list delega no serviço com os parâmetros de pesquisa', async () => {
+  it('list delega no serviço com os parâmetros de pesquisa e o agente autenticado', async () => {
     const query = new ListSupportTicketsQueryDto();
     service.listForAgents.mockResolvedValue([]);
 
-    await controller.list(query);
+    await controller.list(query, agent);
 
-    expect(service.listForAgents).toHaveBeenCalledWith(query);
+    expect(service.listForAgents).toHaveBeenCalledWith(query, agent);
   });
 
-  it('getById delega no serviço com o id do pedido', async () => {
+  it('listAgents delega no serviço sem parâmetros', async () => {
+    service.listAssignableAgents.mockResolvedValue([
+      { id: 'agent-2', name: 'Sofia Ramos' },
+    ]);
+
+    const result = await controller.listAgents();
+
+    expect(service.listAssignableAgents).toHaveBeenCalledWith();
+    expect(result).toEqual([{ id: 'agent-2', name: 'Sofia Ramos' }]);
+  });
+
+  it('getById delega no serviço com o id do pedido e o agente autenticado', async () => {
     service.getForAgent.mockResolvedValue({ id: 'ticket-1' });
 
-    await controller.getById('ticket-1');
+    await controller.getById('ticket-1', agent);
 
-    expect(service.getForAgent).toHaveBeenCalledWith('ticket-1');
+    expect(service.getForAgent).toHaveBeenCalledWith('ticket-1', agent);
   });
 
   it('update delega no serviço com o id do pedido, o corpo e o agente autenticado', async () => {

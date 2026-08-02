@@ -170,6 +170,7 @@ export type CreateAttachmentResult =
 
 export const SUPPORT_TICKET_INCLUDE = {
   requester: { include: { roles: true } },
+  relatedResource: { select: { id: true, slug: true, title: true } },
   messages: {
     orderBy: { createdAt: 'asc' },
     include: {
@@ -195,6 +196,24 @@ export interface SupportTicketMessageResponse {
   readonly attachments?: readonly TicketAttachmentResponse[];
 }
 
+/** `GET /support/tickets/agents` — roster de utilizadores válidos para `POST .../assign`,
+ * com os mesmos critérios (`status: ACTIVE`, função `SUPPORT_AGENT` ou `ADMIN`) já usados
+ * para validar o corpo desse endpoint; a interface de gestão de suporte (Fase 7 — UI) usa-o
+ * para preencher o seletor "Atribuído a" com ids reais, nunca inventados no cliente. */
+export interface SupportAgentResponse {
+  readonly id: string;
+  readonly name: string;
+}
+
+/** Recurso associado, embutido diretamente na resposta do pedido (`relatedResource`,
+ * Prisma) — evita que o cliente tenha de resolver `relatedResourceId` por uma pesquisa à
+ * parte só para mostrar o título/slug do recurso já associado. */
+export interface RelatedResourceSummaryResponse {
+  readonly id: string;
+  readonly slug: string;
+  readonly title: string;
+}
+
 /** Igual a `TicketResponse`, exceto `messages`, que aqui pode incluir notas internas. */
 export interface SupportTicketResponse {
   readonly id: string;
@@ -209,6 +228,7 @@ export interface SupportTicketResponse {
   readonly requesterRole: string;
   readonly assigneeId?: string;
   readonly relatedResourceId?: string;
+  readonly relatedResource?: RelatedResourceSummaryResponse;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly resolvedAt?: string;

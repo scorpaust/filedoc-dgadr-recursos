@@ -63,6 +63,15 @@ export interface TicketMessage {
   readonly attachments?: readonly TicketAttachment[];
 }
 
+// Recurso associado, embutido diretamente no pedido (Fase 6 — Integração) — evita que o
+// cliente tenha de resolver `relatedResourceId` por uma pesquisa à parte só para mostrar o
+// título/slug do recurso já associado.
+export interface RelatedResourceSummary {
+  readonly id: string;
+  readonly slug: string;
+  readonly title: string;
+}
+
 export interface SupportTicket {
   readonly id: string;
   readonly reference: string;
@@ -76,6 +85,7 @@ export interface SupportTicket {
   readonly requesterRole: string;
   readonly assigneeId?: string;
   readonly relatedResourceId?: string;
+  readonly relatedResource?: RelatedResourceSummary;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly resolvedAt?: string;

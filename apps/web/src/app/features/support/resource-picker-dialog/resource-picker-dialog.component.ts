@@ -7,13 +7,15 @@ import { DialogComponent } from '../../../shared/components/dialog/dialog.compon
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { Resource } from '../../../shared/models';
-import { ResourceMockService } from '../../resources/data/resource-mock.service';
+import { ResourceService } from '../../resources/data/resource.service';
 
 const SEARCH_DEBOUNCE_MS = 250;
 const RESULTS_PAGE_SIZE = 20;
 
-// Diálogo simples para associar um recurso formativo mock a um pedido de suporte
-// (Fase 7 — UI, tarefa D), reaproveitando o `ResourceMockService` da Fase 3.
+// Diálogo para associar um recurso formativo a um pedido de suporte (Fase 7 — UI, tarefa D).
+// Ligado à API real (Fase 3 — Integração) — bug corrigido: usava antes `ResourceMockService`
+// (ids mock, ex. 'res-3'), nunca migrado quando o catálogo passou a consumir dados reais;
+// qualquer associação a um pedido real falhava sempre (o id mock não existe na BD).
 @Component({
   selector: 'fdr-resource-picker-dialog',
   imports: [ReactiveFormsModule, DialogComponent, EmptyStateComponent, SkeletonComponent],
@@ -25,7 +27,7 @@ export class ResourcePickerDialogComponent {
   private readonly dialogRef = inject(
     DialogRef<Resource | undefined, ResourcePickerDialogComponent>,
   );
-  private readonly resourceService = inject(ResourceMockService);
+  private readonly resourceService = inject(ResourceService);
   private readonly formBuilder = inject(FormBuilder);
 
   protected readonly searchControl = this.formBuilder.nonNullable.control('');

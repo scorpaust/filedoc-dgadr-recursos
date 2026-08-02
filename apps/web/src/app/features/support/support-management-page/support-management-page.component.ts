@@ -9,8 +9,8 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Observable, combineLatest, of } from 'rxjs';
-import { debounceTime, map, switchMap, tap } from 'rxjs/operators';
+import { Observable, combineLatest } from 'rxjs';
+import { debounceTime, switchMap, tap } from 'rxjs/operators';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { DialogService } from '../../../shared/components/dialog/dialog.service';
@@ -36,9 +36,7 @@ import {
   TicketPriority,
   TicketStatus,
 } from '../../../shared/models';
-import { ResourceMockService } from '../../resources/data/resource-mock.service';
-import { SUPPORT_AGENTS, agentName } from '../agent.util';
-import { SupportTicketService } from '../data/support-ticket.service';
+import { SupportAgent, SupportTicketService } from '../data/support-ticket.service';
 import { ResourcePickerDialogComponent } from '../resource-picker-dialog/resource-picker-dialog.component';
 import { TICKET_PRIORITY_TONES, TICKET_STATUS_TONES } from '../ticket-tone.util';
 
@@ -77,7 +75,6 @@ const SEARCH_DEBOUNCE_MS = 250;
 })
 export class SupportManagementPageComponent {
   private readonly ticketService = inject(SupportTicketService);
-  private readonly resourceService = inject(ResourceMockService);
   private readonly dialogService = inject(DialogService);
   private readonly toastService = inject(ToastService);
   private readonly authService = inject(AuthService);
@@ -87,7 +84,13 @@ export class SupportManagementPageComponent {
   protected readonly categories = TICKET_CATEGORIES;
   protected readonly priorities = PRIORITIES;
   protected readonly statuses = TICKET_STATUSES;
-  protected readonly agents = SUPPORT_AGENTS;
+  // Bug corrigido: usava antes o roster estático de utilizadores mock da via de UI
+  // (`SUPPORT_AGENTS`/`agent.util.ts`), cujos ids nunca correspondem aos ids reais gerados
+  // pela BD — reatribuir a qualquer agente que não o próprio utilizador autenticado falhava
+  // sempre com 400 na API real (`assign` valida o `agentId` contra utilizadores reais).
+  protected readonly agents = toSignal(this.ticketService.listAgents(), {
+    initialValue: [] as readonly SupportAgent[],
+  });
   protected readonly statusChipOptions = STATUS_CHIP_OPTIONS;
 
   protected readonly statusFilter = signal<AgentStatusFilter>('all');
@@ -125,15 +128,11 @@ export class SupportManagementPageComponent {
     this.tickets().find((ticket) => ticket.id === this.selectedTicketId()),
   );
 
-  protected readonly associatedResource = toSignal(
-    toObservable(computed(() => this.selectedTicket()?.relatedResourceId)).pipe(
-      switchMap((resourceId) =>
-        resourceId ? this.resourceService.getRelated([resourceId]) : of([]),
-      ),
-      map((resources): Resource | undefined => resources[0]),
-    ),
-    { initialValue: undefined as Resource | undefined },
-  );
+  // Bug corrigido: usava antes `ResourceMockService.getRelated` (ids mock, sem qualquer
+  // resultado para um `relatedResourceId` real) — a API já devolve o recurso associado
+  // embutido no próprio pedido (`SupportTicket.relatedResource`, Fase 6 — Integração),
+  // sem necessidade de nenhuma pesquisa adicional.
+  protected readonly associatedResource = computed(() => this.selectedTicket()?.relatedResource);
 
   protected readonly timelineEntries = computed<readonly TicketTimelineEntry[]>(() => {
     const ticket = this.selectedTicket();
@@ -181,7 +180,10 @@ export class SupportManagementPageComponent {
   }
 
   protected assigneeName(ticket: SupportTicket): string {
-    return agentName(ticket.assigneeId) ?? 'Não atribuído';
+    if (!ticket.assigneeId) {
+      return 'Não atribuído';
+    }
+    return this.agents().find((agent) => agent.id === ticket.assigneeId)?.name ?? 'Não atribuído';
   }
 
   protected selectTicket(ticketId: string): void {

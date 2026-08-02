@@ -40,6 +40,11 @@ export const supportTickets: readonly SupportTicket[] = [
     requesterRole: 'Técnico Superior',
     assigneeId: 'user-2',
     relatedResourceId: 'res-3',
+    relatedResource: {
+      id: 'res-3',
+      slug: 'corrigir-metadados-de-um-oficio',
+      title: 'Corrigir metadados de um ofício',
+    },
     createdAt: '2026-07-05T14:30:00',
     updatedAt: '2026-07-06T09:05:00',
     messages: [
@@ -105,6 +110,11 @@ export const supportTickets: readonly SupportTicket[] = [
     requesterRole: 'Técnico Superior',
     assigneeId: 'user-2',
     relatedResourceId: 'res-4',
+    relatedResource: {
+      id: 'res-4',
+      slug: 'localizar-um-processo-arquivado',
+      title: 'Localizar um processo arquivado',
+    },
     createdAt: '2026-06-20T16:45:00',
     updatedAt: '2026-06-21T11:10:00',
     resolvedAt: '2026-06-21T11:10:00',

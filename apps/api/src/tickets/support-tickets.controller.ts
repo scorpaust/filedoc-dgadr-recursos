@@ -21,6 +21,7 @@ import { ListSupportTicketsQueryDto } from './dto/list-support-tickets-query.dto
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketsService } from './tickets.service';
 import {
+  SupportAgentResponse,
   SupportTicketMessageResponse,
   SupportTicketResponse,
 } from './tickets.types';
@@ -38,13 +39,25 @@ export class SupportTicketsController {
   @Get()
   list(
     @Query() query: ListSupportTicketsQueryDto,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<readonly SupportTicketResponse[]> {
-    return this.ticketsService.listForAgents(query);
+    return this.ticketsService.listForAgents(query, user);
+  }
+
+  // Registada antes de `:id` (mesma ordem de rotas já usada em `GET /resources/management`,
+  // fase-7-integracao-gestao-conteudos.md) — caso contrário "agents" seria interpretado como
+  // um `:id`.
+  @Get('agents')
+  listAgents(): Promise<readonly SupportAgentResponse[]> {
+    return this.ticketsService.listAssignableAgents();
   }
 
   @Get(':id')
-  getById(@Param('id') id: string): Promise<SupportTicketResponse> {
-    return this.ticketsService.getForAgent(id);
+  getById(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    return this.ticketsService.getForAgent(id, user);
   }
 
   @Patch(':id')

@@ -1,3 +1,5 @@
+@use '../../../../styles/mixins' as *;
+
 .fdr-app-header {
   display: flex;
   align-items: center;
@@ -64,6 +66,20 @@
     border: 1px solid var(--fdr-border);
     background: var(--fdr-bg-surface-raised);
     color: var(--fdr-text-muted);
+  }
+
+  &__search-submit {
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+
+    &:focus-visible {
+      @include focus-ring;
+    }
   }
 
   &__search-input {

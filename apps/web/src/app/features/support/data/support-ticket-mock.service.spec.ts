@@ -179,6 +179,16 @@ describe('SupportTicketMockService', () => {
       expect(lastMessage.content).toContain('Sofia Ramos');
     });
 
+    it('lists assignable agents, matching the ids accepted by assign()', async () => {
+      loginAs('SUPPORT_AGENT');
+      const agents = await flush(firstValueFrom(service.listAgents()));
+      expect(agents.length).toBeGreaterThan(0);
+      expect(agents.map((a) => a.name)).toContain('Sofia Ramos');
+      const sofia = agents.find((a) => a.name === 'Sofia Ramos')!;
+      const updated = await flush(firstValueFrom(service.assign('sup-1', sofia.id)));
+      expect(updated.assigneeId).toBe(sofia.id);
+    });
+
     it('adds an internal note that is flagged as internal', async () => {
       loginAs('SUPPORT_AGENT');
       const updated = await flush(

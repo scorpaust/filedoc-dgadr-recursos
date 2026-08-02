@@ -31,6 +31,7 @@ import {
   PRIORITY_TO_LABEL,
   STATUS_TO_LABEL,
   SUPPORT_TICKET_INCLUDE,
+  SupportAgentResponse,
   SupportTicketMessageResponse,
   SupportTicketResponse,
   SupportTicketWithRelations,
@@ -44,6 +45,11 @@ import {
 
 export const TICKET_NOT_FOUND_MESSAGE = 'Pedido de suporte não encontrado.';
 const MAX_REFERENCE_ATTEMPTS = 5;
+
+// Critério único de "agente de suporte válido" (usado tanto para validar `assign` como para
+// listar o roster em `listAssignableAgents` — nunca duplicado com valores diferentes).
+// Tipo mutável (não `readonly Role[]`), exigido pelo filtro `in` gerado pelo Prisma.
+const ASSIGNABLE_AGENT_ROLES: Role[] = [Role.SUPPORT_AGENT, Role.ADMIN];
 
 // Estados em que o trabalhador ainda pode responder — `CLOSED` é definitivo
 // (project-spec.md, secção H); `RESOLVED` permanece aberto a resposta até o
@@ -197,30 +203,36 @@ export class TicketsService {
 
   async listForAgents(
     query: ListSupportTicketsQueryDto,
+    actor: CurrentUserPayload,
   ): Promise<readonly SupportTicketResponse[]> {
     const search = query.q?.trim();
     const tickets = await this.prisma.supportTicket.findMany({
       where: {
-        status: query.status,
-        category: query.category
-          ? CATEGORY_LABEL_TO_PRISMA[query.category]
-          : undefined,
-        priority: query.priority
-          ? PRIORITY_LABEL_TO_PRISMA[query.priority]
-          : undefined,
-        ...(search
-          ? {
-              OR: [
-                { reference: { contains: search, mode: 'insensitive' } },
-                { subject: { contains: search, mode: 'insensitive' } },
-                {
-                  requester: {
-                    name: { contains: search, mode: 'insensitive' },
-                  },
-                },
-              ],
-            }
-          : {}),
+        AND: [
+          this.agentVisibilityWhere(actor),
+          {
+            status: query.status,
+            category: query.category
+              ? CATEGORY_LABEL_TO_PRISMA[query.category]
+              : undefined,
+            priority: query.priority
+              ? PRIORITY_LABEL_TO_PRISMA[query.priority]
+              : undefined,
+            ...(search
+              ? {
+                  OR: [
+                    { reference: { contains: search, mode: 'insensitive' } },
+                    { subject: { contains: search, mode: 'insensitive' } },
+                    {
+                      requester: {
+                        name: { contains: search, mode: 'insensitive' },
+                      },
+                    },
+                  ],
+                }
+              : {}),
+          },
+        ],
       },
       include: SUPPORT_TICKET_INCLUDE,
       orderBy: { updatedAt: 'desc' },
@@ -228,8 +240,11 @@ export class TicketsService {
     return tickets.map((ticket) => this.toSupportResponse(ticket));
   }
 
-  async getForAgent(id: string): Promise<SupportTicketResponse> {
-    const ticket = await this.findAnyTicket(id);
+  async getForAgent(
+    id: string,
+    actor: CurrentUserPayload,
+  ): Promise<SupportTicketResponse> {
+    const ticket = await this.findTicketForAgent(id, actor);
     return this.toSupportResponse(ticket);
   }
 
@@ -238,7 +253,7 @@ export class TicketsService {
     dto: UpdateTicketDto,
     actor: CurrentUserPayload,
   ): Promise<SupportTicketResponse> {
-    const ticket = await this.findAnyTicket(id);
+    const ticket = await this.findTicketForAgent(id, actor);
     const data: Prisma.SupportTicketUpdateInput = {};
     const historyMessages: {
       authorId: string;
@@ -289,6 +304,17 @@ export class TicketsService {
       dto.relatedResourceId !== undefined &&
       dto.relatedResourceId !== ticket.relatedResourceId
     ) {
+      // Nunca confia apenas no id enviado pelo cliente (mesmo princípio já aplicado ao
+      // `agentId` de `assign`) — sem esta validação, um id inexistente (ex.: um resíduo de
+      // dados mock da via de UI) faz o `connect` do Prisma falhar com um erro cru (P2025).
+      const resource = await this.prisma.resource.findUnique({
+        where: { id: dto.relatedResourceId },
+      });
+      if (!resource) {
+        throw new BadRequestException(
+          'O recurso indicado não existe ou já não está disponível.',
+        );
+      }
       data.relatedResource = { connect: { id: dto.relatedResourceId } };
       historyMessages.push(
         this.buildHistoryMessage(
@@ -315,12 +341,12 @@ export class TicketsService {
     dto: AssignTicketDto,
     actor: CurrentUserPayload,
   ): Promise<SupportTicketResponse> {
-    const ticket = await this.findAnyTicket(id);
+    const ticket = await this.findTicketForAgent(id, actor);
     const agent = await this.prisma.user.findFirst({
       where: {
         id: dto.agentId,
         status: UserStatus.ACTIVE,
-        roles: { some: { role: { in: [Role.SUPPORT_AGENT, Role.ADMIN] } } },
+        roles: { some: { role: { in: ASSIGNABLE_AGENT_ROLES } } },
       },
     });
     if (!agent) {
@@ -345,12 +371,24 @@ export class TicketsService {
     return this.toSupportResponse(updated);
   }
 
+  async listAssignableAgents(): Promise<readonly SupportAgentResponse[]> {
+    const agents = await this.prisma.user.findMany({
+      where: {
+        status: UserStatus.ACTIVE,
+        roles: { some: { role: { in: ASSIGNABLE_AGENT_ROLES } } },
+      },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+    return agents;
+  }
+
   async addAgentMessage(
     id: string,
     actor: CurrentUserPayload,
     dto: CreateMessageDto,
   ): Promise<SupportTicketMessageResponse> {
-    const ticket = await this.findAnyTicket(id);
+    const ticket = await this.findTicketForAgent(id, actor);
     if (ticket.status === TicketStatus.CLOSED) {
       throw new ConflictException('Não é possível responder a este pedido.');
     }
@@ -371,7 +409,7 @@ export class TicketsService {
     actor: CurrentUserPayload,
     dto: CreateMessageDto,
   ): Promise<SupportTicketMessageResponse> {
-    const ticket = await this.findAnyTicket(id);
+    const ticket = await this.findTicketForAgent(id, actor);
     const message = await this.prisma.ticketMessage.create({
       data: {
         ticketId: ticket.id,
@@ -388,7 +426,7 @@ export class TicketsService {
     id: string,
     actor: CurrentUserPayload,
   ): Promise<SupportTicketResponse> {
-    const ticket = await this.findAnyTicket(id);
+    const ticket = await this.findTicketForAgent(id, actor);
     if (
       ticket.status === TicketStatus.RESOLVED ||
       ticket.status === TicketStatus.CLOSED
@@ -418,7 +456,7 @@ export class TicketsService {
     id: string,
     actor: CurrentUserPayload,
   ): Promise<SupportTicketResponse> {
-    const ticket = await this.findAnyTicket(id);
+    const ticket = await this.findTicketForAgent(id, actor);
     if (ticket.status === TicketStatus.CLOSED) {
       throw new ConflictException('Este pedido já está encerrado.');
     }
@@ -445,6 +483,46 @@ export class TicketsService {
       include: SUPPORT_TICKET_INCLUDE,
     });
     if (!ticket) {
+      throw new NotFoundException(TICKET_NOT_FOUND_MESSAGE);
+    }
+    return ticket;
+  }
+
+  // Regra de visibilidade do agente (project-spec.md, secção "Agente de suporte": "consultar
+  // os tickets que lhe estão atribuídos ou disponíveis"): um SUPPORT_AGENT só vê/atua sobre
+  // pedidos sem atribuição (ainda "disponíveis", para poder assumi-los) ou atribuídos a si
+  // próprio — nunca os já atribuídos a outro agente, que desaparecem da sua fila assim que
+  // reatribuídos. `ADMIN` mantém supervisão transversal, sem esta restrição.
+  private agentVisibilityWhere(
+    actor: CurrentUserPayload,
+  ): Prisma.SupportTicketWhereInput {
+    if (actor.roles.includes(Role.ADMIN)) {
+      return {};
+    }
+    return { OR: [{ assigneeId: null }, { assigneeId: actor.id }] };
+  }
+
+  private isVisibleToAgent(
+    ticket: SupportTicketWithRelations,
+    actor: CurrentUserPayload,
+  ): boolean {
+    return (
+      actor.roles.includes(Role.ADMIN) ||
+      ticket.assigneeId === null ||
+      ticket.assigneeId === actor.id
+    );
+  }
+
+  // Mesma mensagem/estado (`404`) de um id inexistente, nunca `403` — um pedido atribuído a
+  // outro agente é tratado exatamente como inexistente para quem o consulta diretamente por
+  // id, sem revelar que existe mas está fora do alcance (mesmo princípio já aplicado a
+  // `findOwnedTicket`, project-spec.md secção I).
+  private async findTicketForAgent(
+    id: string,
+    actor: CurrentUserPayload,
+  ): Promise<SupportTicketWithRelations> {
+    const ticket = await this.findAnyTicket(id);
+    if (!this.isVisibleToAgent(ticket, actor)) {
       throw new NotFoundException(TICKET_NOT_FOUND_MESSAGE);
     }
     return ticket;
@@ -479,6 +557,13 @@ export class TicketsService {
       ),
       assigneeId: ticket.assigneeId ?? undefined,
       relatedResourceId: ticket.relatedResourceId ?? undefined,
+      relatedResource: ticket.relatedResource
+        ? {
+            id: ticket.relatedResource.id,
+            slug: ticket.relatedResource.slug,
+            title: ticket.relatedResource.title,
+          }
+        : undefined,
       createdAt: ticket.createdAt.toISOString(),
       updatedAt: ticket.updatedAt.toISOString(),
       resolvedAt: ticket.resolvedAt?.toISOString(),

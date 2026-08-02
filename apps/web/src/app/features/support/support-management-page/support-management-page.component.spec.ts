@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/auth/auth.service';
 import { users } from '../../../shared/mocks/users.mock';
@@ -11,7 +12,10 @@ describe('SupportManagementPageComponent', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     TestBed.configureTestingModule({
-      providers: [{ provide: SupportTicketService, useExisting: SupportTicketMockService }],
+      providers: [
+        provideRouter([]),
+        { provide: SupportTicketService, useExisting: SupportTicketMockService },
+      ],
     });
     authService = TestBed.inject(AuthService);
     const agent = users.find((user) => user.id === 'user-2');
@@ -125,5 +129,31 @@ describe('SupportManagementPageComponent', () => {
     expect(
       fixture.nativeElement.querySelector('.fdr-ticket-timeline__entry--internal-note'),
     ).toBeTruthy();
+  });
+
+  // Bug corrigido: o painel de detalhe lia antes o recurso associado através de
+  // `ResourceMockService.getRelated` (que só resolve ids já em cache de uma pesquisa
+  // anterior — nunca um `relatedResourceId` arbitrário de um pedido) e nunca mostrava nada;
+  // agora lê diretamente `SupportTicket.relatedResource`, já embutido na resposta da API.
+  it('shows the resource already associated with a ticket (sup-2)', async () => {
+    const fixture = TestBed.createComponent(SupportManagementPageComponent);
+    fixture.detectChanges();
+    await flush(fixture);
+
+    const row = Array.from(
+      fixture.nativeElement.querySelectorAll('.fdr-support-management__queue-item'),
+    ).find((el) => (el as HTMLElement).textContent?.includes('Documento devolvido')) as
+      HTMLButtonElement | undefined;
+    expect(row).toBeTruthy();
+    row!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const link = fixture.nativeElement.querySelector(
+      '.fdr-support-management__resource a',
+    ) as HTMLAnchorElement;
+    expect(link).toBeTruthy();
+    expect(link.textContent).toContain('Corrigir metadados de um ofício');
+    expect(link.getAttribute('href')).toBe('/recursos/corrigir-metadados-de-um-oficio');
   });
 });

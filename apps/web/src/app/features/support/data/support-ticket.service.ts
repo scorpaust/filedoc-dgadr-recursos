@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, switchMap, throwError } from 'rxjs';
 import {
+  RelatedResourceSummary,
   SupportTicket,
   TicketAttachment,
   TicketCategory,
@@ -12,6 +13,16 @@ import {
 import type { TicketQueueFilters } from './support-ticket-mock.service';
 
 const GENERIC_ERROR_MESSAGE = 'Não foi possível concluir o pedido. Tente novamente.';
+
+// `GET /support/tickets/agents` — roster real de utilizadores atribuíveis (bug corrigido:
+// o seletor "Atribuído a" usava antes o roster estático de utilizadores mock da via de UI,
+// `SUPPORT_AGENTS`/`agent.util.ts`, cujos ids nunca correspondem aos ids reais gerados pela
+// BD — qualquer reatribuição a um agente que não o próprio utilizador autenticado falhava
+// sempre com 400 na API real).
+export interface SupportAgent {
+  readonly id: string;
+  readonly name: string;
+}
 
 interface SupportTicketMessageApiItem {
   readonly id: string;
@@ -36,6 +47,7 @@ interface SupportTicketApiItem {
   readonly requesterRole: string;
   readonly assigneeId?: string;
   readonly relatedResourceId?: string;
+  readonly relatedResource?: RelatedResourceSummary;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly resolvedAt?: string;
@@ -82,6 +94,14 @@ export class SupportTicketService {
 
   assign(ticketId: string, agentId: string): Observable<SupportTicket> {
     return this.post(`/support/tickets/${ticketId}/assign`, { agentId });
+  }
+
+  listAgents(): Observable<readonly SupportAgent[]> {
+    return this.http
+      .get<readonly SupportAgent[]>('/support/tickets/agents')
+      .pipe(
+        catchError((error: unknown) => throwError(() => new Error(extractErrorMessage(error)))),
+      );
   }
 
   updateCategory(ticketId: string, category: TicketCategory): Observable<SupportTicket> {
@@ -160,6 +180,7 @@ export class SupportTicketService {
       requesterRole: item.requesterRole,
       assigneeId: item.assigneeId,
       relatedResourceId: item.relatedResourceId,
+      relatedResource: item.relatedResource,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
       resolvedAt: item.resolvedAt,
