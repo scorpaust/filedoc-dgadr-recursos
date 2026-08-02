@@ -1,14 +1,17 @@
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { UserMockService } from '../../../core/auth/user-mock.service';
+import { TaxonomyMockService } from '../../content-management/data/taxonomy-mock.service';
+import { TaxonomyService } from '../../content-management/data/taxonomy.service';
 import { AuditLogMockService } from '../data/audit-log-mock.service';
 import { AuditLogService } from '../data/audit-log.service';
 import { UserService } from '../data/user.service';
 import { AdministrationPageComponent } from './administration-page.component';
 
-// Sem `useExisting`, `UserTableComponent`/`AuditLogListComponent` (ligados à API real na
-// Fase 8 — Integração) tentariam pedidos HTTP reais aqui — mesma técnica já usada desde a
-// Fase 6/7 para `content-management-page.component.spec.ts`/`support-management-page...`.
+// Sem `useExisting`, `UserTableComponent`/`TaxonomySummaryComponent`/`AuditLogListComponent`
+// (ligados à API real desde a Fase 8 — Integração/Fase 10 — Hardening) tentariam pedidos HTTP
+// reais aqui — mesma técnica já usada desde a Fase 6/7 para
+// `content-management-page.component.spec.ts`/`support-management-page...`.
 describe('AdministrationPageComponent', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -16,6 +19,7 @@ describe('AdministrationPageComponent', () => {
       providers: [
         provideRouter([]),
         { provide: UserService, useExisting: UserMockService },
+        { provide: TaxonomyService, useExisting: TaxonomyMockService },
         { provide: AuditLogService, useExisting: AuditLogMockService },
       ],
     });

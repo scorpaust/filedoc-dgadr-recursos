@@ -39,6 +39,7 @@ const TEST_ENV: EnvironmentVariables = {
   STORAGE_UPLOAD_URL_TTL_SECONDS: 900,
   STORAGE_DOWNLOAD_URL_TTL_SECONDS: 3600,
   STORAGE_ORPHAN_GRACE_PERIOD_SECONDS: 0,
+  RETENTION_POLICY_DAYS: undefined,
 };
 
 function createConfigService(): ConfigService<EnvironmentVariables, true> {

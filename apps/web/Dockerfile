@@ -19,6 +19,12 @@ COPY apps/api/package.json apps/api/package.json
 RUN npm ci --workspace apps/web
 COPY apps/web apps/web
 RUN npm run build --workspace apps/web
+# Fase 10 (Hardening) — hash do script inline de index.html para o CSP,
+# calculado aqui (não fixado no código-fonte) para nunca divergir por
+# normalização de fim de linha entre sistemas operativos/checkouts.
+RUN node apps/web/docker/compute-csp-hash.js \
+  apps/web/dist/filedoc-dgadr-recursos/browser/index.html \
+  apps/web/dist/csp-script-hash.txt
 
 # ---------------------------------------------------------------------------
 # runtime: nginx não-root a servir os ficheiros estáticos.
@@ -27,12 +33,19 @@ FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 
 COPY apps/web/docker/default.conf /etc/nginx/conf.d/default.conf
 COPY --chmod=755 apps/web/docker/generate-env-config.sh /docker-entrypoint.d/20-generate-env-config.sh
+COPY --chmod=755 apps/web/docker/generate-security-headers.sh /docker-entrypoint.d/21-generate-security-headers.sh
 # --chown=nginx:nginx: o utilizador não-root do contentor tem de conseguir
 # reescrever env.js no arranque (ver generate-env-config.sh); o diretório em
 # si continua a pertencer a root (herdado da imagem base), mas isso basta,
 # já que sobrescrever um ficheiro existente só exige permissão de escrita
 # sobre o próprio ficheiro, não sobre o diretório que o contém.
 COPY --chown=nginx:nginx --from=build /app/apps/web/dist/filedoc-dgadr-recursos/browser /usr/share/nginx/html
+COPY --from=build /app/apps/web/dist/csp-script-hash.txt /etc/nginx/csp-script-hash.txt
+# Placeholder vazio, sobrescrito por generate-security-headers.sh antes do
+# nginx arrancar — garante que o `include` de default.conf nunca aponta para
+# um ficheiro inexistente, mesmo que o mecanismo de arranque seja ignorado.
+RUN touch /etc/nginx/conf.d/security-headers.conf && \
+  chown nginx:nginx /etc/nginx/conf.d/security-headers.conf
 
 # A imagem nginx-unprivileged já corre como o utilizador não-root "nginx" e
 # escuta na porta 8080 (portas < 1024 exigem privilégios de root).

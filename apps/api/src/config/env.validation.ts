@@ -33,6 +33,7 @@ export interface EnvironmentVariables {
   STORAGE_UPLOAD_URL_TTL_SECONDS: number;
   STORAGE_DOWNLOAD_URL_TTL_SECONDS: number;
   STORAGE_ORPHAN_GRACE_PERIOD_SECONDS: number;
+  RETENTION_POLICY_DAYS: number | undefined;
 }
 
 function requireNonEmptyString(
@@ -179,6 +180,25 @@ export function validate(
     DEFAULT_STORAGE_ORPHAN_GRACE_PERIOD_SECONDS,
   );
 
+  // Sem prazo institucional de retenção confirmado pela DGADR (ver
+  // project-spec.md, "Privacidade e RGPD") — por omissão fica por definir
+  // (undefined, não um número inventado), e o processo de aplicação da
+  // política é manual nesta fase (ver docs/privacidade-rgpd.md).
+  const retentionPolicyDaysRaw = config['RETENTION_POLICY_DAYS'];
+  const retentionPolicyDays =
+    typeof retentionPolicyDaysRaw === 'string' &&
+    retentionPolicyDaysRaw.trim() !== ''
+      ? Number(retentionPolicyDaysRaw)
+      : undefined;
+  if (
+    retentionPolicyDays !== undefined &&
+    (!Number.isFinite(retentionPolicyDays) || retentionPolicyDays <= 0)
+  ) {
+    throw new Error(
+      'RETENTION_POLICY_DAYS, se definida, tem de ser um número de dias positivo.',
+    );
+  }
+
   return {
     NODE_ENV: nodeEnv,
     PORT: port,
@@ -200,5 +220,6 @@ export function validate(
     STORAGE_UPLOAD_URL_TTL_SECONDS: storageUploadUrlTtlSeconds,
     STORAGE_DOWNLOAD_URL_TTL_SECONDS: storageDownloadUrlTtlSeconds,
     STORAGE_ORPHAN_GRACE_PERIOD_SECONDS: storageOrphanGracePeriodSeconds,
+    RETENTION_POLICY_DAYS: retentionPolicyDays,
   };
 }

@@ -2,7 +2,7 @@ import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { TaxonomyMockService } from '../../content-management/data/taxonomy-mock.service';
+import { TaxonomyService } from '../../content-management/data/taxonomy.service';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { Taxonomy } from '../../../shared/models';
 
@@ -10,8 +10,10 @@ function countActive(items: readonly Taxonomy[]): number {
   return items.filter((item) => item.active).length;
 }
 
-// Widget de resumo de taxonomias (Fase 9 — UI, tarefa F), reaproveitando o
-// `TaxonomyMockService` já introduzido na Fase 8 — nunca duplica os seus dados.
+// Widget de resumo de taxonomias (Fase 9 — UI, tarefa F). Injetava
+// `TaxonomyMockService` até à Fase 10 (Hardening) — migrado para o
+// `TaxonomyService` real, único mock remanescente encontrado na auditoria
+// desta fase (ver docs/auditoria-seguranca-fase-10.md).
 @Component({
   selector: 'fdr-taxonomy-summary',
   imports: [RouterLink, SkeletonComponent],
@@ -20,13 +22,13 @@ function countActive(items: readonly Taxonomy[]): number {
   styleUrl: './taxonomy-summary.component.scss',
 })
 export class TaxonomySummaryComponent {
-  private readonly taxonomyMockService = inject(TaxonomyMockService);
+  private readonly taxonomyService = inject(TaxonomyService);
 
   private readonly counts = toSignal(
     forkJoin({
-      workflow: this.taxonomyMockService.list('workflow'),
-      documentType: this.taxonomyMockService.list('documentType'),
-      tag: this.taxonomyMockService.list('tag'),
+      workflow: this.taxonomyService.list('workflow'),
+      documentType: this.taxonomyService.list('documentType'),
+      tag: this.taxonomyService.list('tag'),
     }),
     { initialValue: undefined },
   );

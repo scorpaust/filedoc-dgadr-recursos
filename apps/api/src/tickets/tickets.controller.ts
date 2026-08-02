@@ -1,7 +1,12 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Throttle, seconds } from '@nestjs/throttler';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../auth/auth.types';
+import {
+  WRITE_RATE_LIMIT,
+  WRITE_RATE_TTL_SECONDS,
+} from '../common/write-rate-limit.config';
 import { CreateAttachmentDto } from './dto/create-attachment.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -21,6 +26,9 @@ export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
   @Post()
+  @Throttle({
+    default: { limit: WRITE_RATE_LIMIT, ttl: seconds(WRITE_RATE_TTL_SECONDS) },
+  })
   create(
     @Body() dto: CreateTicketDto,
     @CurrentUser() user: CurrentUserPayload,
@@ -53,6 +61,9 @@ export class TicketsController {
   }
 
   @Post('mine/:id/attachments')
+  @Throttle({
+    default: { limit: WRITE_RATE_LIMIT, ttl: seconds(WRITE_RATE_TTL_SECONDS) },
+  })
   createAttachment(
     @Param('id') id: string,
     @Body() dto: CreateAttachmentDto,

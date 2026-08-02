@@ -79,9 +79,22 @@ services:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      # SESSION_SECRET, STORAGE_*, CORS_ALLOWED_ORIGINS: a acrescentar quando
-      # a via de integração de funcionalidades implementar autenticação real
-      # e armazenamento de objetos na API — ver .env.homolog.example.
+      # Autenticação real e armazenamento de objetos na API já existem desde
+      # a via de Integração de Funcionalidades (Fases 1-2) — variáveis
+      # ligadas na Fase 10 (Hardening), lidas de .env.homolog (nunca
+      # commitado, ver .env.homolog.example). STORAGE_ENDPOINT usa o nome do
+      # serviço Docker ("minio"), não um endereço público: é o contentor da
+      # API que precisa de o resolver na rede interna do Compose.
+      SESSION_SECRET: ${SESSION_SECRET:?defina SESSION_SECRET em .env.homolog}
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_BUCKET: ${STORAGE_BUCKET:?defina STORAGE_BUCKET em .env.homolog}
+      STORAGE_ACCESS_KEY: ${MINIO_ROOT_USER}
+      STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      # Alcançável a partir do browser do utilizador (não a rede interna do
+      # Docker) — mesmo princípio do WEB_API_URL abaixo. Ajustar quando
+      # existir um domínio de homologação institucional.
+      CORS_ALLOWED_ORIGINS: ${WEB_PUBLIC_ORIGIN:-http://localhost:8080}
+      RETENTION_POLICY_DAYS: ${RETENTION_POLICY_DAYS:-}
     ports:
       - '${BIND_ADDRESS:-127.0.0.1}:${API_HOST_PORT:-3000}:3000'
     depends_on:
@@ -101,6 +114,9 @@ services:
       # confirmado, o valor por omissão assume acesso direto ao anfitrião;
       # ajustar quando existir um proxy/domínio de homologação.
       API_URL: ${WEB_API_URL:-http://localhost:3000/api/v1}
+      # Idem, para a diretiva Content-Security-Policy (Fase 10, Hardening) —
+      # ver apps/web/docker/generate-security-headers.sh.
+      STORAGE_PUBLIC_ORIGIN: ${STORAGE_PUBLIC_ORIGIN:-http://localhost:9000}
     ports:
       - '${BIND_ADDRESS:-127.0.0.1}:${WEB_HOST_PORT:-8080}:8080'
     depends_on:

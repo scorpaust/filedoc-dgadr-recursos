@@ -1452,18 +1452,44 @@ Não são incluídos pagamentos em nenhuma fase do roadmap.
 
 ## Estado atual
 
-- planeamento funcional definido;
-- `project-overview.md` previsto ou criado;
-- aplicação Angular iniciada;
-- SCSS selecionado;
-- SSR e SSG desativados;
-- NestJS selecionado para o backend;
-- PostgreSQL selecionado;
-- Prisma selecionado;
-- MinIO previsto para desenvolvimento;
-- autenticação local prevista para o MVP;
-- pagamentos excluídos do projeto;
-- projeto pronto para implementação da arquitetura e do modelo de dados.
+MVP tecnicamente concluído (Fase 10 — Integração, Hardening, último ciclo de
+trabalho especificado). Três vias de trabalho — UI, Base de Dados &
+Deployment, Integração de Funcionalidades — totalizando 26 fases
+especificadas e implementadas:
+
+- aplicação Angular (standalone, Signals, `ChangeDetectionStrategy.OnPush`),
+  SCSS, SSR e SSG desativados, `project-overview.md` criado;
+- backend NestJS + Prisma sobre PostgreSQL, autenticação local por sessão
+  (cookie `HttpOnly`), autorização por função e por recurso sempre validada
+  no backend;
+- armazenamento de ficheiros compatível com S3 (MinIO em desenvolvimento e
+  testes), nunca binários no PostgreSQL, sempre por URLs pré-assinados
+  temporários;
+- as quatro áreas funcionais do MVP implementadas e integradas com a API
+  real: recursos formativos, dicas/FAQ, pedidos de suporte, gestão editorial
+  e administração;
+- suite de testes completa (unitários, integração contra PostgreSQL/MinIO
+  isolados, E2E Playwright contra a API real) e pipeline de CI/CD
+  (`.github/workflows/verify.yml`/`publish-images.yml`) a publicar imagens
+  Docker em `ghcr.io`;
+- checklist de segurança e de privacidade/RGPD auditada item a item na Fase
+  10 (`docs/auditoria-seguranca-fase-10.md`, `docs/privacidade-rgpd.md`),
+  incluindo Content Security Policy, rate limiting dos endpoints de escrita
+  mais expostos e zero vulnerabilidades críticas por resolver;
+- ambiente de homologação simulado por Docker Compose autoalojado
+  (`docker-compose.homolog.yml`), por decisão institucional AWS ainda não
+  confirmada pela DGADR (ver `docs/preparacao-producao-aws.md`);
+- ambiente de produção tecnicamente preparado — não promovido — com as
+  dependências institucionais em aberto explicitamente sinalizadas (domínio,
+  certificado TLS, escolha final de infraestrutura, decisão formal de
+  promoção);
+- pagamentos e registo público continuam excluídos do projeto, conforme as
+  regras obrigatórias do projeto.
+
+O que resta é institucional, não técnico — ver `docs/preparacao-producao-aws.md`,
+secção "Dependências institucionais pendentes". Segunda Fase e Evolução
+Futura (ver "Roadmap") ficam para um ciclo de trabalho seguinte, fora desta
+especificação.
 
 ---
 
