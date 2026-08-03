@@ -210,12 +210,13 @@ publica-as no **Amazon ECR**, autenticando-se via OIDC (sem chaves de acesso fix
 ver `context/features/aws/guia-aws-deployment.md`, Secções 6 e 10), sem qualquer
 *deploy* automático para um ambiente remoto (Fase 5).
 
-**Convenção de tags** (nunca publicada só com `latest` — sai sempre acompanhada de,
-pelo menos, o hash do commit):
+**Convenção de tags** — nunca `latest` (os repositórios ECR têm *tag immutability*
+ativa, incompatível com uma tag que muda de imagem a cada push; ver
+`context/features/aws/guia-aws-deployment.md`, Secção 6):
 
 | Imagem | Tags |
 | --- | --- |
-| `<account-id>.dkr.ecr.eu-west-2.amazonaws.com/filedoc-api` | `sha-<hash-curto>`, `latest` (em `main`), `<versão>` (ao criar uma *tag* Git `vX.Y.Z`) |
+| `<account-id>.dkr.ecr.eu-west-2.amazonaws.com/filedoc-api` | `sha-<hash-curto>`, `<versão>` (ao criar uma *tag* Git `vX.Y.Z`) |
 | `<account-id>.dkr.ecr.eu-west-2.amazonaws.com/filedoc-web` | idem |
 
 `<hash-curto>` é sempre rastreável até ao commit de origem (`git show <hash-curto>`).

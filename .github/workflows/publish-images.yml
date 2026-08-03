@@ -50,17 +50,18 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Gera sempre a tag do hash curto do commit (imutável e rastreável), mais
-      # `latest` em `main` e a versão semântica quando o push é de uma tag `v*.*.*` —
-      # nunca publica só com `latest`, porque estas tags saem sempre juntas do mesmo
-      # build.
+      # Gera sempre a tag do hash curto do commit (imutável e rastreável) e a versão
+      # semântica quando o push é de uma tag `v*.*.*`. Sem `latest`: os repositórios
+      # ECR (Secção 6 do guia AWS) têm "Tag immutability: Enabled" — uma tag, uma vez
+      # publicada, nunca pode ser reatribuída a outra imagem, o que é incompatível com
+      # um alias "latest" que mudaria a cada push. A tag do commit já é a fonte da
+      # verdade (nunca se promove/aponta para "latest" em homologação/produção).
       - uses: docker/metadata-action@v5
         id: meta
         with:
           images: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ matrix.image }}
           tags: |
             type=sha,format=short
-            type=raw,value=latest,enable={{is_default_branch}}
             type=semver,pattern={{version}}
 
       - uses: docker/build-push-action@v6
