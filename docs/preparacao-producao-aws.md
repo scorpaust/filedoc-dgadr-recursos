@@ -33,11 +33,11 @@ utilizador no arranque desta fase.
 
 ## Serviço ECS de produção
 
-- Um serviço ECS Fargate **distinto** do de homologação (caso a homologação
-  venha a migrar para AWS no futuro) — nunca partilhado, para que um
-  problema de capacidade/configuração em homologação nunca afete produção.
-- A imagem promovida para produção é **sempre a mesma imagem já publicada em
-  `ghcr.io`** pelo `publish-images.yml` e já validada em homologação —
+- Um serviço ECS Fargate **distinto** do de homologação — nunca partilhado,
+  para que um problema de capacidade/configuração em homologação nunca
+  afete produção.
+- A imagem promovida para produção é **sempre a mesma imagem já publicada no
+  Amazon ECR** pelo `publish-images.yml` e já validada em homologação —
   nunca reconstruída especificamente para produção. Esta é a mesma decisão
   já tomada na Fase 3 (Deployment) para a configuração runtime da Web
   (`env.js`/`generate-env-config.sh`) e estendida nesta fase à configuração
@@ -51,10 +51,10 @@ utilizador no arranque desta fase.
      antes de trocar o tráfego (mesma regra da Fase 3/5 — nunca automático
      no arranque do contentor);
   3. atualizar a definição de tarefa (*task definition*) do serviço ECS de
-     produção para essa tag, com um `ECR`/registo acessível — se as imagens
-     continuarem em `ghcr.io` (não `ECR`, como a especificação original
-     assumia), confirmar que o serviço ECS consegue autenticar-se a um
-     registo externo, ou promover a imagem para ECR nesse momento;
+     produção para essa tag no Amazon ECR (já o registo real, desde a
+     integração com AWS — ver `context/features/aws/guia-aws-deployment.md`,
+     Secção 15, sobre a separação de repositórios/contas entre homologação e
+     produção);
   4. `deployment circuit breaker` do ECS ativado, para reverter
      automaticamente para a *task definition* anterior se os novos
      *health checks* falharem — equivalente automatizado do

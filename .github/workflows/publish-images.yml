@@ -1,12 +1,13 @@
-# Fase 4 (Deployment) — Pipeline de CI/CD (`context/features/db_ci_cd/fase-4-deploy-cicd.md`).
+# Fase 4 (Deployment) — Pipeline de CI/CD (`context/features/db_ci_cd/fase-4-deploy-cicd.md`),
+# atualizado na integração com AWS (`context/features/aws/guia-aws-deployment.md`, Secção 10).
 #
 # Fluxo de BUILD & PUBLICAÇÃO: só corre ao integrar em `main` (ou ao criar uma tag
 # `v*.*.*` sobre um commit de `main`) — nunca a partir de uma pull request, para que
-# nenhuma origem externa não confiável tenha acesso aos segredos de publicação (o
-# `GITHUB_TOKEN` usado aqui só existe neste contexto de `push`, nunca em `pull_request`).
-# Não faz deploy para nenhum ambiente remoto — isso é tratado, de forma controlada, na
-# Fase 5. Ver a secção "Imagens de produção (Docker)" do `README.md` para a convenção
-# de tags.
+# nenhuma origem externa não confiável tenha acesso à role de publicação (a
+# autenticação AWS via OIDC só é concedida neste contexto de `push`, nunca em
+# `pull_request`). Não faz deploy para nenhum ambiente remoto — isso é tratado, de
+# forma controlada, na Fase 5 / Secção 7 do guia AWS. Ver a secção "Imagens de
+# produção (Docker)" do `README.md` para a convenção de tags.
 name: Publish images
 
 on:
@@ -16,7 +17,11 @@ on:
 
 permissions:
   contents: read
-  packages: write
+  id-token: write
+
+env:
+  AWS_REGION: eu-west-2
+  AWS_ACCOUNT_ID: '651918861047'
 
 jobs:
   build-and-push:
@@ -36,11 +41,14 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - uses: docker/login-action@v3
+      - name: Configure AWS credentials (OIDC, sem chaves fixas)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-actions-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
       # Gera sempre a tag do hash curto do commit (imutável e rastreável), mais
       # `latest` em `main` e a versão semântica quando o push é de uma tag `v*.*.*` —
@@ -49,7 +57,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          images: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ matrix.image }}
           tags: |
             type=sha,format=short
             type=raw,value=latest,enable={{is_default_branch}}

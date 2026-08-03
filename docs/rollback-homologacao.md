@@ -66,8 +66,10 @@ sequência — ver a entrada correspondente em `context/current-feature.md`
 para o resultado exato desta execução. Prova o mecanismo de troca de tag e
 o comportamento dos `HEALTHCHECK`/`depends_on` durante a troca, que é
 exatamente o que este procedimento depende; não prova a etapa de `pull` a
-partir de `ghcr.io` em si (essa fica coberta pelo próprio
-`publish-images.yml`, que já publica e cujo sucesso é pré-condição do
-*deploy*, não deste *rollback*). Repetir este teste contra `ghcr.io` real
-assim que o anfitrião de homologação estiver confirmado, antes de depender
-deste procedimento a sério.
+partir do registo em si (na altura, `ghcr.io`; desde a integração com AWS,
+Amazon ECR — essa etapa fica coberta pelo próprio `publish-images.yml`, que
+já publica e cujo sucesso é pré-condição do *deploy*, não deste *rollback*).
+Repetir este teste contra o **Amazon ECR** real assim que o ambiente de
+homologação em AWS estiver operacional (ver
+`context/features/aws/guia-aws-deployment.md`), antes de depender deste
+procedimento a sério.

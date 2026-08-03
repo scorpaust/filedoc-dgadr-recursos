@@ -1471,7 +1471,7 @@ especificadas e implementadas:
 - suite de testes completa (unitários, integração contra PostgreSQL/MinIO
   isolados, E2E Playwright contra a API real) e pipeline de CI/CD
   (`.github/workflows/verify.yml`/`publish-images.yml`) a publicar imagens
-  Docker em `ghcr.io`;
+  Docker no Amazon ECR;
 - checklist de segurança e de privacidade/RGPD auditada item a item na Fase
   10 (`docs/auditoria-seguranca-fase-10.md`, `docs/privacidade-rgpd.md`),
   incluindo Content Security Policy, rate limiting dos endpoints de escrita

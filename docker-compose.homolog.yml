@@ -3,9 +3,11 @@
 #
 # Ao contrário de docker-compose.prod.yml (que constrói as imagens localmente,
 # para validar os Dockerfiles), este ficheiro nunca constrói nada: promove as
-# imagens já publicadas pelo workflow publish-images.yml (Fase 4) para
-# ghcr.io, identificadas pela mesma tag que passou no pipeline de CI/CD —
-# "correr exatamente os bits validados", não uma reconstrução local.
+# imagens já publicadas pelo workflow publish-images.yml (Fase 4) para o
+# Amazon ECR, identificadas pela mesma tag que passou no pipeline de CI/CD —
+# "correr exatamente os bits validados", não uma reconstrução local. Requer
+# autenticação prévia do Docker local ao ECR (aws ecr get-login-password |
+# docker login ..., ver context/features/aws/guia-aws-deployment.md, Secção 6).
 #
 # O anfitrião concreto onde este ficheiro corre (interno à DGADR ou uma
 # plataforma cloud) é uma decisão institucional ainda não confirmada — ver
@@ -72,7 +74,7 @@ services:
   api:
     # Sem "build:" propositadamente — este ficheiro só promove imagens já
     # publicadas, nunca constrói a partir do código-fonte local.
-    image: "${API_IMAGE:-ghcr.io/scorpaust/filedoc-api}:${IMAGE_TAG:?defina IMAGE_TAG em .env.homolog, ex. sha-abc1234 ou v1.2.3}"
+    image: "${API_IMAGE:-651918861047.dkr.ecr.eu-west-2.amazonaws.com/filedoc-api}:${IMAGE_TAG:?defina IMAGE_TAG em .env.homolog, ex. sha-abc1234 ou v1.2.3}"
     pull_policy: always
     restart: unless-stopped
     environment:
@@ -104,7 +106,7 @@ services:
         condition: service_healthy
 
   web:
-    image: "${WEB_IMAGE:-ghcr.io/scorpaust/filedoc-web}:${IMAGE_TAG:?defina IMAGE_TAG em .env.homolog, ex. sha-abc1234 ou v1.2.3}"
+    image: "${WEB_IMAGE:-651918861047.dkr.ecr.eu-west-2.amazonaws.com/filedoc-web}:${IMAGE_TAG:?defina IMAGE_TAG em .env.homolog, ex. sha-abc1234 ou v1.2.3}"
     pull_policy: always
     restart: unless-stopped
     environment:

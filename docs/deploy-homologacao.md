@@ -10,9 +10,11 @@ definição do ambiente. Este documento assume:
   assume, só exige Docker);
 - um ficheiro `.env.homolog` já preenchido nesse anfitrião, fora do
   repositório (ver `.env.homolog.example` para a lista de variáveis);
-- a imagem a promover já foi publicada em `ghcr.io` pelo workflow
+- a imagem a promover já foi publicada no **Amazon ECR** pelo workflow
   `publish-images.yml` (Fase 4), a partir de um *commit* que passou por
-  `verify.yml` com sucesso.
+  `verify.yml` com sucesso; o Docker local deste anfitrião tem de estar
+  autenticado ao ECR (`aws ecr get-login-password | docker login ...`) antes
+  do `docker compose ... up -d` conseguir fazer `pull`.
 
 ## Passos
 

@@ -204,18 +204,19 @@ por aplicar.
 ### `publish-images.yml` — build & publicação de imagens (só ao integrar em `main`)
 
 Só corre em `push` para `main` ou ao criar uma *tag* `v*.*.*` — nunca a partir de uma
-*pull request*, para que nenhuma origem externa tenha acesso ao `GITHUB_TOKEN` de
+*pull request*, para que nenhuma origem externa tenha acesso à *role* IAM de
 publicação. Reconstrói as imagens de produção (Fase 3) de `apps/api` e `apps/web` e
-publica-as no **GitHub Container Registry** (`ghcr.io`), sem qualquer *deploy*
-automático para um ambiente remoto (Fase 5).
+publica-as no **Amazon ECR**, autenticando-se via OIDC (sem chaves de acesso fixas —
+ver `context/features/aws/guia-aws-deployment.md`, Secções 6 e 10), sem qualquer
+*deploy* automático para um ambiente remoto (Fase 5).
 
 **Convenção de tags** (nunca publicada só com `latest` — sai sempre acompanhada de,
 pelo menos, o hash do commit):
 
 | Imagem | Tags |
 | --- | --- |
-| `ghcr.io/<owner>/filedoc-api` | `sha-<hash-curto>`, `latest` (em `main`), `<versão>` (ao criar uma *tag* Git `vX.Y.Z`) |
-| `ghcr.io/<owner>/filedoc-web` | idem |
+| `<account-id>.dkr.ecr.eu-west-2.amazonaws.com/filedoc-api` | `sha-<hash-curto>`, `latest` (em `main`), `<versão>` (ao criar uma *tag* Git `vX.Y.Z`) |
+| `<account-id>.dkr.ecr.eu-west-2.amazonaws.com/filedoc-web` | idem |
 
 `<hash-curto>` é sempre rastreável até ao commit de origem (`git show <hash-curto>`).
 
