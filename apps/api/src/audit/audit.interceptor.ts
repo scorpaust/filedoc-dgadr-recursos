@@ -5,7 +5,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, concatMap, from, map } from 'rxjs';
 import type { AuthenticatedRequest } from '../auth/auth.types';
 import type { RequestWithCorrelationId } from '../common/correlation-id.middleware';
 import { AUDIT_METADATA_KEY, AuditMetadata } from './audit.decorator';
@@ -37,16 +37,22 @@ export class AuditInterceptor implements NestInterceptor {
 
     const request = context.switchToHttp().getRequest<AuditableRequest>();
     return next.handle().pipe(
-      tap((result) => {
-        void this.auditService.record({
-          actorId: request.user?.id,
-          action: metadata.action,
-          entityType: metadata.entityType,
-          entityId: this.resolveEntityId(request, result),
-          metadata: this.buildMetadata(metadata.metadataKeys, request.body),
-          correlationId: request.correlationId,
-        });
-      }),
+      // `record` nunca lança (ver audit.service.ts), por isso aguardar aqui não arrisca
+      // interromper a resposta — só evita a corrida entre esta escrita e um pedido
+      // seguinte que consulte o audit log logo a seguir (intermitência real observada em
+      // CI, onde o runner é mais lento do que em desenvolvimento local).
+      concatMap((result: unknown) =>
+        from(
+          this.auditService.record({
+            actorId: request.user?.id,
+            action: metadata.action,
+            entityType: metadata.entityType,
+            entityId: this.resolveEntityId(request, result),
+            metadata: this.buildMetadata(metadata.metadataKeys, request.body),
+            correlationId: request.correlationId,
+          }),
+        ).pipe(map(() => result)),
+      ),
     );
   }
 
