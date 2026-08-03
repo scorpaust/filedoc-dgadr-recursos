@@ -70,20 +70,30 @@ export class StorageService implements OnModuleInit {
 
   constructor(configService: ConfigService<EnvironmentVariables, true>) {
     this.bucket = configService.get('STORAGE_BUCKET', { infer: true });
+    const storageAccessKey = configService.get('STORAGE_ACCESS_KEY', {
+      infer: true,
+    });
+    const storageSecretKey = configService.get('STORAGE_SECRET_KEY', {
+      infer: true,
+    });
     this.client = new S3Client({
       endpoint: configService.get('STORAGE_ENDPOINT', { infer: true }),
       region: configService.get('STORAGE_REGION', { infer: true }),
       forcePathStyle: configService.get('STORAGE_FORCE_PATH_STYLE', {
         infer: true,
       }),
-      credentials: {
-        accessKeyId: configService.get('STORAGE_ACCESS_KEY', {
-          infer: true,
-        }),
-        secretAccessKey: configService.get('STORAGE_SECRET_KEY', {
-          infer: true,
-        }),
-      },
+      // Omitido em AWS real (Task Role do ECS): sem "credentials", o SDK usa a
+      // sua cadeia de credenciais por omissão (metadata endpoint do
+      // contentor), sem chaves fixas a gerir/rodar. MinIO local continua a
+      // exigir STORAGE_ACCESS_KEY/STORAGE_SECRET_KEY (env.validation.ts).
+      ...(storageAccessKey !== undefined && storageSecretKey !== undefined
+        ? {
+            credentials: {
+              accessKeyId: storageAccessKey,
+              secretAccessKey: storageSecretKey,
+            },
+          }
+        : {}),
     });
     this.maxUploadSizeBytes = configService.get('MAX_UPLOAD_SIZE', {
       infer: true,

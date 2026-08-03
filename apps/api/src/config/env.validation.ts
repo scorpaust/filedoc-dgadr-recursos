@@ -23,8 +23,8 @@ export interface EnvironmentVariables {
   STORAGE_ENDPOINT: string;
   STORAGE_REGION: string;
   STORAGE_BUCKET: string;
-  STORAGE_ACCESS_KEY: string;
-  STORAGE_SECRET_KEY: string;
+  STORAGE_ACCESS_KEY: string | undefined;
+  STORAGE_SECRET_KEY: string | undefined;
   STORAGE_FORCE_PATH_STYLE: boolean;
   MAX_UPLOAD_SIZE: number;
   MAX_ATTACHMENTS_PER_TICKET: number;
@@ -45,6 +45,17 @@ function requireNonEmptyString(
     throw new Error(
       `${key} não está definida. Configure-a em apps/api/.env (ver apps/api/.env.example) antes de arrancar a aplicação.`,
     );
+  }
+  return value;
+}
+
+function readOptionalNonEmptyString(
+  config: Record<string, unknown>,
+  key: string,
+): string | undefined {
+  const value = config[key];
+  if (typeof value !== 'string' || value.trim() === '') {
+    return undefined;
   }
   return value;
 }
@@ -133,8 +144,22 @@ export function validate(
 
   const storageEndpoint = requireNonEmptyString(config, 'STORAGE_ENDPOINT');
   const storageBucket = requireNonEmptyString(config, 'STORAGE_BUCKET');
-  const storageAccessKey = requireNonEmptyString(config, 'STORAGE_ACCESS_KEY');
-  const storageSecretKey = requireNonEmptyString(config, 'STORAGE_SECRET_KEY');
+  // Opcionais: MinIO local exige-as (credenciais fixas); num ambiente AWS real,
+  // omitir ambas para que o SDK use a cadeia de credenciais por omissão (a Task
+  // Role do ECS, sem chaves fixas a gerir — ver guia-aws-deployment.md, Secção 4).
+  const storageAccessKey = readOptionalNonEmptyString(
+    config,
+    'STORAGE_ACCESS_KEY',
+  );
+  const storageSecretKey = readOptionalNonEmptyString(
+    config,
+    'STORAGE_SECRET_KEY',
+  );
+  if ((storageAccessKey === undefined) !== (storageSecretKey === undefined)) {
+    throw new Error(
+      'STORAGE_ACCESS_KEY e STORAGE_SECRET_KEY têm de estar ambas definidas, ou ambas omissas (para usar a cadeia de credenciais por omissão do SDK AWS).',
+    );
+  }
   const storageRegion =
     typeof config['STORAGE_REGION'] === 'string' &&
     config['STORAGE_REGION'].trim() !== ''
