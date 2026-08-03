@@ -54,6 +54,10 @@ RUN apt-get update \
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
+# Motores do CLI `prisma` (distintos do usado pelo Client, copiado acima) — só ficam
+# descarregados no stage "build" porque aí corre como root; sem isto, `prisma migrate
+# deploy` tentaria descarregá-los aqui, e falharia por permissões (USER node, abaixo).
+COPY --from=build /app/apps/api/node_modules/@prisma/engines ./apps/api/node_modules/@prisma/engines
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/prisma/schema.prisma ./apps/api/prisma/schema.prisma
 COPY --from=build /app/apps/api/prisma/migrations ./apps/api/prisma/migrations
