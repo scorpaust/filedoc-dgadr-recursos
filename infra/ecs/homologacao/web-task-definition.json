@@ -1,0 +1,53 @@
+{
+  "family": "default-filedoc-web-homologacao",
+  "taskRoleArn": "arn:aws:iam::651918861047:role/ECS-role-be4d759e",
+  "executionRoleArn": "arn:aws:iam::651918861047:role/ECS-role-be4d759e",
+  "networkMode": "awsvpc",
+  "volumes": [],
+  "placementConstraints": [],
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "containerDefinitions": [
+    {
+      "name": "Main",
+      "image": "651918861047.dkr.ecr.eu-west-2.amazonaws.com/filedoc-web:sha-4e6936c",
+      "cpu": 256,
+      "memoryReservation": 512,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp",
+          "name": "main-8080-tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "STORAGE_PUBLIC_ORIGIN",
+          "value": "https://filedoc-recursos-homologacao-651918861047.s3.eu-west-2.amazonaws.com"
+        },
+        {
+          "name": "API_URL",
+          "value": "https://fi-de73aab2de7848f896cf8f436b824ddc.ecs.eu-west-2.on.aws/api/v1"
+        }
+      ],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "secrets": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/aws/ecs/default/filedoc-web-homologacao-c8ec",
+          "awslogs-region": "eu-west-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

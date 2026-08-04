@@ -1,0 +1,61 @@
+{
+  "family": "default-filedoc-api-homologacao",
+  "taskRoleArn": "arn:aws:iam::651918861047:role/ECS-role-be4d759e",
+  "executionRoleArn": "arn:aws:iam::651918861047:role/ECS-role-be4d759e",
+  "networkMode": "awsvpc",
+  "volumes": [],
+  "placementConstraints": [],
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "containerDefinitions": [
+    {
+      "name": "Main",
+      "image": "651918861047.dkr.ecr.eu-west-2.amazonaws.com/filedoc-api:sha-1645a94",
+      "cpu": 256,
+      "memoryReservation": 512,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000,
+          "protocol": "tcp",
+          "name": "main-3000-tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        { "name": "STORAGE_ENDPOINT", "value": "https://s3.eu-west-2.amazonaws.com" },
+        { "name": "CORS_ALLOWED_ORIGINS", "value": "https://fi-cf0f7589fd3347419e0f68d43b57a9fe.ecs.eu-west-2.on.aws" },
+        { "name": "STORAGE_BUCKET", "value": "filedoc-recursos-homologacao-651918861047" },
+        { "name": "STORAGE_FORCE_PATH_STYLE", "value": "false" },
+        { "name": "TRUST_PROXY", "value": "true" },
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "STORAGE_REGION", "value": "eu-west-2" }
+      ],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "secrets": [
+        {
+          "name": "SESSION_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:eu-west-2:651918861047:secret:filedoc/homologacao/api-n7NlrT:SESSION_SECRET::"
+        },
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:secretsmanager:eu-west-2:651918861047:secret:filedoc/homologacao/api-n7NlrT:DATABASE_URL::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/aws/ecs/default/filedoc-api-homologacao-1f14",
+          "awslogs-region": "eu-west-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

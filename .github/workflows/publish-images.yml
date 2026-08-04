@@ -33,9 +33,13 @@ jobs:
           - name: api
             dockerfile: apps/api/Dockerfile
             image: filedoc-api
+            ecs-service: filedoc-api-homologacao
+            ecs-task-definition: infra/ecs/homologacao/api-task-definition.json
           - name: web
             dockerfile: apps/web/Dockerfile
             image: filedoc-web
+            ecs-service: filedoc-web-homologacao
+            ecs-task-definition: infra/ecs/homologacao/web-task-definition.json
     steps:
       - uses: actions/checkout@v4
 
@@ -49,6 +53,10 @@ jobs:
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Hash curto do commit
+        id: vars
+        run: echo "sha_short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
 
       # Gera sempre a tag do hash curto do commit (imutável e rastreável) e a versão
       # semântica quando o push é de uma tag `v*.*.*`. Sem `latest`: os repositórios
@@ -73,3 +81,57 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+      - name: Preparar nova task definition com a imagem publicada
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ matrix.ecs-task-definition }}
+          container-name: Main
+          image: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ matrix.image }}:sha-${{ steps.vars.outputs.sha_short }}
+
+      # Regista já a nova revisão (com a imagem nova) para a aplicar às migrações
+      # abaixo e ao serviço a seguir — nunca as duas coisas em revisões diferentes.
+      - name: Registar nova revisão da task definition
+        id: register-task-def
+        run: |
+          TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://${{ steps.render-task-def.outputs.task-definition }} \
+            --region ${{ env.AWS_REGION }} \
+            --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "Nova revisão: $TASK_DEF_ARN"
+          echo "task_def_arn=$TASK_DEF_ARN" >> "$GITHUB_OUTPUT"
+
+      # Secção 9 do guia AWS — migrações sempre como passo explícito, contra a
+      # revisão que vai mesmo ser publicada (nunca a anterior — um commit pode trazer
+      # migrações novas), antes de trocar o tráfego; nunca automático no arranque do
+      # contentor (decisão da Fase 3). "prisma migrate deploy" é idempotente — sem
+      # pendentes, não faz nada. Só a imagem da API tem schema/migrations a aplicar.
+      - name: Aplicar migrações Prisma (tarefa ECS pontual, imagem nova)
+        if: matrix.name == 'api'
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster default \
+            --task-definition ${{ steps.register-task-def.outputs.task_def_arn }} \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[subnet-09638d8934295b6b6],securityGroups=[sg-0ddef845736b03a95],assignPublicIp=ENABLED}" \
+            --overrides "{\"containerOverrides\":[{\"name\":\"Main\",\"command\":[\"node_modules/.bin/prisma\",\"migrate\",\"deploy\",\"--schema\",\"prisma/schema.prisma\"]}]}" \
+            --region ${{ env.AWS_REGION }} \
+            --query 'tasks[0].taskArn' --output text)
+          echo "Tarefa de migração: $TASK_ARN"
+          aws ecs wait tasks-stopped --cluster default --tasks "$TASK_ARN" --region ${{ env.AWS_REGION }}
+          EXIT_CODE=$(aws ecs describe-tasks --cluster default --tasks "$TASK_ARN" --region ${{ env.AWS_REGION }} --query 'tasks[0].containers[0].exitCode' --output text)
+          echo "Código de saída da migração: $EXIT_CODE"
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "::error::prisma migrate deploy falhou (exit code $EXIT_CODE) — deploy interrompido, serviço ECS não atualizado."
+            exit 1
+          fi
+
+      - name: Atualizar serviço ECS (homologação)
+        run: |
+          aws ecs update-service \
+            --cluster default \
+            --service ${{ matrix.ecs-service }} \
+            --task-definition ${{ steps.register-task-def.outputs.task_def_arn }} \
+            --region ${{ env.AWS_REGION }}
+          aws ecs wait services-stable --cluster default --services ${{ matrix.ecs-service }} --region ${{ env.AWS_REGION }}

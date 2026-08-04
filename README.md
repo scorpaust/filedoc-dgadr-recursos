@@ -201,14 +201,18 @@ vulnerabilidades críticas) antes de permitir *merge* — configuração de prot
 branch feita diretamente no GitHub (fora do âmbito de ficheiros do repositório), ainda
 por aplicar.
 
-### `publish-images.yml` — build & publicação de imagens (só ao integrar em `main`)
+### `publish-images.yml` — build, publicação e deploy contínuo em homologação (só ao integrar em `main`)
 
 Só corre em `push` para `main` ou ao criar uma *tag* `v*.*.*` — nunca a partir de uma
 *pull request*, para que nenhuma origem externa tenha acesso à *role* IAM de
-publicação. Reconstrói as imagens de produção (Fase 3) de `apps/api` e `apps/web` e
-publica-as no **Amazon ECR**, autenticando-se via OIDC (sem chaves de acesso fixas —
-ver `context/features/aws/guia-aws-deployment.md`, Secções 6 e 10), sem qualquer
-*deploy* automático para um ambiente remoto (Fase 5).
+publicação. Reconstrói as imagens de produção (Fase 3) de `apps/api` e `apps/web`,
+publica-as no **Amazon ECR** (autenticando-se via OIDC, sem chaves de acesso fixas) e,
+de seguida, atualiza automaticamente os serviços ECS de **homologação**: aplica
+`prisma migrate deploy` numa tarefa ECS pontual contra a revisão da task definition
+que vai mesmo ser publicada (nunca a anterior), e só depois atualiza o serviço —
+nunca automático no arranque do contentor (decisão da Fase 3), sempre migrações antes
+de trocar o tráfego (ver `context/features/aws/guia-aws-deployment.md`, Secções 6, 9 e
+10). Produção não é tocada por este workflow (promoção manual, Secção 15).
 
 **Convenção de tags** — nunca `latest` (os repositórios ECR têm *tag immutability*
 ativa, incompatível com uma tag que muda de imagem a cada push; ver
