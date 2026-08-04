@@ -20,13 +20,18 @@ API_ORIGIN=$(printf '%s' "$API_URL" | sed -E 's#^(https?://[^/]+).*#\1#')
 # serviço "minio" vs. porta publicada no anfitrião).
 STORAGE_PUBLIC_ORIGIN="${STORAGE_PUBLIC_ORIGIN:-http://localhost:9000}"
 
-# style-src inclui 'unsafe-inline': o Beasties do Angular CLI injeta CSS
-# crítico inline em <head> em cada build (conteúdo variável, não hasheável de
-# forma estável) e a encapsulação de vista emulada (omissão do Angular)
-# injeta <style> por componente sem nonce — eliminar esta relaxação exigiria
-# desativar a otimização de CSS crítico e configurar ngCspNonce, fora do
-# âmbito desta fase de hardening (ver docs/auditoria-seguranca-fase-10.md).
-CSP="default-src 'self'; script-src 'self' '${SCRIPT_HASH}'; style-src 'self' 'unsafe-inline'; img-src 'self' data: ${STORAGE_PUBLIC_ORIGIN}; font-src 'self'; connect-src 'self' ${API_ORIGIN}; media-src 'self' ${STORAGE_PUBLIC_ORIGIN}; frame-src 'self' ${STORAGE_PUBLIC_ORIGIN}; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'"
+# style-src inclui 'unsafe-inline': a encapsulação de vista emulada (omissão
+# do Angular) injeta <style> por componente sem nonce — eliminar esta
+# relaxação exigiria configurar ngCspNonce, fora do âmbito desta fase de
+# hardening (ver docs/auditoria-seguranca-fase-10.md).
+#
+# frame-src/media-src incluem API_ORIGIN (não só STORAGE_PUBLIC_ORIGIN): o
+# browser carrega PDFs/vídeos através de um endpoint da própria API
+# (GET /resources/:id/file — ver resource.service.ts, fileUrl()), que
+# redireciona para o URL pré-assinado do S3; sem API_ORIGIN aqui, esse
+# pedido inicial ao domínio da API é bloqueado pela CSP antes de sequer
+# chegar ao redireciono.
+CSP="default-src 'self'; script-src 'self' '${SCRIPT_HASH}'; style-src 'self' 'unsafe-inline'; img-src 'self' data: ${STORAGE_PUBLIC_ORIGIN}; font-src 'self'; connect-src 'self' ${API_ORIGIN}; media-src 'self' ${API_ORIGIN} ${STORAGE_PUBLIC_ORIGIN}; frame-src 'self' ${API_ORIGIN} ${STORAGE_PUBLIC_ORIGIN}; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'"
 
 cat > /etc/nginx/conf.d/security-headers.conf <<EOF
 add_header Content-Security-Policy "${CSP}" always;
