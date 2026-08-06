@@ -84,11 +84,14 @@ services:
       # Autenticação real e armazenamento de objetos na API já existem desde
       # a via de Integração de Funcionalidades (Fases 1-2) — variáveis
       # ligadas na Fase 10 (Hardening), lidas de .env.homolog (nunca
-      # commitado, ver .env.homolog.example). STORAGE_ENDPOINT usa o nome do
-      # serviço Docker ("minio"), não um endereço público: é o contentor da
-      # API que precisa de o resolver na rede interna do Compose.
+      # commitado, ver .env.homolog.example). STORAGE_ENDPOINT tem de ser
+      # alcançável pelo BROWSER (a API só gera URLs pré-assinados, nunca
+      # reencaminha bytes — ver storage.service.ts), não a rede interna do
+      # Compose: por omissão assume "minio" (só funciona dentro do próprio
+      # anfitrião/rede Docker), mas num anfitrião público tem de apontar
+      # para o endereço público do MinIO/S3 (ver .env.homolog.example).
       SESSION_SECRET: ${SESSION_SECRET:?defina SESSION_SECRET em .env.homolog}
-      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-http://minio:9000}
       STORAGE_BUCKET: ${STORAGE_BUCKET:?defina STORAGE_BUCKET em .env.homolog}
       STORAGE_ACCESS_KEY: ${MINIO_ROOT_USER}
       STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
