@@ -1,13 +1,17 @@
-# Fase 4 (Deployment) — Pipeline de CI/CD (`context/features/db_ci_cd/fase-4-deploy-cicd.md`),
-# atualizado na integração com AWS (`context/features/aws/guia-aws-deployment.md`, Secção 10).
+# Fase 4 (Deployment) — Pipeline de CI/CD (`context/features/db_ci_cd/fase-4-deploy-cicd.md`).
 #
 # Fluxo de BUILD & PUBLICAÇÃO: só corre ao integrar em `main` (ou ao criar uma tag
 # `v*.*.*` sobre um commit de `main`) — nunca a partir de uma pull request, para que
 # nenhuma origem externa não confiável tenha acesso à role de publicação (a
 # autenticação AWS via OIDC só é concedida neste contexto de `push`, nunca em
-# `pull_request`). Não faz deploy para nenhum ambiente remoto — isso é tratado, de
-# forma controlada, na Fase 5 / Secção 7 do guia AWS. Ver a secção "Imagens de
-# produção (Docker)" do `README.md` para a convenção de tags.
+# `pull_request`). Ver a secção "Imagens de produção (Docker)" do `README.md` para
+# a convenção de tags.
+#
+# Deploy de homologação: instância Lightsail (não ECS Express Mode — decisão
+# registada em `docs/deploy-homologacao.md`, motivada por custo). O deploy corre
+# por SSH, correndo o `docker-compose.homolog.yml` já publicado no repositório
+# diretamente no anfitrião — nunca constrói lá, só promove as imagens já
+# publicadas nesta job para o ECR.
 name: Publish images
 
 on:
@@ -34,13 +38,9 @@ jobs:
           - name: api
             dockerfile: apps/api/Dockerfile
             image: filedoc-api
-            ecs-service: filedoc-api-homologacao
-            ecs-task-definition: infra/ecs/homologacao/api-task-definition.json
           - name: web
             dockerfile: apps/web/Dockerfile
             image: filedoc-web
-            ecs-service: filedoc-web-homologacao
-            ecs-task-definition: infra/ecs/homologacao/web-task-definition.json
     steps:
       - uses: actions/checkout@v4
 
@@ -55,16 +55,12 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Hash curto do commit
-        id: vars
-        run: echo "sha_short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
-
       # Gera sempre a tag do hash curto do commit (imutável e rastreável) e a versão
       # semântica quando o push é de uma tag `v*.*.*`. Sem `latest`: os repositórios
-      # ECR (Secção 6 do guia AWS) têm "Tag immutability: Enabled" — uma tag, uma vez
-      # publicada, nunca pode ser reatribuída a outra imagem, o que é incompatível com
-      # um alias "latest" que mudaria a cada push. A tag do commit já é a fonte da
-      # verdade (nunca se promove/aponta para "latest" em homologação/produção).
+      # ECR têm "Tag immutability: Enabled" — uma tag, uma vez publicada, nunca pode
+      # ser reatribuída a outra imagem, o que é incompatível com um alias "latest"
+      # que mudaria a cada push. A tag do commit já é a fonte da verdade (nunca se
+      # promove/aponta para "latest" em homologação/produção).
       - uses: docker/metadata-action@v5
         id: meta
         with:
@@ -83,56 +79,69 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
-      - name: Preparar nova task definition com a imagem publicada
-        id: render-task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ${{ matrix.ecs-task-definition }}
-          container-name: Main
-          image: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ matrix.image }}:sha-${{ steps.vars.outputs.sha_short }}
+  deploy-homologacao:
+    name: deploy (Lightsail, homologação)
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hash curto do commit
+        id: vars
+        run: echo "sha_short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
 
-      # Regista já a nova revisão (com a imagem nova) para a aplicar às migrações
-      # abaixo e ao serviço a seguir — nunca as duas coisas em revisões diferentes.
-      - name: Registar nova revisão da task definition
-        id: register-task-def
+      # A instância autentica-se ao ECR com a sua própria IAM user (só pull, sem
+      # chaves de administrador) — o SSH só transporta o IMAGE_TAG a promover,
+      # nunca credenciais AWS. Migrações Prisma correm como passo pontual, contra a
+      # revisão que vai mesmo servir tráfego, antes de "up -d" trocar os
+      # containers — mesmo princípio do antigo passo `aws ecs run-task` (nunca
+      # automático no arranque do contentor).
+      - name: Deploy via SSH (pull, migração, up -d)
+        env:
+          SSH_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          SSH_USER: ${{ secrets.LIGHTSAIL_SSH_USER }}
+          IMAGE_TAG: sha-${{ steps.vars.outputs.sha_short }}
         run: |
-          TASK_DEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://${{ steps.render-task-def.outputs.task-definition }} \
-            --region ${{ env.AWS_REGION }} \
-            --query 'taskDefinition.taskDefinitionArn' --output text)
-          echo "Nova revisão: $TASK_DEF_ARN"
-          echo "task_def_arn=$TASK_DEF_ARN" >> "$GITHUB_OUTPUT"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LIGHTSAIL_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
-      # Secção 9 do guia AWS — migrações sempre como passo explícito, contra a
-      # revisão que vai mesmo ser publicada (nunca a anterior — um commit pode trazer
-      # migrações novas), antes de trocar o tráfego; nunca automático no arranque do
-      # contentor (decisão da Fase 3). "prisma migrate deploy" é idempotente — sem
-      # pendentes, não faz nada. Só a imagem da API tem schema/migrations a aplicar.
-      - name: Aplicar migrações Prisma (tarefa ECS pontual, imagem nova)
-        if: matrix.name == 'api'
-        run: |
-          TASK_ARN=$(aws ecs run-task \
-            --cluster default \
-            --task-definition ${{ steps.register-task-def.outputs.task_def_arn }} \
-            --launch-type FARGATE \
-            --network-configuration "awsvpcConfiguration={subnets=[subnet-09638d8934295b6b6],securityGroups=[sg-0ddef845736b03a95],assignPublicIp=ENABLED}" \
-            --overrides "{\"containerOverrides\":[{\"name\":\"Main\",\"command\":[\"node_modules/.bin/prisma\",\"migrate\",\"deploy\",\"--schema\",\"prisma/schema.prisma\"]}]}" \
-            --region ${{ env.AWS_REGION }} \
-            --query 'tasks[0].taskArn' --output text)
-          echo "Tarefa de migração: $TASK_ARN"
-          aws ecs wait tasks-stopped --cluster default --tasks "$TASK_ARN" --region ${{ env.AWS_REGION }}
-          EXIT_CODE=$(aws ecs describe-tasks --cluster default --tasks "$TASK_ARN" --region ${{ env.AWS_REGION }} --query 'tasks[0].containers[0].exitCode' --output text)
-          echo "Código de saída da migração: $EXIT_CODE"
-          if [ "$EXIT_CODE" != "0" ]; then
-            echo "::error::prisma migrate deploy falhou (exit code $EXIT_CODE) — deploy interrompido, serviço ECS não atualizado."
-            exit 1
-          fi
+          ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" bash -s -- "$IMAGE_TAG" <<'REMOTE'
+            set -euo pipefail
+            cd /opt/filedoc
+            export IMAGE_TAG="$1"
 
-      - name: Atualizar serviço ECS (homologação)
+            aws ecr get-login-password --region eu-west-2 \
+              | docker login --username AWS --password-stdin \
+                  651918861047.dkr.ecr.eu-west-2.amazonaws.com
+
+            docker compose -f docker-compose.homolog.yml --env-file .env.homolog pull
+
+            echo "A aplicar migrações Prisma (imagem nova, antes de trocar tráfego)..."
+            set +e
+            docker compose -f docker-compose.homolog.yml --env-file .env.homolog \
+              run --rm --no-deps api \
+              node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma
+            EXIT_CODE=$?
+            set -e
+            echo "Código de saída da migração: $EXIT_CODE"
+            if [ "$EXIT_CODE" != "0" ]; then
+              echo "::error::prisma migrate deploy falhou (exit code $EXIT_CODE) — deploy interrompido, containers não atualizados."
+              exit 1
+            fi
+
+            docker compose -f docker-compose.homolog.yml --env-file .env.homolog up -d
+            docker image prune -f
+          REMOTE
+
+      - name: Verificação pós-deploy (/api/v1/health)
         run: |
-          aws ecs update-service \
-            --cluster default \
-            --service ${{ matrix.ecs-service }} \
-            --task-definition ${{ steps.register-task-def.outputs.task_def_arn }} \
-            --region ${{ env.AWS_REGION }}
-          aws ecs wait services-stable --cluster default --services ${{ matrix.ecs-service }} --region ${{ env.AWS_REGION }}
+          for i in $(seq 1 15); do
+            if curl -fsS "https://filedoc-homologacao.duckdns.org/api/v1/health"; then
+              echo "API saudável."
+              exit 0
+            fi
+            echo "Tentativa $i falhou, a repetir em 5s..."
+            sleep 5
+          done
+          echo "::error::API não respondeu saudável após o deploy."
+          exit 1
