@@ -118,9 +118,14 @@ jobs:
 
             echo "A aplicar migrações Prisma (imagem nova, antes de trocar tráfego)..."
             set +e
+            # "< /dev/null" é essencial aqui: sem stdin redirecionado, "docker compose
+            # run" consome os bytes restantes deste script (herdados do heredoc SSH),
+            # fazendo os passos seguintes (up -d) serem ignorados em silêncio — SSH
+            # ainda sai com código 0, mascarando a falha (descoberto ao testar
+            # manualmente: o deploy "tinha sucesso" mas os containers nunca mudavam).
             docker compose -f docker-compose.homolog.yml --env-file .env.homolog \
-              run --rm --no-deps api \
-              node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma
+              run --rm --no-deps -T api \
+              node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma < /dev/null
             EXIT_CODE=$?
             set -e
             echo "Código de saída da migração: $EXIT_CODE"
